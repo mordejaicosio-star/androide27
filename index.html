@@ -224,7 +224,19 @@ nav button[aria-current="page"]{color:var(--accent)}
   margin-block-start:16px; font-size:14px; inline-size:100%; text-align:start;
   border-inline-start:3px solid var(--sin)}
 .resumen-caja{margin-block-start:26px; border-block-start:1px solid var(--line); padding-block-start:18px}
-.resumen-caja h3{font-size:18px; margin-block-end:8px}
+.resumen-caja .fila{display:flex; align-items:center; gap:10px; margin-block-end:8px}
+.resumen-caja h3{font-size:18px; flex:1}
+.recargar{border:1px solid var(--line); border-radius:9px; padding:6px 12px;
+  font-size:13px; color:var(--muted); flex:none}
+.recargar.girando{opacity:.5}
+.resumen-texto{white-space:pre-wrap; font-size:14.5px; line-height:1.55}
+.resumen-texto .bloque{font-family:"Frank Ruhl Libre",serif; font-size:15px;
+  color:var(--accent); margin-block:14px 6px; display:block}
+.resumen-linea{display:flex; gap:9px; align-items:flex-start; padding:5px 0}
+.resumen-linea .cont{flex:1}
+.resumen-linea .mundo-tag{font-size:11.5px; padding:1px 7px; border-radius:999px;
+  background:var(--raised); color:var(--muted); margin-inline-end:6px; white-space:nowrap}
+.cuando-resumen{font-size:12.5px; color:var(--muted); margin:0 0 12px}
 .resumen-caja p{margin:0 0 9px; font-size:14.5px; color:var(--muted)}
 
 /* ---------- FILTRO ACTIVO ------------------------------------------ */
@@ -264,9 +276,12 @@ nav button[aria-current="page"]{color:var(--accent)}
   <main id="view-hoy">
     <div id="panel"></div>
     <div class="resumen-caja">
-      <h3>Resumen del día</h3>
-      <p>Todavía no hay resumen: falta conectar el motor con tus correos. Cuando lo hagamos, aquí vas a leer qué va primero y por qué.</p>
-      <p class="firma">— Mordejai Clonsio</p>
+      <div class="fila">
+        <h3>Resumen del día</h3>
+        <button class="recargar" id="recargarBtn">Actualizar</button>
+      </div>
+      <p class="cuando-resumen" id="resumenFecha"></p>
+      <div id="resumenTexto"></div>
     </div>
   </main>
 
@@ -587,6 +602,97 @@ function dibujarPanel(){
     a.onclick = () => { filtro = null; ir("bandeja"); dibujar(); };
     p.appendChild(a);
   }
+}
+
+/* ====================================================================
+   PASO 4d — Traer el resumen desde el motor
+   La app le pide al script de Google el último resumen escrito.
+   Se guarda en el teléfono para que se vea aunque no haya señal.
+==================================================================== */
+async function traerResumen(silencioso){
+  const caja = document.getElementById("resumenTexto");
+  if(!ajustes.endpoint || !ajustes.token){
+    pintarResumen(null, "Falta conectar el motor. En Ajustes, pega la dirección y la palabra secreta.");
+    return;
+  }
+  const btn = document.getElementById("recargarBtn");
+  if(btn){ btn.classList.add("girando"); btn.textContent = "Buscando…"; }
+
+  try{
+    const url = ajustes.endpoint +
+      (ajustes.endpoint.includes("?") ? "&" : "?") +
+      "token=" + encodeURIComponent(ajustes.token);
+    const r = await fetch(url);
+    const d = await r.json();
+
+    if(!d.ok){
+      pintarResumen(null, d.error === "token"
+        ? "La palabra secreta no coincide con la del motor. Revísala en Ajustes."
+        : "El motor respondió con un error.");
+      return;
+    }
+    if(!d.resumen){
+      pintarResumen(null, "El motor todavía no ha escrito ningún resumen. Genera uno desde la hoja.");
+      return;
+    }
+    ajustes.ultimoResumen = d.resumen;
+    ajustes.ultimaFecha   = d.fecha || new Date().toISOString();
+    guardar("ajustes", ajustes);
+    pintarResumen(ajustes.ultimoResumen, null);
+    if(!silencioso) aviso("Resumen actualizado");
+
+  }catch(e){
+    if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
+    else pintarResumen(null, "No se pudo conectar con el motor. ¿Hay señal?");
+  }finally{
+    if(btn){ btn.classList.remove("girando"); btn.textContent = "Actualizar"; }
+  }
+}
+
+/* Convierte el texto plano del motor en algo legible:
+   los títulos en color, y cada [Mundo] como etiqueta. */
+function pintarResumen(texto, mensaje){
+  const caja = document.getElementById("resumenTexto");
+  const fecha = document.getElementById("resumenFecha");
+  if(!caja) return;
+  caja.innerHTML = "";
+
+  if(!texto){
+    fecha.textContent = "";
+    const p = document.createElement("p");
+    p.className = "empty"; p.style.marginBlockStart = "0";
+    p.textContent = mensaje || "";
+    caja.appendChild(p);
+    return;
+  }
+
+  fecha.textContent = ajustes.ultimaFecha
+    ? "Generado " + cuando(ajustes.ultimaFecha) : "";
+
+  texto.split("\n").forEach(linea => {
+    const l = linea.trim();
+    if(!l) return;
+
+    if(/^(PRIMERO|DESPUÉS|DESPUES|DESCARTADO)/i.test(l)){
+      const b = document.createElement("span"); b.className = "bloque";
+      b.textContent = l; caja.appendChild(b); return;
+    }
+
+    const fila = document.createElement("div"); fila.className = "resumen-linea";
+    const cont = document.createElement("div"); cont.className = "cont";
+    const m = l.match(/^-?\s*\[([^\]]+)\]\s*(.*)$/);
+    if(m){
+      const tag = document.createElement("span"); tag.className = "mundo-tag";
+      tag.textContent = m[1];
+      const ctx = CONTEXTOS.find(c => c.nombre.toLowerCase() === m[1].toLowerCase());
+      if(ctx){ tag.style.background = ctx.color; tag.style.color = "#fff"; }
+      cont.append(tag, document.createTextNode(m[2]));
+    } else {
+      cont.textContent = l.replace(/^-\s*/, "");
+    }
+    fila.appendChild(cont);
+    caja.appendChild(fila);
+  });
 }
 
 /* ====================================================================
@@ -1123,6 +1229,7 @@ function ir(v){
   window.scrollTo(0,0);
 }
 document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
+document.getElementById("recargarBtn").onclick = () => traerResumen(false);
 
 /* ====================================================================
    PASO 12 — Ajustes
@@ -1305,6 +1412,8 @@ document.getElementById("dateLine").textContent =
 pintarNombres(); aplicarTema(); dibujar();
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 recogerEntrantes();
+if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
+traerResumen(true);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) recogerEntrantes(); });
 </script>
 </body>
