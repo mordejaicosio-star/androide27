@@ -185,18 +185,32 @@ nav button[aria-current="page"]{color:var(--accent)}
 #intro small{color:var(--muted); font-size:13px; margin-block-start:-12px}
 
 /* ---------- PANEL GENERAL ------------------------------------------ */
-.total{display:flex; align-items:baseline; gap:11px; margin-block:6px 4px}
+.total{display:flex; align-items:baseline; gap:11px; margin-block:6px 2px}
 .total b{font-family:"Frank Ruhl Libre",serif; font-weight:500; font-size:52px; line-height:1}
 .total span{color:var(--muted); font-size:14.5px}
-.mundos{margin-block-start:18px}
-.mundo{inline-size:100%; text-align:start; display:flex; align-items:center; gap:12px;
-  padding:12px 4px; border-block-end:1px solid var(--line)}
+.total-sub{color:var(--muted); font-size:13.5px; margin:0 0 4px}
+
+.mundos{margin-block-start:14px}
+.mundo{border-block-end:1px solid var(--line)}
 .mundo:last-child{border-block-end:none}
-.mundo .nom{flex:1; font-size:15px}
-.mundo .num{font-family:"Frank Ruhl Libre",serif; font-size:21px; min-inline-size:26px; text-align:end}
-.mundo .prop{display:block; block-size:3px; border-radius:3px; background:var(--m); inline-size:var(--w,0%)}
-.mundo .medida{inline-size:64px; background:var(--line); block-size:3px; border-radius:3px; overflow:hidden}
-.mundo.vacio{opacity:.4}
+.mundo-cab{inline-size:100%; text-align:start; display:flex; align-items:center; gap:11px;
+  padding:13px 2px}
+.mundo-cab .marca{inline-size:9px; block-size:9px; border-radius:50%; background:var(--m); flex:none}
+.mundo-cab .nom{flex:1; font-size:15.5px}
+.mundo-cab .num{font-family:"Frank Ruhl Libre",serif; font-size:20px; color:var(--text)}
+.mundo-cab .fle{color:var(--muted); font-size:12px; inline-size:14px; text-align:end;
+  transition:transform .2s}
+.mundo.abierto .fle{transform:rotate(90deg)}
+.mundo.vacio .nom, .mundo.vacio .num{opacity:.4}
+
+.mundo-cuerpo{padding:0 2px 13px; margin-block-start:-3px}
+.linea{display:flex; gap:9px; align-items:flex-start; padding:7px 0; inline-size:100%; text-align:start}
+.linea .bolita{inline-size:15px; block-size:15px; border:1.5px solid var(--line);
+  border-radius:5px; flex:none; margin-block-start:3px}
+.linea .txt{flex:1; font-size:14px; color:var(--muted); line-height:1.4}
+.linea .cuando{color:var(--m); font-size:12.5px; white-space:nowrap}
+.ver-todo{font-size:13.5px; color:var(--accent); padding:6px 0; inline-size:100%; text-align:start}
+
 .aviso-sin{background:var(--raised); border-radius:var(--radius); padding:13px 15px;
   margin-block-start:16px; font-size:14px; inline-size:100%; text-align:start;
   border-inline-start:3px solid var(--sin)}
@@ -420,6 +434,7 @@ document.getElementById("themeSeg").onclick = e => {
 ==================================================================== */
 const urlsAbiertas = [];
 let filtro = null;          // si eliges un mundo en el panel, solo se ve ése
+const abiertos = new Set();  // qué mundos están desplegados en el panel
 
 function dibujar(){
   const cont = document.getElementById("list"); cont.innerHTML="";
@@ -450,41 +465,94 @@ function dibujarPanel(){
   p.innerHTML = "";
 
   const pendientes = items.filter(i => !i.hecho);
-  const sinCtx     = pendientes.filter(i => !i.ctx).length;
-  const mayor      = Math.max(1, ...CONTEXTOS.map(c => pendientes.filter(i=>i.ctx===c.id).length));
+  const sinCtx     = pendientes.filter(i => !i.ctx);
 
+  // ---- el número grande ----
   const tot = document.createElement("div"); tot.className = "total";
   const b = document.createElement("b"); b.textContent = pendientes.length;
   const sp = document.createElement("span");
   sp.textContent = pendientes.length === 1 ? "cosa por hacer" : "cosas por hacer";
   tot.append(b, sp); p.appendChild(tot);
 
+  const sub = document.createElement("p"); sub.className = "total-sub";
+  const conFecha = pendientes.filter(i => /—\s*\S/.test(i.texto||"")).length;
+  sub.textContent = pendientes.length === 0
+    ? "Nada pendiente. Buen momento."
+    : (conFecha ? conFecha + " con fecha puesta" : "Ninguna tiene fecha todavía");
+  p.appendChild(sub);
+
+  // ---- cada mundo, desplegable ----
   const lista = document.createElement("div"); lista.className = "mundos";
   CONTEXTOS.forEach(c => {
-    const n = pendientes.filter(i => i.ctx === c.id).length;
-    const f = document.createElement("button");
-    f.className = "mundo" + (n ? "" : " vacio");
-    f.style.setProperty("--m", c.color);
-    f.innerHTML = '<span class="nom"></span>' +
-                  '<span class="medida"><span class="prop"></span></span>' +
-                  '<span class="num"></span>';
-    f.querySelector(".nom").textContent = c.nombre;
-    f.querySelector(".num").textContent = n;
-    f.querySelector(".prop").style.setProperty("--w", Math.round(n/mayor*100) + "%");
-    f.onclick = () => { filtro = c.id; ir("bandeja"); dibujar(); };
-    lista.appendChild(f);
+    const suyas = pendientes.filter(i => i.ctx === c.id);
+    const caja = document.createElement("div");
+    caja.className = "mundo" + (suyas.length ? "" : " vacio") +
+                     (abiertos.has(c.id) ? " abierto" : "");
+    caja.style.setProperty("--m", c.color);
+
+    const cab = document.createElement("button");
+    cab.className = "mundo-cab";
+    cab.innerHTML = '<span class="marca"></span><span class="nom"></span>' +
+                    '<span class="num"></span><span class="fle">›</span>';
+    cab.querySelector(".nom").textContent = c.nombre;
+    cab.querySelector(".num").textContent = suyas.length;
+    cab.onclick = () => {
+      if(!suyas.length) return;
+      abiertos.has(c.id) ? abiertos.delete(c.id) : abiertos.add(c.id);
+      dibujarPanel();
+    };
+    caja.appendChild(cab);
+
+    if(abiertos.has(c.id) && suyas.length){
+      const cuerpo = document.createElement("div"); cuerpo.className = "mundo-cuerpo";
+      suyas.slice(0, 4).forEach(it => cuerpo.appendChild(lineaResumen(it, c)));
+      if(suyas.length > 4){
+        const v = document.createElement("button");
+        v.className = "ver-todo";
+        v.textContent = "Ver las " + suyas.length + " de " + c.nombre;
+        v.onclick = () => { filtro = c.id; ir("bandeja"); dibujar(); };
+        cuerpo.appendChild(v);
+      }
+      caja.appendChild(cuerpo);
+    }
+    lista.appendChild(caja);
   });
   p.appendChild(lista);
 
-  if(sinCtx){
+  // ---- lo que falta clasificar ----
+  if(sinCtx.length){
     const a = document.createElement("button");
     a.className = "aviso-sin";
-    a.textContent = sinCtx === 1
+    a.textContent = sinCtx.length === 1
       ? "1 captura esperando que le digas a qué mundo pertenece"
-      : sinCtx + " capturas esperando que les digas a qué mundo pertenecen";
+      : sinCtx.length + " capturas esperando que les digas a qué mundo pertenecen";
     a.onclick = () => { filtro = null; ir("bandeja"); dibujar(); };
     p.appendChild(a);
   }
+}
+
+/* Una línea del resumen: se puede tachar desde aquí mismo. */
+function lineaResumen(it, c){
+  const b = document.createElement("button"); b.className = "linea";
+  const bol = document.createElement("span"); bol.className = "bolita";
+
+  const txt = document.createElement("span"); txt.className = "txt";
+  const partes = (it.texto || it.transcripcion || it.descripcion || "Sin texto").split(" — ");
+  txt.textContent = recortar(partes[0], 70);
+  b.append(bol, txt);
+
+  if(partes[1]){
+    const cu = document.createElement("span"); cu.className = "cuando";
+    cu.textContent = recortar(partes[1], 18);
+    b.appendChild(cu);
+  }
+  b.onclick = () => { it.hecho = true; guardar("items", items); dibujar(); aviso("Hecho"); };
+  return b;
+}
+
+function recortar(t, n){
+  t = (t||"").replace(/\s+/g, " ").trim();
+  return t.length > n ? t.slice(0, n-1) + "…" : t;
 }
 
 function dibujarFiltro(){
