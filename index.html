@@ -65,9 +65,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px so
 /* ---------- ENCABEZADO --------------------------------------------- */
 header{padding-block:24px 12px}
 .brand{display:flex; align-items:center; gap:11px; margin-block-end:22px}
-.avatar{inline-size:30px; block-size:30px; border-radius:9px; flex:none; object-fit:cover; border:1px solid var(--line)}
-.brand-name{font-family:"Frank Ruhl Libre",serif; font-size:17px; flex:1; line-height:1.2}
-.brand-sub{display:block; font-family:"Assistant",sans-serif; font-size:11.5px; color:var(--muted)}
+.avatar{inline-size:46px; block-size:46px; border-radius:12px; flex:none; object-fit:cover; border:1px solid var(--line)}
+.brand-name{font-family:"Frank Ruhl Libre",serif; font-size:19px; flex:1; line-height:1.25}
+.brand-sub{display:block; font-family:"Assistant",sans-serif; font-size:12.5px; color:var(--muted)}
 .icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px; line-height:1}
 h1{font-size:31px; letter-spacing:-.01em}
 .date{color:var(--muted); font-size:14px; margin-block-start:4px}
@@ -173,6 +173,43 @@ nav button{flex:1; padding:11px 0 13px; font-size:12.5px; color:var(--muted); te
 nav button b{display:block; font-size:17px; font-weight:400; margin-block-end:2px}
 nav button[aria-current="page"]{color:var(--accent)}
 
+
+/* ---------- PANTALLA DE ENTRADA ------------------------------------ */
+#intro{position:fixed; inset:0; z-index:100; background:var(--bg);
+  display:grid; place-items:center; gap:18px; align-content:center;
+  transition:opacity .5s ease}
+#intro.fuera{opacity:0; pointer-events:none}
+#intro img{inline-size:152px; block-size:152px; border-radius:34px;
+  box-shadow:0 18px 50px rgba(0,0,0,.45)}
+#intro p{margin:0; font-family:"Frank Ruhl Libre",serif; font-size:19px; color:var(--text)}
+#intro small{color:var(--muted); font-size:13px; margin-block-start:-12px}
+
+/* ---------- PANEL GENERAL ------------------------------------------ */
+.total{display:flex; align-items:baseline; gap:11px; margin-block:6px 4px}
+.total b{font-family:"Frank Ruhl Libre",serif; font-weight:500; font-size:52px; line-height:1}
+.total span{color:var(--muted); font-size:14.5px}
+.mundos{margin-block-start:18px}
+.mundo{inline-size:100%; text-align:start; display:flex; align-items:center; gap:12px;
+  padding:12px 4px; border-block-end:1px solid var(--line)}
+.mundo:last-child{border-block-end:none}
+.mundo .nom{flex:1; font-size:15px}
+.mundo .num{font-family:"Frank Ruhl Libre",serif; font-size:21px; min-inline-size:26px; text-align:end}
+.mundo .prop{display:block; block-size:3px; border-radius:3px; background:var(--m); inline-size:var(--w,0%)}
+.mundo .medida{inline-size:64px; background:var(--line); block-size:3px; border-radius:3px; overflow:hidden}
+.mundo.vacio{opacity:.4}
+.aviso-sin{background:var(--raised); border-radius:var(--radius); padding:13px 15px;
+  margin-block-start:16px; font-size:14px; inline-size:100%; text-align:start;
+  border-inline-start:3px solid var(--sin)}
+.resumen-caja{margin-block-start:26px; border-block-start:1px solid var(--line); padding-block-start:18px}
+.resumen-caja h3{font-size:18px; margin-block-end:8px}
+.resumen-caja p{margin:0 0 9px; font-size:14.5px; color:var(--muted)}
+
+/* ---------- FILTRO ACTIVO ------------------------------------------ */
+.filtro{display:flex; align-items:center; gap:9px; background:var(--raised);
+  border-radius:999px; padding:7px 8px 7px 14px; font-size:13.5px; margin-block-start:14px;
+  inline-size:max-content}
+.filtro button{color:var(--muted); font-size:16px; line-height:1; padding:0 5px}
+
 /* ---------- AVISO -------------------------------------------------- */
 .toast{position:fixed; inset-block-end:160px; inset-inline:0; margin-inline:auto;
   inline-size:max-content; max-inline-size:82%; background:var(--raised);
@@ -183,6 +220,14 @@ nav button[aria-current="page"]{color:var(--accent)}
 </head>
 
 <body>
+
+<!-- Pantalla de entrada: se desvanece sola a los pocos segundos -->
+<div id="intro">
+  <img src="icon-512.png" alt="">
+  <p id="introNombre">Androide 27</p>
+  <small id="introFirma">Mordejai Clonsio</small>
+</div>
+
 <div class="wrap">
   <header>
     <div class="brand">
@@ -197,18 +242,20 @@ nav button[aria-current="page"]{color:var(--accent)}
   </header>
 
   <main id="view-hoy">
-    <div class="empty">
-      <h3>Todavía no hay resumen</h3>
-      <p>Aquí va a aparecer tu orden del día cuando conectemos el motor con los correos. Mientras tanto, todo lo que mandes a Bandeja queda guardado y ordenado.</p>
+    <div id="panel"></div>
+    <div class="resumen-caja">
+      <h3>Resumen del día</h3>
+      <p>Todavía no hay resumen: falta conectar el motor con tus correos. Cuando lo hagamos, aquí vas a leer qué va primero y por qué.</p>
       <p class="firma">— Mordejai Clonsio</p>
     </div>
   </main>
 
   <main id="view-bandeja" class="hidden">
+    <div id="filtroCaja"></div>
     <div id="list"></div>
     <div class="empty hidden" id="emptyInbox">
       <h3>Bandeja vacía</h3>
-      <p>Comparte desde WhatsApp una foto o un audio. También puedes escribir abajo, adjuntar un archivo o grabar una nota de voz.</p>
+      <p>Graba una nota de voz con el micrófono y yo la escucho, la entiendo y la convierto en pendientes. También puedes compartir fotos y audios desde WhatsApp, o escribir abajo.</p>
       <p class="firma">— Mordejai Clonsio</p>
     </div>
   </main>
@@ -241,7 +288,7 @@ nav button[aria-current="page"]{color:var(--accent)}
         <option value="">Toca "Buscar" para ver los disponibles</option>
       </select>
       <button class="ghost" id="buscarModelos" style="margin-block-start:9px">Buscar modelos disponibles</button>
-      <p class="hint">Google apaga y renombra modelos cada cierto tiempo. Si un día la transcripción falla diciendo que el modelo no existe, vuelve aquí, toca Buscar y elige otro de la lista. Los que dicen "flash" son los rápidos y baratos.</p>
+      <p class="hint">Google apaga y renombra modelos cada cierto tiempo. Si un día la transcripción falla diciendo que el modelo no existe, vuelve aquí, toca Buscar y elige otro de la lista. Los que dicen "flash" son los rápidos y baratos, y entienden audio.</p>
     </div>
     <div class="field">
       <label for="endpointInput">Dirección del motor</label>
@@ -273,12 +320,11 @@ nav button[aria-current="page"]{color:var(--accent)}
       <button class="icon-btn" id="pendQuitar" aria-label="Quitar adjunto">×</button>
     </div>
     <textarea id="input" rows="1" placeholder="¿Qué no se puede perder?"></textarea>
-    <p class="oyendo hidden" id="oyendo">Escuchando… habla con naturalidad</p>
+    <p class="oyendo hidden" id="oyendo">Grabando… habla con naturalidad</p>
     <div class="chips" id="chips"></div>
     <div class="row">
       <button class="tool" id="fileBtn" aria-label="Adjuntar foto o archivo">＋</button>
-      <button class="tool" id="dictarBtn" aria-label="Dictar texto">🎙</button>
-      <button class="tool" id="micBtn" aria-label="Grabar nota de voz">●</button>
+      <button class="tool" id="micBtn" aria-label="Grabar nota de voz">🎙</button>
       <button class="save" id="saveBtn" disabled>Guardar</button>
     </div>
     <input type="file" id="fileInput" accept="image/*,audio/*,application/pdf" class="hidden">
@@ -373,19 +419,87 @@ document.getElementById("themeSeg").onclick = e => {
    PASO 4 — Dibujar la bandeja
 ==================================================================== */
 const urlsAbiertas = [];
+let filtro = null;          // si eliges un mundo en el panel, solo se ve ése
+
 function dibujar(){
   const cont = document.getElementById("list"); cont.innerHTML="";
   urlsAbiertas.splice(0).forEach(u=>URL.revokeObjectURL(u));
-  const sinCtx     = items.filter(i=>!i.ctx && !i.hecho);
-  const pendientes = items.filter(i=> i.ctx && !i.hecho);
-  const hechos     = items.filter(i=> i.hecho);
-  document.getElementById("emptyInbox").classList.toggle("hidden", items.length>0);
+  dibujarFiltro();
+  dibujarPanel();
+
+  const visibles    = filtro ? items.filter(i=>i.ctx===filtro) : items;
+  const sinCtx      = visibles.filter(i=>!i.ctx && !i.hecho);
+  const pendientes  = visibles.filter(i=> i.ctx && !i.hecho);
+  const hechos      = visibles.filter(i=> i.hecho);
+  document.getElementById("emptyInbox").classList.toggle("hidden", visibles.length>0);
   const bloque=(t,l)=>{ if(!l.length) return;
     const h=document.createElement("p"); h.className="group-label"; h.textContent=t; cont.appendChild(h);
     l.forEach(it=>cont.appendChild(fila(it))); };
   bloque(`Sin clasificar · ${sinCtx.length}`, sinCtx);
   bloque(`Pendientes · ${pendientes.length}`, pendientes);
   bloque("Resueltos", hechos.slice(0,12));
+}
+
+/* ====================================================================
+   PASO 4b — El panel general
+   Cuenta lo que tienes pendiente en cada mundo. Al tocar uno, la
+   bandeja se filtra y muestra solo ése.
+==================================================================== */
+function dibujarPanel(){
+  const p = document.getElementById("panel"); if(!p) return;
+  p.innerHTML = "";
+
+  const pendientes = items.filter(i => !i.hecho);
+  const sinCtx     = pendientes.filter(i => !i.ctx).length;
+  const mayor      = Math.max(1, ...CONTEXTOS.map(c => pendientes.filter(i=>i.ctx===c.id).length));
+
+  const tot = document.createElement("div"); tot.className = "total";
+  const b = document.createElement("b"); b.textContent = pendientes.length;
+  const sp = document.createElement("span");
+  sp.textContent = pendientes.length === 1 ? "cosa por hacer" : "cosas por hacer";
+  tot.append(b, sp); p.appendChild(tot);
+
+  const lista = document.createElement("div"); lista.className = "mundos";
+  CONTEXTOS.forEach(c => {
+    const n = pendientes.filter(i => i.ctx === c.id).length;
+    const f = document.createElement("button");
+    f.className = "mundo" + (n ? "" : " vacio");
+    f.style.setProperty("--m", c.color);
+    f.innerHTML = '<span class="nom"></span>' +
+                  '<span class="medida"><span class="prop"></span></span>' +
+                  '<span class="num"></span>';
+    f.querySelector(".nom").textContent = c.nombre;
+    f.querySelector(".num").textContent = n;
+    f.querySelector(".prop").style.setProperty("--w", Math.round(n/mayor*100) + "%");
+    f.onclick = () => { filtro = c.id; ir("bandeja"); dibujar(); };
+    lista.appendChild(f);
+  });
+  p.appendChild(lista);
+
+  if(sinCtx){
+    const a = document.createElement("button");
+    a.className = "aviso-sin";
+    a.textContent = sinCtx === 1
+      ? "1 captura esperando que le digas a qué mundo pertenece"
+      : sinCtx + " capturas esperando que les digas a qué mundo pertenecen";
+    a.onclick = () => { filtro = null; ir("bandeja"); dibujar(); };
+    p.appendChild(a);
+  }
+}
+
+function dibujarFiltro(){
+  const caja = document.getElementById("filtroCaja"); if(!caja) return;
+  caja.innerHTML = "";
+  if(!filtro) return;
+  const c = ctxDe(filtro); if(!c) return;
+  const d = document.createElement("div"); d.className = "filtro";
+  d.innerHTML = '<span class="dot" style="background:'+c.color+'"></span>';
+  d.append(document.createTextNode("Solo " + c.nombre));
+  const x = document.createElement("button");
+  x.textContent = "×"; x.setAttribute("aria-label","Ver todo");
+  x.onclick = () => { filtro = null; dibujar(); };
+  d.appendChild(x);
+  caja.appendChild(d);
 }
 
 function fila(it){
@@ -570,59 +684,15 @@ function limpiarPendiente(){ adjuntoPendiente=null;
 document.getElementById("pendQuitar").onclick=()=>{ limpiarPendiente(); revisarBoton(); };
 
 /* ====================================================================
-   PASO 8 — Dos botones distintos, y conviene saber por qué:
-
-   🎙 DICTAR  → el teléfono te escucha y escribe. Gratis, instantáneo,
-                el audio no sale del teléfono. No guarda grabación.
-   ●  GRABAR  → guarda el archivo de audio, y lo transcribe Gemini.
-                Úsalo cuando quieras conservar la voz original.
-
-   Van separados porque en Android el micrófono no se puede usar para
-   las dos cosas a la vez: si grabas y escuchas al mismo tiempo, una de
-   las dos falla. Por eso antes tu nota terminó yendo a Gemini.
+   PASO 8 — Un solo botón: grabar
+   Guarda el audio y se lo manda a Mordejai Clonsio para que lo
+   escuche, lo entienda y lo convierta en pendientes.
 ==================================================================== */
-let grabadora=null, trozos=[], oidor=null;
+let grabadora=null, trozos=[];
 
-/* ---- 🎙 Dictar: el teléfono escribe lo que dices ------------------ */
-document.getElementById("dictarBtn").onclick = () => {
-  const btn = document.getElementById("dictarBtn");
-  const R = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!R){ aviso("Este teléfono no puede dictar"); return; }
-
-  if(oidor){ try{ oidor.stop(); }catch(e){} return; }
-
-  oidor = new R();
-  oidor.lang = "es-ES";
-  oidor.continuous = true;
-  oidor.interimResults = false;
-  oidor.onresult = e => {
-    for(let i=e.resultIndex; i<e.results.length; i++){
-      if(e.results[i].isFinal){
-        input.value = (input.value + " " + e.results[i][0].transcript).trim();
-        input.dispatchEvent(new Event("input"));
-      }
-    }
-  };
-  oidor.onerror = ev => {
-    aviso(ev.error === "not-allowed" ? "Falta permiso del micrófono" : "No se pudo escuchar");
-  };
-  oidor.onend = () => {
-    oidor = null;
-    btn.classList.remove("rec"); btn.textContent = "🎙";
-    document.getElementById("oyendo").classList.add("hidden");
-  };
-  try{
-    oidor.start();
-    btn.classList.add("rec"); btn.textContent = "■";
-    document.getElementById("oyendo").classList.remove("hidden");
-  }catch(e){ oidor = null; aviso("No se pudo escuchar"); }
-};
-
-/* ---- ● Grabar: guarda el audio para que lo oiga Gemini ------------ */
 document.getElementById("micBtn").onclick = async () => {
   const btn=document.getElementById("micBtn");
   if(grabadora && grabadora.state==="recording"){ grabadora.stop(); return; }
-  if(oidor){ aviso("Primero para el dictado"); return; }
   try{
     const señal = await navigator.mediaDevices.getUserMedia({audio:true});
     grabadora = new MediaRecorder(señal); trozos=[];
@@ -630,21 +700,25 @@ document.getElementById("micBtn").onclick = async () => {
     grabadora.onstop = () => {
       señal.getTracks().forEach(t=>t.stop());
       const blob=new Blob(trozos,{type:grabadora.mimeType||"audio/webm"});
-      btn.classList.remove("rec"); btn.textContent="●";
+      btn.classList.remove("rec"); btn.textContent="🎙";
+      document.getElementById("oyendo").classList.add("hidden");
       ponerPendiente(blob,"Nota de voz",blob.type);
       if(!input.value.trim()){ input.value="Nota de voz"; input.dispatchEvent(new Event("input")); }
-      aviso("Grabación lista");
+      aviso("Grabación lista · toca Guardar");
     };
     grabadora.start();
     btn.classList.add("rec"); btn.textContent="■";
-    aviso("Grabando… toca otra vez para parar");
+    document.getElementById("oyendo").classList.remove("hidden");
   }catch(e){ aviso("No se pudo usar el micrófono"); }
 };
 
 /* ====================================================================
-   PASO 9 — Transcribir audios ajenos con Gemini
-   Si no hay clave, si el archivo es enorme, o si algo falla,
-   la app te lo dice y te pregunta de qué trata.
+   PASO 9 — Escuchar, entender y separar
+   Mordejai Clonsio oye el audio y devuelve dos cosas:
+     · la transcripción literal, para que puedas comprobarla
+     · los pendientes que detectó, YA separados por tema y
+       repartidos entre tus mundos
+   Si algo falla, te lo dice y te pregunta de qué trata.
 ==================================================================== */
 async function transcribir(it){
   const fallo = motivo => {
@@ -659,6 +733,24 @@ async function transcribir(it){
   if(reg.blob.size > LIMITE_AUDIO_MB*1048576)
     return fallo("El audio es demasiado largo para transcribirlo. ¿De qué trata?");
 
+  const mundos = CONTEXTOS.map(c=>c.id).join("|");
+  const instruccion =
+    'Escucha este audio. Eres el asistente de Mordejai, que trabaja en tres empresas ' +
+    '(Proserco, Isracap e Isracap Grand) y tiene esposa y cuatro hijos.\n\n' +
+    'Devuelve SOLO un JSON válido, sin ``` y sin ninguna palabra fuera del JSON:\n' +
+    '{"transcripcion":"...","tareas":[{"texto":"...","mundo":"","cuando":""}]}\n\n' +
+    'transcripcion: lo que se dice, literal, en el idioma en que está hablado.\n' +
+    'tareas: un elemento POR CADA asunto distinto que se mencione. Si el audio habla ' +
+    'de tres cosas diferentes, devuelve tres tareas separadas. Si no hay ningún ' +
+    'pendiente ni cosa que hacer, devuelve la lista vacía.\n' +
+    'texto: el pendiente redactado corto y accionable, en español, empezando por un verbo.\n' +
+    'mundo: uno de estos exactamente: ' + mundos + '. familia = casa, hijos, esposa, ' +
+    'compras y trámites del hogar. proserco, isracap, grand = las tres empresas. ' +
+    'personal = suyo propio, salud, amigos. Si de verdad no puedes saberlo, deja "".\n' +
+    'cuando: si menciona fecha o plazo ponlo tal cual (mañana, el jueves, fin de mes). ' +
+    'Si no menciona ninguno, deja "".\n\n' +
+    'Si el audio no se entiende, devuelve {"transcripcion":"INAUDIBLE","tareas":[]}';
+
   try{
     const base64 = await aBase64(reg.blob);
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
@@ -667,28 +759,70 @@ async function transcribir(it){
     const r = await fetch(url, {
       method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ contents:[{ parts:[
-        { text:"Transcribe este audio literalmente al idioma en que está hablado. " +
-               "Devuelve solo la transcripción, sin comentarios ni introducción. " +
-               "Si no se entiende nada, responde exactamente: INAUDIBLE" },
+        { text: instruccion },
         { inline_data:{ mime_type: reg.blob.type || "audio/ogg", data: base64 } }
       ]}]})
     });
     const datos = await r.json();
     if(!r.ok){
       const m = datos.error ? datos.error.message : "error " + r.status;
-      return fallo("No pude transcribir (" + m + "). ¿De qué trata?");
+      return fallo("No pude escuchar el audio (" + m + "). ¿De qué trata?");
     }
-    const texto = (((datos.candidates||[])[0]||{}).content||{}).parts
+
+    const crudo = (((datos.candidates||[])[0]||{}).content||{}).parts
                     ?.map(p=>p.text||"").join(" ").trim() || "";
-    if(!texto || /^INAUDIBLE$/i.test(texto))
+    const salida = leerJSON(crudo);
+
+    if(!salida || !salida.transcripcion || /^INAUDIBLE$/i.test(salida.transcripcion))
       return fallo("El audio no se entiende. ¿De qué trata?");
 
-    it.transcripcion = texto; it.estadoAudio="listo";
-    guardar("items",items); dibujar(); enviarAlMotor(it);
-    aviso("Audio transcrito");
+    it.transcripcion = salida.transcripcion;
+    it.estadoAudio   = "listo";
+
+    const tareas = Array.isArray(salida.tareas) ? salida.tareas.filter(t=>t && t.texto) : [];
+
+    if(tareas.length){
+      // La primera se queda con el audio; las demás salen como capturas aparte.
+      const p = tareas[0];
+      it.texto = textoTarea(p);
+      if(mundoValido(p.mundo)) it.ctx = p.mundo;
+      guardar("items",items); dibujar(); enviarAlMotor(it);
+
+      for(let i=1; i<tareas.length; i++){
+        const t = tareas[i];
+        await agregar({ texto: textoTarea(t),
+                        ctx: mundoValido(t.mundo) ? t.mundo : null,
+                        origen: "del audio" });
+      }
+      aviso(tareas.length===1 ? "Audio entendido"
+                              : `Audio entendido · ${tareas.length} pendientes`);
+    } else {
+      it.texto = it.texto && it.texto !== "Nota de voz" ? it.texto : salida.transcripcion;
+      guardar("items",items); dibujar(); enviarAlMotor(it);
+      aviso("Audio transcrito · no encontré pendientes");
+    }
+
   }catch(e){
     fallo("Falló la transcripción (" + (e.message||"sin conexión") + "). ¿De qué trata?");
   }
+}
+
+function textoTarea(t){
+  return t.cuando ? (t.texto + " — " + t.cuando) : t.texto;
+}
+function mundoValido(m){
+  return !!CONTEXTOS.find(c => c.id === m);
+}
+
+/* A veces el modelo envuelve el JSON en ``` aunque le digas que no.
+   Esta función lo limpia antes de leerlo. */
+function leerJSON(txt){
+  try{
+    const limpio = txt.replace(/```json|```/g, "").trim();
+    const desde = limpio.indexOf("{"), hasta = limpio.lastIndexOf("}");
+    if(desde < 0 || hasta < 0) return null;
+    return JSON.parse(limpio.slice(desde, hasta+1));
+  }catch(e){ return null; }
 }
 
 function aBase64(blob){
@@ -728,6 +862,7 @@ function ir(v){
   document.getElementById("composer").classList.toggle("hidden", v==="ajustes");
   document.body.style.paddingBlockEnd = v==="ajustes" ? "90px" : "";
   if(v==="ajustes") medirEspacio();
+  if(v==="hoy") dibujarPanel();
   window.scrollTo(0,0);
 }
 document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
@@ -836,6 +971,22 @@ function aviso(msg){
   const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
   clearTimeout(tToast); tToast=setTimeout(()=>t.classList.remove("show"),2100);
 }
+
+/* La pantalla de entrada se queda un momento y luego se desvanece.
+   Si llegas compartiendo algo desde WhatsApp, se va enseguida para
+   no hacerte esperar. */
+(function pantallaEntrada(){
+  const capa = document.getElementById("intro");
+  if(!capa) return;
+  document.getElementById("introNombre").textContent = ajustes.nombre;
+  document.getElementById("introFirma").textContent  = ajustes.firma;
+  const compartiendo = location.search.includes("compartido");
+  const espera = compartiendo ? 400 : 2200;
+  setTimeout(() => {
+    capa.classList.add("fuera");
+    setTimeout(() => capa.remove(), 600);
+  }, espera);
+})();
 
 document.getElementById("dateLine").textContent =
   new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
