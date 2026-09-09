@@ -84,6 +84,8 @@ h1{font-size:31px; letter-spacing:-.01em}
 @media (prefers-reduced-motion:reduce){.item{animation:none}}
 .item.done{opacity:.45}
 .item.done .item-text{text-decoration:line-through}
+.item.fuente{opacity:.75}
+.item.fuente .item-text{text-decoration:none; color:var(--muted); font-size:14px}
 .check{inline-size:21px; block-size:21px; border:1.5px solid var(--line); border-radius:6px;
   flex:none; margin-block-start:2px; display:grid; place-items:center; font-size:12px; color:transparent}
 .item.done .check{background:var(--ctx); border-color:var(--ctx); color:#fff}
@@ -219,11 +221,8 @@ nav button[aria-current="page"]{color:var(--accent)}
 .resumen-caja p{margin:0 0 9px; font-size:14.5px; color:var(--muted)}
 
 /* ---------- FILTRO ACTIVO ------------------------------------------ */
-.filtro{display:flex; align-items:center; gap:9px; background:var(--raised);
-  border-radius:999px; padding:7px 8px 7px 14px; font-size:13.5px; margin-block-start:14px;
-  inline-size:max-content}
-.filtro button{color:var(--muted); font-size:16px; line-height:1; padding:0 5px}
-
+.filtros{margin-block:16px 4px; padding-block-end:3px}
+.filtros .chip{font-size:13px}
 /* ---------- AVISO -------------------------------------------------- */
 .toast{position:fixed; inset-block-end:160px; inset-inline:0; margin-inline:auto;
   inline-size:max-content; max-inline-size:82%; background:var(--raised);
@@ -335,7 +334,6 @@ nav button[aria-current="page"]{color:var(--accent)}
     </div>
     <textarea id="input" rows="1" placeholder="¿Qué no se puede perder?"></textarea>
     <p class="oyendo hidden" id="oyendo">Grabando… habla con naturalidad</p>
-    <div class="chips" id="chips"></div>
     <div class="row">
       <button class="tool" id="fileBtn" aria-label="Adjuntar foto o archivo">＋</button>
       <button class="tool" id="micBtn" aria-label="Grabar nota de voz">🎙</button>
@@ -409,7 +407,6 @@ let ajustes = leer("ajustes", { nombre:"Androide 27", firma:"Mordejai Clonsio",
                                 tema:"auto", endpoint:"", token:"", gemini:"",
                                 modelo: MODELO_POR_DEFECTO });
 if(!ajustes.modelo) ajustes.modelo = MODELO_POR_DEFECTO;
-let ctxElegido = "familia";
 let adjuntoPendiente = null;
 
 /* ====================================================================
@@ -442,7 +439,9 @@ function dibujar(){
   dibujarFiltro();
   dibujarPanel();
 
-  const visibles    = filtro ? items.filter(i=>i.ctx===filtro) : items;
+  const visibles = !filtro ? items
+                 : filtro === "sin" ? items.filter(i=>!i.ctx)
+                 : items.filter(i=>i.ctx===filtro);
   const sinCtx      = visibles.filter(i=>!i.ctx && !i.hecho);
   const pendientes  = visibles.filter(i=> i.ctx && !i.hecho);
   const hechos      = visibles.filter(i=> i.hecho);
@@ -452,7 +451,8 @@ function dibujar(){
     l.forEach(it=>cont.appendChild(fila(it))); };
   bloque(`Sin clasificar · ${sinCtx.length}`, sinCtx);
   bloque(`Pendientes · ${pendientes.length}`, pendientes);
-  bloque("Resueltos", hechos.slice(0,12));
+  bloque("Resueltos", hechos.filter(i=>!i.esFuente).slice(0,12));
+  bloque("Audios originales", hechos.filter(i=>i.esFuente).slice(0,8));
 }
 
 /* ====================================================================
@@ -558,22 +558,33 @@ function recortar(t, n){
 function dibujarFiltro(){
   const caja = document.getElementById("filtroCaja"); if(!caja) return;
   caja.innerHTML = "";
-  if(!filtro) return;
-  const c = ctxDe(filtro); if(!c) return;
-  const d = document.createElement("div"); d.className = "filtro";
-  d.innerHTML = '<span class="dot" style="background:'+c.color+'"></span>';
-  d.append(document.createTextNode("Solo " + c.nombre));
-  const x = document.createElement("button");
-  x.textContent = "×"; x.setAttribute("aria-label","Ver todo");
-  x.onclick = () => { filtro = null; dibujar(); };
-  d.appendChild(x);
-  caja.appendChild(d);
+  const barra = document.createElement("div"); barra.className = "chips filtros";
+
+  const pendientes = items.filter(i => !i.hecho);
+  const opciones = [
+    { id:null,  nombre:"Todos",          color:"var(--accent)", n: pendientes.length },
+    ...CONTEXTOS.map(c => ({ ...c, n: pendientes.filter(i=>i.ctx===c.id).length })),
+    { id:"sin", nombre:"Sin clasificar", color:"var(--sin)",
+      n: pendientes.filter(i=>!i.ctx).length }
+  ];
+
+  opciones.forEach(o => {
+    if(o.id === "sin" && !o.n) return;          // no lo muestres si no hay ninguna
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = o.n ? `${o.nombre} ${o.n}` : o.nombre;
+    b.style.setProperty("--c", o.color);
+    b.setAttribute("aria-pressed", filtro === o.id);
+    b.onclick = () => { filtro = o.id; dibujar(); window.scrollTo(0,0); };
+    barra.appendChild(b);
+  });
+  caja.appendChild(barra);
 }
 
 function fila(it){
   const ctx = ctxDe(it.ctx);
   const div = document.createElement("div");
-  div.className = "item" + (it.hecho?" done":"");
+  div.className = "item" + (it.hecho?" done":"") + (it.esFuente?" fuente":"");
   div.style.setProperty("--ctx", ctx ? ctx.color : "var(--sin)");
 
   const check=document.createElement("button");
@@ -681,19 +692,6 @@ function cuando(iso){
 }
 
 /* ====================================================================
-   PASO 5 — Botones de mundo
-==================================================================== */
-function dibujarChips(){
-  const c=document.getElementById("chips"); c.innerHTML="";
-  CONTEXTOS.forEach(ctx=>{
-    const b=document.createElement("button"); b.className="chip"; b.textContent=ctx.nombre;
-    b.style.setProperty("--c",ctx.color); b.setAttribute("aria-pressed", ctx.id===ctxElegido);
-    b.onclick=()=>{ ctxElegido=ctx.id; dibujarChips(); };
-    c.appendChild(b);
-  });
-}
-
-/* ====================================================================
    PASO 6 — Guardar una captura
 ==================================================================== */
 const input=document.getElementById("input"), saveBtn=document.getElementById("saveBtn");
@@ -701,7 +699,7 @@ function revisarBoton(){ saveBtn.disabled = !input.value.trim() && !adjuntoPendi
 input.oninput=()=>{ revisarBoton(); input.style.height="auto";
   input.style.height=Math.min(input.scrollHeight,100)+"px"; };
 
-async function agregar({texto="", ctx=ctxElegido, origen="escrito", blob=null, nombre="", tipo="", transcripcion=""}){
+async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion=""}){
   const id=Date.now()+"-"+Math.random().toString(36).slice(2,7);
   let adjunto=null;
   if(blob){
@@ -850,20 +848,22 @@ async function transcribir(it){
     const tareas = Array.isArray(salida.tareas) ? salida.tareas.filter(t=>t && t.texto) : [];
 
     if(tareas.length){
-      // La primera se queda con el audio; las demás salen como capturas aparte.
-      const p = tareas[0];
-      it.texto = textoTarea(p);
-      if(mundoValido(p.mundo)) it.ctx = p.mundo;
-      guardar("items",items); dibujar(); enviarAlMotor(it);
+      // El audio NO es una tarea: es el original del que salieron.
+      // Se queda archivado con su transcripción, y cada pendiente
+      // sale como una captura propia, limpia.
+      it.texto  = "Nota de voz";
+      it.esFuente = true;
+      it.hecho  = true;          // archivado, no cuenta como pendiente
+      guardar("items",items);
 
-      for(let i=1; i<tareas.length; i++){
-        const t = tareas[i];
+      for(const t of tareas){
         await agregar({ texto: textoTarea(t),
                         ctx: mundoValido(t.mundo) ? t.mundo : null,
                         origen: "del audio" });
       }
-      aviso(tareas.length===1 ? "Audio entendido"
-                              : `Audio entendido · ${tareas.length} pendientes`);
+      dibujar();
+      aviso(tareas.length===1 ? "1 pendiente sacado del audio"
+                              : `${tareas.length} pendientes sacados del audio`);
     } else {
       it.texto = it.texto && it.texto !== "Nota de voz" ? it.texto : salida.transcripcion;
       guardar("items",items); dibujar(); enviarAlMotor(it);
@@ -1058,7 +1058,7 @@ function aviso(msg){
 
 document.getElementById("dateLine").textContent =
   new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
-pintarNombres(); aplicarTema(); dibujarChips(); dibujar();
+pintarNombres(); aplicarTema(); dibujar();
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 recogerEntrantes();
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) recogerEntrantes(); });
