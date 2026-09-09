@@ -311,6 +311,24 @@ nav button[aria-current="page"]{color:var(--accent)}
       <p class="hint">Google apaga y renombra modelos cada cierto tiempo. Si un día la transcripción falla diciendo que el modelo no existe, vuelve aquí, toca Buscar y elige otro de la lista. Los que dicen "flash" son los rápidos y baratos, y entienden audio.</p>
     </div>
     <div class="field">
+      <label for="vozSel">Voz que te lee los pendientes</label>
+      <select id="vozSel"><option value="">La que traiga el teléfono</option></select>
+      <div class="row" style="margin-block-start:9px">
+        <button class="ghost" id="probarVoz" style="margin:0">Probar</button>
+        <button class="ghost" id="refrescarVoces" style="margin:0">Actualizar lista</button>
+      </div>
+      <p class="hint">Las voces vienen de Android, no de la app. Si aquí no ves ninguna de hombre, hay que descargarla: Ajustes de Android → Texto a voz → Instalar datos de voz → Español. Las que dicen "male" o llevan número alto suelen ser masculinas.</p>
+    </div>
+    <div class="field">
+      <label for="velSel">Velocidad de lectura</label>
+      <select id="velSel">
+        <option value="0.8">Pausada</option>
+        <option value="1" selected>Normal</option>
+        <option value="1.2">Rápida</option>
+        <option value="1.45">Muy rápida</option>
+      </select>
+    </div>
+    <div class="field">
       <label for="endpointInput">Dirección del motor</label>
       <input id="endpointInput" type="url" placeholder="La pegarás cuando publiques el script">
     </div>
@@ -578,9 +596,16 @@ function dibujarPanel(){
 ==================================================================== */
 let hablando = false;
 
-function vozEspañola(){
-  const voces = window.speechSynthesis.getVoices() || [];
-  return voces.find(v => /^es(-|_)/i.test(v.lang)) || null;
+function vocesDisponibles(){
+  return (window.speechSynthesis.getVoices() || []).filter(v => /^es(-|_)/i.test(v.lang));
+}
+function vozElegida(){
+  const todas = window.speechSynthesis.getVoices() || [];
+  if(ajustes.voz){
+    const v = todas.find(x => x.voiceURI === ajustes.voz || x.name === ajustes.voz);
+    if(v) return v;
+  }
+  return vocesDisponibles()[0] || null;
 }
 
 function leerPendientes(){
@@ -612,12 +637,12 @@ function leerPendientes(){
   window.speechSynthesis.cancel();
   hablando = true; dibujarPanel();
 
-  const voz = vozEspañola();
+  const voz = vozElegida();
   partes.forEach((t, i) => {
     const frase = new SpeechSynthesisUtterance(t);
     frase.lang = "es-ES";
     if(voz) frase.voice = voz;
-    frase.rate = 0.98;
+    frase.rate = Number(ajustes.velocidad || 1);
     // una pausa natural entre bloques
     if(i === partes.length - 1) frase.onend = () => { hablando = false; dibujarPanel(); };
     window.speechSynthesis.speak(frase);
@@ -1111,6 +1136,61 @@ function enlazar(id, campo, porDefecto){
 enlazar("nameInput","nombre","Androide 27");
 enlazar("firmaInput","firma","Mordejai Clonsio");
 enlazar("geminiInput","gemini");
+
+/* ---- Elegir la voz que lee los pendientes ------------------------ */
+const vozSel = document.getElementById("vozSel");
+const velSel = document.getElementById("velSel");
+
+function nombreVoz(v){
+  // Android suele nombrarlas "Spanish Spain male 2" o "es-es-x-eef-network".
+  // Le damos una pista al usuario cuando el nombre delata el género.
+  let n = v.name || v.voiceURI;
+  if(/male/i.test(n) && !/female/i.test(n)) n += "  · hombre";
+  else if(/female/i.test(n))               n += "  · mujer";
+  return n + "  (" + v.lang + ")";
+}
+
+function pintarVoces(){
+  const voces = vocesDisponibles();
+  vozSel.innerHTML = "";
+  const nada = document.createElement("option");
+  nada.value = ""; nada.textContent = voces.length
+    ? "La que traiga el teléfono" : "No hay voces en español instaladas";
+  vozSel.appendChild(nada);
+  voces.forEach(v => {
+    const o = document.createElement("option");
+    o.value = v.voiceURI; o.textContent = nombreVoz(v);
+    if(ajustes.voz === v.voiceURI) o.selected = true;
+    vozSel.appendChild(o);
+  });
+}
+
+vozSel.onchange = () => { ajustes.voz = vozSel.value; guardar("ajustes", ajustes); probar(); };
+velSel.value = ajustes.velocidad || "1";
+velSel.onchange = () => { ajustes.velocidad = velSel.value; guardar("ajustes", ajustes); probar(); };
+
+function probar(){
+  if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
+  window.speechSynthesis.cancel();
+  const f = new SpeechSynthesisUtterance(
+    "Soy " + (ajustes.firma || "Mordejai Clonsio") + ". Así te voy a leer tus pendientes.");
+  f.lang = "es-ES";
+  const v = vozElegida(); if(v) f.voice = v;
+  f.rate = Number(ajustes.velocidad || 1);
+  window.speechSynthesis.speak(f);
+}
+document.getElementById("probarVoz").onclick = probar;
+document.getElementById("refrescarVoces").onclick = () => {
+  pintarVoces();
+  const n = vocesDisponibles().length;
+  aviso(n ? n + " voces en español" : "Ninguna voz en español instalada");
+};
+
+// Android tarda un momento en tener listas las voces
+if("speechSynthesis" in window){
+  pintarVoces();
+  window.speechSynthesis.onvoiceschanged = pintarVoces;
+}
 
 /* ---- Preguntarle a Google qué modelos existen hoy ----------------- */
 const modeloSel = document.getElementById("modeloSel");
