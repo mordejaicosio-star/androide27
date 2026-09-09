@@ -154,7 +154,7 @@ textarea::placeholder{color:var(--muted)}
 /* ---------- AJUSTES ------------------------------------------------ */
 .field{margin-block-end:20px}
 .field label{display:block; font-size:14px; color:var(--muted); margin-block-end:7px}
-.field input{inline-size:100%; background:var(--surface); color:var(--text);
+.field input, .field select{inline-size:100%; background:var(--surface); color:var(--text);
   border:1px solid var(--line); border-radius:10px; padding:11px 13px;
   font-family:inherit; font-size:15px}
 .hint{font-size:13px; color:var(--muted); margin-block-start:7px}
@@ -236,6 +236,14 @@ nav button[aria-current="page"]{color:var(--accent)}
       <p class="hint">Se guarda solo en este teléfono, nunca sale hacia GitHub. Sirve para que los audios que te comparten se conviertan en texto. Si la dejas vacía, la app te va a preguntar de qué trata cada audio.</p>
     </div>
     <div class="field">
+      <label for="modeloSel">Modelo que escucha los audios</label>
+      <select id="modeloSel">
+        <option value="">Toca "Buscar" para ver los disponibles</option>
+      </select>
+      <button class="ghost" id="buscarModelos" style="margin-block-start:9px">Buscar modelos disponibles</button>
+      <p class="hint">Google apaga y renombra modelos cada cierto tiempo. Si un día la transcripción falla diciendo que el modelo no existe, vuelve aquí, toca Buscar y elige otro de la lista. Los que dicen "flash" son los rápidos y baratos.</p>
+    </div>
+    <div class="field">
       <label for="endpointInput">Dirección del motor</label>
       <input id="endpointInput" type="url" placeholder="La pegarás cuando publiques el script">
     </div>
@@ -269,6 +277,7 @@ nav button[aria-current="page"]{color:var(--accent)}
     <div class="chips" id="chips"></div>
     <div class="row">
       <button class="tool" id="fileBtn" aria-label="Adjuntar foto o archivo">＋</button>
+      <button class="tool" id="dictarBtn" aria-label="Dictar texto">🎙</button>
       <button class="tool" id="micBtn" aria-label="Grabar nota de voz">●</button>
       <button class="save" id="saveBtn" disabled>Guardar</button>
     </div>
@@ -297,9 +306,10 @@ const CONTEXTOS = [
 ];
 const ctxDe = id => CONTEXTOS.find(c => c.id === id);
 
-// Modelo gratuito de Google que escucha audios.
-// Si algún día deja de existir, se cambia solo este nombre.
-const MODELO_AUDIO = "gemini-2.0-flash";
+// Modelo de Google que escucha los audios. Google los renombra y los
+// apaga cada cierto tiempo, así que NO va fijo aquí: se elige desde
+// Ajustes, con el botón que le pregunta a Google cuáles hay hoy.
+const MODELO_POR_DEFECTO = "gemini-3.1-flash-lite";
 const LIMITE_AUDIO_MB = 15;   // más grande que esto, no lo mandamos
 
 /* ====================================================================
@@ -336,7 +346,9 @@ async function idbBorrar(s,id){ const db=await abrirDB();
 
 let items   = leer("items", []);
 let ajustes = leer("ajustes", { nombre:"Androide 27", firma:"Mordejai Clonsio",
-                                tema:"auto", endpoint:"", token:"", gemini:"" });
+                                tema:"auto", endpoint:"", token:"", gemini:"",
+                                modelo: MODELO_POR_DEFECTO });
+if(!ajustes.modelo) ajustes.modelo = MODELO_POR_DEFECTO;
 let ctxElegido = "familia";
 let adjuntoPendiente = null;
 
@@ -558,52 +570,76 @@ function limpiarPendiente(){ adjuntoPendiente=null;
 document.getElementById("pendQuitar").onclick=()=>{ limpiarPendiente(); revisarBoton(); };
 
 /* ====================================================================
-   PASO 8 — Grabar nota de voz Y transcribirla en el propio teléfono
-   Chrome en Android tiene reconocimiento de voz incorporado, el mismo
-   del teclado. Es gratis y no manda el audio a ningún servicio.
+   PASO 8 — Dos botones distintos, y conviene saber por qué:
+
+   🎙 DICTAR  → el teléfono te escucha y escribe. Gratis, instantáneo,
+                el audio no sale del teléfono. No guarda grabación.
+   ●  GRABAR  → guarda el archivo de audio, y lo transcribe Gemini.
+                Úsalo cuando quieras conservar la voz original.
+
+   Van separados porque en Android el micrófono no se puede usar para
+   las dos cosas a la vez: si grabas y escuchas al mismo tiempo, una de
+   las dos falla. Por eso antes tu nota terminó yendo a Gemini.
 ==================================================================== */
-let grabadora=null, trozos=[], oidor=null, textoDictado="";
+let grabadora=null, trozos=[], oidor=null;
 
-document.getElementById("micBtn").onclick = async () => {
-  const btn=document.getElementById("micBtn");
-  if(grabadora && grabadora.state==="recording"){ grabadora.stop(); return; }
-  try{
-    const señal = await navigator.mediaDevices.getUserMedia({audio:true});
-    grabadora = new MediaRecorder(señal); trozos=[]; textoDictado="";
-    grabadora.ondataavailable = e => trozos.push(e.data);
-    grabadora.onstop = () => {
-      señal.getTracks().forEach(t=>t.stop());
-      if(oidor){ try{ oidor.stop(); }catch(e){} }
-      document.getElementById("oyendo").classList.add("hidden");
-      const blob=new Blob(trozos,{type:grabadora.mimeType||"audio/webm"});
-      btn.classList.remove("rec"); btn.textContent="●";
-      ponerPendiente(blob,"Nota de voz",blob.type);
-      if(!input.value.trim()) input.value = textoDictado || "Nota de voz";
-      input.dispatchEvent(new Event("input"));
-      aviso(textoDictado ? "Grabado y transcrito" : "Grabación lista");
-    };
-    grabadora.start();
-    btn.classList.add("rec"); btn.textContent="■";
-    escucharMientrasHablas();
-    aviso("Grabando… toca otra vez para parar");
-  }catch(e){ aviso("No se pudo usar el micrófono"); }
-};
-
-function escucharMientrasHablas(){
+/* ---- 🎙 Dictar: el teléfono escribe lo que dices ------------------ */
+document.getElementById("dictarBtn").onclick = () => {
+  const btn = document.getElementById("dictarBtn");
   const R = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!R) return;                       // si el teléfono no lo trae, seguimos igual
+  if(!R){ aviso("Este teléfono no puede dictar"); return; }
+
+  if(oidor){ try{ oidor.stop(); }catch(e){} return; }
+
   oidor = new R();
   oidor.lang = "es-ES";
   oidor.continuous = true;
   oidor.interimResults = false;
   oidor.onresult = e => {
     for(let i=e.resultIndex; i<e.results.length; i++){
-      if(e.results[i].isFinal) textoDictado += e.results[i][0].transcript + " ";
+      if(e.results[i].isFinal){
+        input.value = (input.value + " " + e.results[i][0].transcript).trim();
+        input.dispatchEvent(new Event("input"));
+      }
     }
   };
-  oidor.onerror = () => {};
-  try{ oidor.start(); document.getElementById("oyendo").classList.remove("hidden"); }catch(e){}
-}
+  oidor.onerror = ev => {
+    aviso(ev.error === "not-allowed" ? "Falta permiso del micrófono" : "No se pudo escuchar");
+  };
+  oidor.onend = () => {
+    oidor = null;
+    btn.classList.remove("rec"); btn.textContent = "🎙";
+    document.getElementById("oyendo").classList.add("hidden");
+  };
+  try{
+    oidor.start();
+    btn.classList.add("rec"); btn.textContent = "■";
+    document.getElementById("oyendo").classList.remove("hidden");
+  }catch(e){ oidor = null; aviso("No se pudo escuchar"); }
+};
+
+/* ---- ● Grabar: guarda el audio para que lo oiga Gemini ------------ */
+document.getElementById("micBtn").onclick = async () => {
+  const btn=document.getElementById("micBtn");
+  if(grabadora && grabadora.state==="recording"){ grabadora.stop(); return; }
+  if(oidor){ aviso("Primero para el dictado"); return; }
+  try{
+    const señal = await navigator.mediaDevices.getUserMedia({audio:true});
+    grabadora = new MediaRecorder(señal); trozos=[];
+    grabadora.ondataavailable = e => trozos.push(e.data);
+    grabadora.onstop = () => {
+      señal.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(trozos,{type:grabadora.mimeType||"audio/webm"});
+      btn.classList.remove("rec"); btn.textContent="●";
+      ponerPendiente(blob,"Nota de voz",blob.type);
+      if(!input.value.trim()){ input.value="Nota de voz"; input.dispatchEvent(new Event("input")); }
+      aviso("Grabación lista");
+    };
+    grabadora.start();
+    btn.classList.add("rec"); btn.textContent="■";
+    aviso("Grabando… toca otra vez para parar");
+  }catch(e){ aviso("No se pudo usar el micrófono"); }
+};
 
 /* ====================================================================
    PASO 9 — Transcribir audios ajenos con Gemini
@@ -626,7 +662,8 @@ async function transcribir(it){
   try{
     const base64 = await aBase64(reg.blob);
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
-                MODELO_AUDIO + ":generateContent?key=" + encodeURIComponent(ajustes.gemini);
+                (ajustes.modelo || MODELO_POR_DEFECTO) +
+                ":generateContent?key=" + encodeURIComponent(ajustes.gemini);
     const r = await fetch(url, {
       method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ contents:[{ parts:[
@@ -707,6 +744,41 @@ function enlazar(id, campo, porDefecto){
 enlazar("nameInput","nombre","Androide 27");
 enlazar("firmaInput","firma","Mordejai Clonsio");
 enlazar("geminiInput","gemini");
+
+/* ---- Preguntarle a Google qué modelos existen hoy ----------------- */
+const modeloSel = document.getElementById("modeloSel");
+function pintarModelos(lista){
+  modeloSel.innerHTML = "";
+  if(!lista.includes(ajustes.modelo)) lista.unshift(ajustes.modelo);
+  lista.forEach(m => {
+    const o = document.createElement("option");
+    o.value = m; o.textContent = m;
+    if(m === ajustes.modelo) o.selected = true;
+    modeloSel.appendChild(o);
+  });
+}
+pintarModelos([ajustes.modelo]);
+modeloSel.onchange = () => { ajustes.modelo = modeloSel.value; guardar("ajustes", ajustes); aviso("Modelo cambiado"); };
+
+document.getElementById("buscarModelos").onclick = async () => {
+  if(!ajustes.gemini){ aviso("Primero pega la clave"); return; }
+  aviso("Preguntándole a Google…");
+  try{
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key=" +
+                          encodeURIComponent(ajustes.gemini));
+    const d = await r.json();
+    if(!r.ok){ aviso(d.error ? d.error.message.slice(0,60) : "Error " + r.status); return; }
+    // Solo los que sirven para lo nuestro: que acepten generar contenido.
+    const lista = (d.models||[])
+      .filter(m => (m.supportedGenerationMethods||[]).includes("generateContent"))
+      .map(m => m.name.replace("models/",""))
+      .filter(n => !/embedding|image|tts|veo|imagen/i.test(n))
+      .sort();
+    if(!lista.length){ aviso("No devolvió modelos"); return; }
+    pintarModelos(lista);
+    aviso(lista.length + " modelos disponibles");
+  }catch(e){ aviso("No se pudo consultar"); }
+};
 enlazar("endpointInput","endpoint");
 enlazar("tokenInput","token");
 
