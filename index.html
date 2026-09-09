@@ -187,6 +187,13 @@ nav button[aria-current="page"]{color:var(--accent)}
 #intro small{color:var(--muted); font-size:13px; margin-block-start:-12px}
 
 /* ---------- PANEL GENERAL ------------------------------------------ */
+.cab-hoy{display:flex; align-items:flex-start; gap:12px}
+.cab-hoy .izq{flex:1}
+.leer{inline-size:52px; block-size:52px; border-radius:50%; flex:none;
+  border:1px solid var(--line); background:var(--surface); color:var(--accent);
+  font-size:19px; display:grid; place-items:center; margin-block-start:6px}
+.leer.sonando{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.leyendo{font-size:13px; color:var(--accent); margin:8px 0 0}
 .total{display:flex; align-items:baseline; gap:11px; margin-block:6px 2px}
 .total b{font-family:"Frank Ruhl Libre",serif; font-weight:500; font-size:52px; line-height:1}
 .total span{color:var(--muted); font-size:14.5px}
@@ -484,19 +491,35 @@ function dibujarPanel(){
   const pendientes = items.filter(i => !i.hecho);
   const sinCtx     = pendientes.filter(i => !i.ctx);
 
-  // ---- el número grande ----
+  // ---- cabecera: número grande + botón de leer en voz alta ----
+  const cab = document.createElement("div"); cab.className = "cab-hoy";
+  const izq = document.createElement("div"); izq.className = "izq";
+
+  const leer = document.createElement("button");
+  leer.className = "leer" + (hablando ? " sonando" : "");
+  leer.textContent = hablando ? "■" : "▶";
+  leer.setAttribute("aria-label", hablando ? "Parar la lectura" : "Escuchar mis pendientes");
+  leer.onclick = () => hablando ? pararLectura() : leerPendientes();
+
   const tot = document.createElement("div"); tot.className = "total";
   const b = document.createElement("b"); b.textContent = pendientes.length;
   const sp = document.createElement("span");
   sp.textContent = pendientes.length === 1 ? "cosa por hacer" : "cosas por hacer";
-  tot.append(b, sp); p.appendChild(tot);
+  tot.append(b, sp); izq.appendChild(tot);
 
   const sub = document.createElement("p"); sub.className = "total-sub";
   const conFecha = pendientes.filter(i => /—\s*\S/.test(i.texto||"")).length;
   sub.textContent = pendientes.length === 0
     ? "Nada pendiente. Buen momento."
     : (conFecha ? conFecha + " con fecha puesta" : "Ninguna tiene fecha todavía");
-  p.appendChild(sub);
+  izq.appendChild(sub);
+
+  cab.append(izq, leer); p.appendChild(cab);
+  if(hablando){
+    const l = document.createElement("p"); l.className = "leyendo";
+    l.textContent = "Leyendo… toca el cuadrado para parar";
+    p.appendChild(l);
+  }
 
   // ---- cada mundo, desplegable ----
   const lista = document.createElement("div"); lista.className = "mundos";
@@ -547,6 +570,72 @@ function dibujarPanel(){
     p.appendChild(a);
   }
 }
+
+/* ====================================================================
+   PASO 4c — Leer los pendientes en voz alta
+   Usa la voz que ya trae Android, la misma que lee mensajes. No cuesta
+   nada, no gasta cuota y funciona sin conexión.
+==================================================================== */
+let hablando = false;
+
+function vozEspañola(){
+  const voces = window.speechSynthesis.getVoices() || [];
+  return voces.find(v => /^es(-|_)/i.test(v.lang)) || null;
+}
+
+function leerPendientes(){
+  if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
+  const pendientes = items.filter(i => !i.hecho);
+
+  // Armamos el guion: primero el total, después mundo por mundo.
+  const partes = [];
+  if(!pendientes.length){
+    partes.push("No tienes nada pendiente.");
+  } else {
+    partes.push(pendientes.length === 1
+      ? "Tienes una cosa por hacer."
+      : "Tienes " + pendientes.length + " cosas por hacer.");
+    CONTEXTOS.forEach(c => {
+      const suyas = pendientes.filter(i => i.ctx === c.id);
+      if(!suyas.length) return;
+      partes.push("En " + c.nombre + ", " + suyas.length +
+                  (suyas.length === 1 ? " pendiente." : " pendientes."));
+      suyas.slice(0, 6).forEach(it => partes.push(paraLeer(it)));
+      if(suyas.length > 6) partes.push("Y " + (suyas.length - 6) + " más.");
+    });
+    const sin = pendientes.filter(i => !i.ctx).length;
+    if(sin) partes.push(sin === 1
+      ? "Además, una captura sin clasificar."
+      : "Además, " + sin + " capturas sin clasificar.");
+  }
+
+  window.speechSynthesis.cancel();
+  hablando = true; dibujarPanel();
+
+  const voz = vozEspañola();
+  partes.forEach((t, i) => {
+    const frase = new SpeechSynthesisUtterance(t);
+    frase.lang = "es-ES";
+    if(voz) frase.voice = voz;
+    frase.rate = 0.98;
+    // una pausa natural entre bloques
+    if(i === partes.length - 1) frase.onend = () => { hablando = false; dibujarPanel(); };
+    window.speechSynthesis.speak(frase);
+  });
+}
+
+function paraLeer(it){
+  const t = (it.texto || it.transcripcion || it.descripcion || "Sin texto");
+  return recortar(t.replace(" — ", ", para "), 160);
+}
+
+function pararLectura(){
+  window.speechSynthesis.cancel();
+  hablando = false; dibujarPanel();
+}
+
+// si sales de la app, que no siga hablando sola
+document.addEventListener("visibilitychange", () => { if(document.hidden) pararLectura(); });
 
 /* Una línea del resumen: se puede tachar desde aquí mismo. */
 function lineaResumen(it, c){
