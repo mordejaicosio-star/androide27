@@ -234,6 +234,13 @@ nav button[aria-current="page"]{color:var(--accent)}
   color:var(--accent); margin-block:14px 6px; display:block}
 .resumen-linea{display:flex; gap:9px; align-items:flex-start; padding:5px 0}
 .resumen-linea .cont{flex:1}
+.resumen-linea .acc{display:flex; gap:4px; flex:none}
+.resumen-linea .acc button{inline-size:30px; block-size:30px; border-radius:8px;
+  border:1px solid var(--line); color:var(--muted); font-size:15px; line-height:1}
+.resumen-linea .acc .mas:hover{color:var(--accent); border-color:var(--accent)}
+.resumen-linea .acc .no:hover{color:var(--danger); border-color:var(--danger)}
+.resumen-linea.puesta .cont{opacity:.5}
+.resumen-linea.puesta .acc .mas{background:var(--familia); border-color:var(--familia); color:#fff}
 .resumen-linea .mundo-tag{font-size:11.5px; padding:1px 7px; border-radius:999px;
   background:var(--raised); color:var(--muted); margin-inline-end:6px; white-space:nowrap}
 .cuando-resumen{font-size:12.5px; color:var(--muted); margin:0 0 12px}
@@ -690,9 +697,51 @@ function pintarResumen(texto, mensaje){
     } else {
       cont.textContent = l.replace(/^-\s*/, "");
     }
-    fila.appendChild(cont);
+    // ¿ya la pasé a la bandeja alguna vez?
+    const limpio = (m ? m[2] : l.replace(/^-\s*/, "")).trim();
+    const yaEsta = items.some(i => i.texto === limpio);
+    if(yaEsta) fila.classList.add("puesta");
+
+    const acc = document.createElement("div"); acc.className = "acc";
+
+    const mas = document.createElement("button");
+    mas.className = "mas"; mas.textContent = yaEsta ? "✓" : "+";
+    mas.setAttribute("aria-label", "Pasar a mis pendientes");
+    mas.onclick = async () => {
+      if(items.some(i => i.texto === limpio)){ aviso("Ya está en tu bandeja"); return; }
+      const ctx = m ? CONTEXTOS.find(c => c.nombre.toLowerCase() === m[1].toLowerCase()) : null;
+      await agregar({ texto: limpio, ctx: ctx ? ctx.id : null,
+                      origen: "del resumen", sugerido: ctx ? ctx.id : "" });
+      pintarResumen(ajustes.ultimoResumen, null);
+      aviso("Pasado a pendientes");
+    };
+
+    const no = document.createElement("button");
+    no.className = "no"; no.textContent = "×";
+    no.setAttribute("aria-label", "No me interesa, no me lo vuelvas a mostrar");
+    no.onclick = () => noMeInteresa(limpio, fila);
+
+    acc.append(mas, no);
+    fila.append(cont, acc);
     caja.appendChild(fila);
   });
+}
+
+/* Descartar algo del resumen para siempre. Se lo decimos al motor,
+   que lo apunta en su hoja "Ignorar" y deja de recogerlo. Si algún día
+   te arrepientes, se borra esa fila en la hoja y vuelve. */
+async function noMeInteresa(texto, fila){
+  // Nos quedamos con lo más identificable: nombres propios o el asunto.
+  const clave = texto.replace(/^\W+/, "").split(/[:.\u2014]/)[0].trim().slice(0, 60);
+  if(!clave){ aviso("No sabría qué ignorar de esta línea"); return; }
+  if(!ajustes.endpoint || !ajustes.token){ aviso("Falta conectar el motor"); return; }
+  try{
+    await fetch(ajustes.endpoint, { method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({ token: ajustes.token, tipo: "ignorar", texto: clave }) });
+    fila.style.display = "none";
+    aviso("Anotado: no te lo vuelvo a mostrar");
+  }catch(e){ aviso("No se pudo avisar al motor"); }
 }
 
 /* ====================================================================
