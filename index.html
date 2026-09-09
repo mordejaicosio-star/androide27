@@ -407,6 +407,23 @@ let ajustes = leer("ajustes", { nombre:"Androide 27", firma:"Mordejai Clonsio",
                                 tema:"auto", endpoint:"", token:"", gemini:"",
                                 modelo: MODELO_POR_DEFECTO });
 if(!ajustes.modelo) ajustes.modelo = MODELO_POR_DEFECTO;
+
+/* Cada vez que corriges un mundo mal asignado, se guarda el ejemplo.
+   Los últimos 25 viajan en las instrucciones para que no repita el
+   mismo error. Esto es lo que hace que vaya afinando con el uso. */
+let aprendidos = leer("aprendidos", []);
+function aprender(texto, mundo){
+  if(!texto || !mundo) return;
+  aprendidos = aprendidos.filter(a => a.texto !== texto);
+  aprendidos.unshift({ texto: texto.slice(0,120), mundo });
+  aprendidos = aprendidos.slice(0, 25);
+  guardar("aprendidos", aprendidos);
+}
+function ejemplosAprendidos(){
+  if(!aprendidos.length) return "";
+  return "\n\nMordejai ya corrigió estas clasificaciones antes. Respeta el criterio:\n" +
+    aprendidos.map(a => '- "' + a.texto + '" → ' + a.mundo).join("\n");
+}
 let adjuntoPendiente = null;
 
 /* ====================================================================
@@ -619,15 +636,27 @@ function fila(it){
   }
 
   const meta=document.createElement("div"); meta.className="item-meta";
-  meta.innerHTML=`<span class="dot"></span>${ctx?ctx.nombre:"Sin clasificar"} · ${cuando(it.fecha)}` +
+  meta.innerHTML=`<span class="dot"></span><span class="cambiar"></span> · ${cuando(it.fecha)}` +
                  (it.origen==="compartido"?" · compartido":"");
+  const cambiar = meta.querySelector(".cambiar");
+  cambiar.textContent = ctx ? ctx.nombre : "Sin clasificar";
+  if(ctx){
+    cambiar.style.textDecoration = "underline dotted";
+    cambiar.style.cursor = "pointer";
+    cambiar.onclick = () => { it.corrigiendo = !it.corrigiendo; dibujar(); };
+  }
   body.appendChild(meta);
 
-  if(!it.ctx){
+  if(!it.ctx || it.corrigiendo){
     const asg=document.createElement("div"); asg.className="assign";
     CONTEXTOS.forEach(c=>{
       const b=document.createElement("button"); b.textContent=c.nombre;
-      b.onclick=()=>{ it.ctx=c.id; guardar("items",items); dibujar(); enviarAlMotor(it); };
+      b.onclick=()=>{
+        it.ctx=c.id;
+        if(it.sugerido && it.sugerido !== c.id){ aprender(it.texto, c.id); aviso("Anotado, no lo vuelvo a confundir"); }
+        it.corrigiendo = false;
+        guardar("items",items); dibujar(); enviarAlMotor(it);
+      };
       asg.appendChild(b);
     });
     body.appendChild(asg);
@@ -699,7 +728,7 @@ function revisarBoton(){ saveBtn.disabled = !input.value.trim() && !adjuntoPendi
 input.oninput=()=>{ revisarBoton(); input.style.height="auto";
   input.style.height=Math.min(input.scrollHeight,100)+"px"; };
 
-async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion=""}){
+async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion="", sugerido=""}){
   const id=Date.now()+"-"+Math.random().toString(36).slice(2,7);
   let adjunto=null;
   if(blob){
@@ -711,10 +740,11 @@ async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre=
   const esAudio = (tipo||"").startsWith("audio/");
   const it={ id, texto:(texto||"").trim(), ctx, fecha:new Date().toISOString(),
              hecho:false, origen, adjunto, enviado:false,
-             transcripcion: transcripcion||"", descripcion:"",
+             transcripcion: transcripcion||"", descripcion:"", sugerido: sugerido||"",
              estadoAudio: esAudio && !transcripcion ? "trabajando" : "" };
   items.unshift(it); guardar("items",items); dibujar(); medirEspacio();
   if(it.estadoAudio==="trabajando") transcribir(it);
+  else if(!adjunto && !ctx && it.texto && origen==="escrito" && !sugerido) analizarTexto(it);
   else enviarAlMotor(it);
   return it;
 }
@@ -799,24 +829,8 @@ async function transcribir(it){
   if(reg.blob.size > LIMITE_AUDIO_MB*1048576)
     return fallo("El audio es demasiado largo para transcribirlo. ¿De qué trata?");
 
-  const mundos = CONTEXTOS.map(c=>c.id).join("|");
-  const instruccion =
-    'Escucha este audio. Eres el asistente de Mordejai, que trabaja en tres empresas ' +
-    '(Proserco, Isracap e Isracap Grand) y tiene esposa y cuatro hijos.\n\n' +
-    'Devuelve SOLO un JSON válido, sin ``` y sin ninguna palabra fuera del JSON:\n' +
-    '{"transcripcion":"...","tareas":[{"texto":"...","mundo":"","cuando":""}]}\n\n' +
-    'transcripcion: lo que se dice, literal, en el idioma en que está hablado.\n' +
-    'tareas: un elemento POR CADA asunto distinto que se mencione. Si el audio habla ' +
-    'de tres cosas diferentes, devuelve tres tareas separadas. Si no hay ningún ' +
-    'pendiente ni cosa que hacer, devuelve la lista vacía.\n' +
-    'texto: el pendiente redactado corto y accionable, en español, empezando por un verbo.\n' +
-    'mundo: uno de estos exactamente: ' + mundos + '. familia = casa, hijos, esposa, ' +
-    'compras y trámites del hogar. proserco, isracap, grand = las tres empresas. ' +
-    'personal = suyo propio, salud, amigos. Si de verdad no puedes saberlo, deja "".\n' +
-    'cuando: si menciona fecha o plazo ponlo tal cual (mañana, el jueves, fin de mes). ' +
-    'Si no menciona ninguno, deja "".\n\n' +
-    'Si el audio no se entiende, devuelve {"transcripcion":"INAUDIBLE","tareas":[]}';
-
+  const instruccion = instruccionAnalisis("Escucha este audio.") +
+    ejemplosAprendidos();
   try{
     const base64 = await aBase64(reg.blob);
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
@@ -859,7 +873,8 @@ async function transcribir(it){
       for(const t of tareas){
         await agregar({ texto: textoTarea(t),
                         ctx: mundoValido(t.mundo) ? t.mundo : null,
-                        origen: "del audio" });
+                        origen: "del audio",
+                        sugerido: mundoValido(t.mundo) ? t.mundo : "" });
       }
       dibujar();
       aviso(tareas.length===1 ? "1 pendiente sacado del audio"
@@ -873,6 +888,66 @@ async function transcribir(it){
   }catch(e){
     fallo("Falló la transcripción (" + (e.message||"sin conexión") + "). ¿De qué trata?");
   }
+}
+
+/* Las mismas instrucciones sirven para un audio o para algo escrito.
+   Solo cambia la primera frase. */
+function instruccionAnalisis(apertura){
+  const mundos = CONTEXTOS.map(c=>c.id).join("|");
+  return apertura + ' Eres el asistente de Mordejai, que trabaja en tres empresas ' +
+    '(Proserco, Isracap e Isracap Grand) y tiene esposa y cuatro hijos.\n\n' +
+    'Devuelve SOLO un JSON válido, sin ``` y sin ninguna palabra fuera del JSON:\n' +
+    '{"transcripcion":"...","tareas":[{"texto":"...","mundo":"","cuando":""}]}\n\n' +
+    'transcripcion: lo que se dice, literal, en el idioma original. Si te doy texto ' +
+    'escrito en vez de audio, copia ese texto tal cual aquí.\n' +
+    'tareas: un elemento POR CADA asunto distinto. Si hay tres cosas diferentes, ' +
+    'devuelve tres tareas separadas. Si no hay ningún pendiente, lista vacía.\n' +
+    'texto: el pendiente redactado corto y accionable, en español, empezando por un verbo.\n' +
+    'mundo: uno de estos exactamente: ' + mundos + '. familia = casa, hijos, esposa, ' +
+    'compras y trámites del hogar. proserco, isracap, grand = las tres empresas; ' +
+    '"Isracap Grand" es grand, "Isracap" a secas es isracap, son distintas. ' +
+    'personal = suyo propio, salud, amigos. Si de verdad no puedes saberlo, deja "".\n' +
+    'cuando: si menciona fecha o plazo, ponlo tal cual (mañana, el lunes, fin de mes). ' +
+    'Si no menciona ninguno, deja "".\n\n' +
+    'Si no se entiende nada, devuelve {"transcripcion":"INAUDIBLE","tareas":[]}';
+}
+
+/* ---- Analizar algo escrito a mano -------------------------------- */
+async function analizarTexto(it){
+  if(!ajustes.gemini) return;                     // sin clave, se queda como está
+  try{
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+                (ajustes.modelo || MODELO_POR_DEFECTO) +
+                ":generateContent?key=" + encodeURIComponent(ajustes.gemini);
+    const r = await fetch(url, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ contents:[{ parts:[
+        { text: instruccionAnalisis("Lee esto que escribió Mordejai.") +
+                ejemplosAprendidos() + "\n\nTEXTO:\n" + it.texto }
+      ]}]})
+    });
+    if(!r.ok) return;
+    const datos = await r.json();
+    const crudo = (((datos.candidates||[])[0]||{}).content||{}).parts
+                    ?.map(p=>p.text||"").join(" ").trim() || "";
+    const salida = leerJSON(crudo);
+    const tareas = salida && Array.isArray(salida.tareas) ? salida.tareas.filter(t=>t&&t.texto) : [];
+    if(!tareas.length) return;
+
+    // La primera se queda en esta captura; si había más, salen aparte.
+    const p = tareas[0];
+    it.texto = textoTarea(p);
+    if(mundoValido(p.mundo)){ it.ctx = p.mundo; it.sugerido = p.mundo; }
+    guardar("items",items); dibujar(); enviarAlMotor(it);
+
+    for(let i=1; i<tareas.length; i++){
+      const t = tareas[i];
+      await agregar({ texto: textoTarea(t),
+                      ctx: mundoValido(t.mundo) ? t.mundo : null,
+                      origen: "escrito", sugerido: mundoValido(t.mundo) ? t.mundo : "" });
+    }
+    aviso(tareas.length===1 ? "Clasificado" : tareas.length + " pendientes separados");
+  }catch(e){ /* si falla, la captura se queda sin clasificar y la asignas tú */ }
 }
 
 function textoTarea(t){
