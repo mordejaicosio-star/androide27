@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  ANDROIDE 27
+  ANDROIDE 27  ·  versión 3
   Bandeja de capturas — atendida por Mordejai Clonsio
   ============================================================
-  Este archivo es TODA la pantalla de la app.
   Novedades de esta versión:
-    · Nombre y firma propios
-    · Recibe fotos, audios y documentos compartidos
-    · Graba notas de voz desde la propia app
+    · Tus grabaciones se transcriben en el propio teléfono, gratis
+    · Los audios que te comparten se transcriben con Gemini
+    · Si algo de eso falla, la app te pregunta de qué trata
   ============================================================
 -->
 <html lang="es" dir="ltr" data-theme="auto">
@@ -25,7 +24,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500&family=Assistant:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-/* ---------- 1. COLORES --------------------------------------------- */
+/* ---------- COLORES ------------------------------------------------ */
 :root {
   --bg:#0B1524; --surface:#132032; --raised:#1B2A3E; --line:#25364C;
   --text:#E7EBF0; --muted:#94A2B5; --accent:#C79A5B; --accent-ink:#0B1524;
@@ -51,41 +50,36 @@ html[data-theme="light"] {
   }
 }
 
-/* ---------- 2. BASE ------------------------------------------------ */
+/* ---------- BASE --------------------------------------------------- */
 *{box-sizing:border-box}
-body{
-  margin:0; background:var(--bg); color:var(--text);
+body{margin:0; background:var(--bg); color:var(--text);
   font-family:"Assistant",system-ui,sans-serif; font-size:16px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
-  padding-block-end:calc(180px + env(safe-area-inset-bottom));
-}
+  padding-block-end:calc(180px + env(safe-area-inset-bottom))}
 .wrap{max-width:560px; margin-inline:auto; padding-inline:20px}
 h1,h2,h3{font-family:"Frank Ruhl Libre",Georgia,serif; font-weight:500; margin:0}
 button{font-family:inherit; font-size:inherit; cursor:pointer; border:none; background:none; color:inherit}
 button:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 .hidden{display:none !important}
 
-/* ---------- 3. ENCABEZADO ------------------------------------------ */
+/* ---------- ENCABEZADO --------------------------------------------- */
 header{padding-block:24px 12px}
 .brand{display:flex; align-items:center; gap:11px; margin-block-end:22px}
-.avatar{inline-size:30px; block-size:30px; border-radius:9px; flex:none; object-fit:cover;
-  border:1px solid var(--line)}
+.avatar{inline-size:30px; block-size:30px; border-radius:9px; flex:none; object-fit:cover; border:1px solid var(--line)}
 .brand-name{font-family:"Frank Ruhl Libre",serif; font-size:17px; flex:1; line-height:1.2}
 .brand-sub{display:block; font-family:"Assistant",sans-serif; font-size:11.5px; color:var(--muted)}
 .icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px; line-height:1}
 h1{font-size:31px; letter-spacing:-.01em}
 .date{color:var(--muted); font-size:14px; margin-block-start:4px}
 
-/* ---------- 4. CAPTURAS -------------------------------------------- */
+/* ---------- CAPTURAS ----------------------------------------------- */
 .group-label{font-size:13px; color:var(--muted); margin-block:24px 8px;
   display:flex; align-items:center; gap:8px}
 .group-label::after{content:""; flex:1; block-size:1px; background:var(--line)}
-.item{
-  background:var(--surface); border-radius:var(--radius);
+.item{background:var(--surface); border-radius:var(--radius);
   border-inline-start:3px solid var(--ctx,var(--personal));
   padding:13px 14px; margin-block-end:8px;
-  display:flex; gap:12px; align-items:flex-start; animation:in .22s ease both
-}
+  display:flex; gap:12px; align-items:flex-start; animation:in .22s ease both}
 @keyframes in{from{opacity:0; transform:translateY(6px)}}
 @media (prefers-reduced-motion:reduce){.item{animation:none}}
 .item.done{opacity:.45}
@@ -104,28 +98,38 @@ h1{font-size:31px; letter-spacing:-.01em}
 .adj img{inline-size:100%; max-block-size:230px; object-fit:cover; border-radius:9px; display:block}
 .adj audio{inline-size:100%; margin-block-start:2px}
 .adj .file{display:flex; gap:8px; align-items:center; background:var(--raised);
-  border-radius:9px; padding:9px 11px; font-size:13.5px; color:var(--muted);
-  text-decoration:none}
+  border-radius:9px; padding:9px 11px; font-size:13.5px; color:var(--muted); text-decoration:none}
 .adj-load{background:var(--raised); border-radius:9px; padding:14px; font-size:13px; color:var(--muted)}
 
-.assign{display:flex; gap:5px; flex-wrap:wrap; margin-block-start:10px}
-.assign button{border:1px solid var(--line); border-radius:999px; padding:4px 11px;
-  font-size:12.5px; color:var(--muted)}
-.assign button:hover{border-color:var(--a); color:var(--text)}
+/* estado de la transcripción */
+.trans{margin-block-start:9px; font-size:13.5px; border-radius:9px;
+  background:var(--raised); padding:10px 12px; color:var(--muted)}
+.trans b{color:var(--text); font-weight:600; display:block; margin-block-end:3px; font-size:12.5px}
+.pregunta{margin-block-start:9px}
+.pregunta p{margin:0 0 7px; font-size:13.5px; color:var(--muted)}
+.pregunta textarea{inline-size:100%; background:var(--bg); color:var(--text);
+  border:1px solid var(--line); border-radius:9px; padding:9px 11px;
+  font-family:inherit; font-size:14px; resize:none; min-block-size:42px}
+.pregunta .acc{display:flex; gap:7px; margin-block-start:7px}
+.pregunta button{border:1px solid var(--line); border-radius:9px; padding:7px 13px; font-size:13.5px; color:var(--muted)}
+.pregunta button.ok{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600}
 
-/* ---------- 5. VACÍOS ---------------------------------------------- */
+.assign{display:flex; gap:5px; flex-wrap:wrap; margin-block-start:10px}
+.assign button{border:1px solid var(--line); border-radius:999px; padding:4px 11px; font-size:12.5px; color:var(--muted)}
+
+/* ---------- VACÍOS ------------------------------------------------- */
 .empty{border:1px dashed var(--line); border-radius:var(--radius);
   padding:28px 22px; color:var(--muted); margin-block-start:18px}
 .empty h3{font-size:19px; color:var(--text); margin-block-end:7px}
 .empty p{margin:0 0 10px; font-size:14.5px}
 .firma{font-family:"Frank Ruhl Libre",serif; font-size:14px; color:var(--accent); margin:0}
 
-/* ---------- 6. CAJA PARA CAPTURAR ---------------------------------- */
+/* ---------- CAJA PARA CAPTURAR ------------------------------------- */
 .composer{position:fixed; inset-block-end:59px; inset-inline:0; background:var(--bg);
   border-block-start:1px solid var(--line); z-index:20;
   padding:11px 20px calc(11px + env(safe-area-inset-bottom))}
 .composer-inner{max-width:560px; margin-inline:auto}
-textarea{inline-size:100%; background:var(--surface); color:var(--text);
+textarea#input{inline-size:100%; background:var(--surface); color:var(--text);
   border:1px solid var(--line); border-radius:var(--radius); padding:11px 13px;
   font-family:inherit; font-size:15px; resize:none; min-block-size:46px; max-block-size:100px}
 textarea::placeholder{color:var(--muted)}
@@ -145,8 +149,9 @@ textarea::placeholder{color:var(--muted)}
   border-radius:10px; padding:8px 11px; margin-block-end:9px; font-size:13.5px}
 .pend img{inline-size:34px; block-size:34px; border-radius:6px; object-fit:cover}
 .pend span{flex:1; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.oyendo{font-size:12.5px; color:var(--danger); margin-block-start:7px}
 
-/* ---------- 7. AJUSTES --------------------------------------------- */
+/* ---------- AJUSTES ------------------------------------------------ */
 .field{margin-block-end:20px}
 .field label{display:block; font-size:14px; color:var(--muted); margin-block-end:7px}
 .field input{inline-size:100%; background:var(--surface); color:var(--text);
@@ -154,22 +159,21 @@ textarea::placeholder{color:var(--muted)}
   font-family:inherit; font-size:15px}
 .hint{font-size:13px; color:var(--muted); margin-block-start:7px}
 .seg{display:flex; gap:6px}
-.seg button{flex:1; border:1px solid var(--line); border-radius:10px; padding:10px;
-  font-size:14.5px; color:var(--muted)}
+.seg button{flex:1; border:1px solid var(--line); border-radius:10px; padding:10px; font-size:14.5px; color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--raised); color:var(--text); border-color:var(--accent)}
 .ghost{border:1px solid var(--line); border-radius:10px; padding:11px 16px;
   font-size:14.5px; inline-size:100%; margin-block-end:9px}
 .bar{block-size:6px; background:var(--raised); border-radius:99px; overflow:hidden; margin-block-start:8px}
 .bar i{display:block; block-size:100%; background:var(--accent); inline-size:0}
 
-/* ---------- 8. NAVEGACIÓN ------------------------------------------ */
+/* ---------- NAVEGACIÓN --------------------------------------------- */
 nav{position:fixed; inset-block-end:0; inset-inline:0; z-index:30; background:var(--bg);
   border-block-start:1px solid var(--line); display:flex; padding-block-end:env(safe-area-inset-bottom)}
 nav button{flex:1; padding:11px 0 13px; font-size:12.5px; color:var(--muted); text-align:center}
 nav button b{display:block; font-size:17px; font-weight:400; margin-block-end:2px}
 nav button[aria-current="page"]{color:var(--accent)}
 
-/* ---------- 9. AVISO ----------------------------------------------- */
+/* ---------- AVISO -------------------------------------------------- */
 .toast{position:fixed; inset-block-end:160px; inset-inline:0; margin-inline:auto;
   inline-size:max-content; max-inline-size:82%; background:var(--raised);
   border:1px solid var(--line); padding:10px 16px; border-radius:999px;
@@ -192,26 +196,23 @@ nav button[aria-current="page"]{color:var(--accent)}
     <p class="date" id="dateLine"></p>
   </header>
 
-  <!-- HOY -->
   <main id="view-hoy">
     <div class="empty">
       <h3>Todavía no hay resumen</h3>
-      <p>Aquí va a aparecer tu orden del día cuando conectemos los cuatro correos y el Drive. Mientras tanto, todo lo que mandes a Bandeja queda guardado y ordenado.</p>
+      <p>Aquí va a aparecer tu orden del día cuando conectemos el motor con los correos. Mientras tanto, todo lo que mandes a Bandeja queda guardado y ordenado.</p>
       <p class="firma">— Mordejai Clonsio</p>
     </div>
   </main>
 
-  <!-- BANDEJA -->
   <main id="view-bandeja" class="hidden">
     <div id="list"></div>
     <div class="empty hidden" id="emptyInbox">
       <h3>Bandeja vacía</h3>
-      <p>Comparte desde WhatsApp un mensaje, una foto o un audio. También puedes escribir abajo, adjuntar un archivo o grabar una nota de voz.</p>
+      <p>Comparte desde WhatsApp una foto o un audio. También puedes escribir abajo, adjuntar un archivo o grabar una nota de voz.</p>
       <p class="firma">— Mordejai Clonsio</p>
     </div>
   </main>
 
-  <!-- AJUSTES -->
   <main id="view-ajustes" class="hidden">
     <div class="field">
       <label for="nameInput">Nombre de la app</label>
@@ -220,7 +221,6 @@ nav button[aria-current="page"]{color:var(--accent)}
     <div class="field">
       <label for="firmaInput">Cómo se llama a sí mismo</label>
       <input id="firmaInput" type="text" placeholder="Mordejai Clonsio">
-      <p class="hint">Con este nombre va a firmar tus resúmenes y a hablarte.</p>
     </div>
     <div class="field">
       <label>Apariencia</label>
@@ -231,9 +231,17 @@ nav button[aria-current="page"]{color:var(--accent)}
       </div>
     </div>
     <div class="field">
+      <label for="geminiInput">Clave para transcribir audios</label>
+      <input id="geminiInput" type="password" placeholder="Pega aquí tu clave de Google AI Studio">
+      <p class="hint">Se guarda solo en este teléfono, nunca sale hacia GitHub. Sirve para que los audios que te comparten se conviertan en texto. Si la dejas vacía, la app te va a preguntar de qué trata cada audio.</p>
+    </div>
+    <div class="field">
       <label for="endpointInput">Dirección del motor</label>
-      <input id="endpointInput" type="url" placeholder="Lo conectamos en el próximo paso">
-      <p class="hint">Déjalo vacío por ahora. Cuando exista el script de Google, aquí pegas su dirección.</p>
+      <input id="endpointInput" type="url" placeholder="La pegarás cuando publiques el script">
+    </div>
+    <div class="field">
+      <label for="tokenInput">Palabra secreta del motor</label>
+      <input id="tokenInput" type="password" placeholder="La misma que pusiste en TOKEN">
     </div>
     <div class="field">
       <label>Espacio usado en el teléfono</label>
@@ -244,12 +252,11 @@ nav button[aria-current="page"]{color:var(--accent)}
       <label>Tus datos</label>
       <button class="ghost" id="exportBtn">Descargar copia de seguridad</button>
       <button class="ghost" id="copyBtn">Copiar todo como texto</button>
-      <p class="hint">Mientras no haya motor, todo vive solo en este teléfono. Las fotos y audios no entran en la copia de seguridad: para guardarlos hay que abrirlos desde cada captura.</p>
+      <p class="hint">Las fotos y audios no entran en la copia: para guardarlos hay que abrirlos desde cada captura.</p>
     </div>
   </main>
 </div>
 
-<!-- CAPTURAR -->
 <div class="composer" id="composer">
   <div class="composer-inner">
     <div class="pend hidden" id="pend">
@@ -258,6 +265,7 @@ nav button[aria-current="page"]{color:var(--accent)}
       <button class="icon-btn" id="pendQuitar" aria-label="Quitar adjunto">×</button>
     </div>
     <textarea id="input" rows="1" placeholder="¿Qué no se puede perder?"></textarea>
+    <p class="oyendo hidden" id="oyendo">Escuchando… habla con naturalidad</p>
     <div class="chips" id="chips"></div>
     <div class="row">
       <button class="tool" id="fileBtn" aria-label="Adjuntar foto o archivo">＋</button>
@@ -278,7 +286,7 @@ nav button[aria-current="page"]{color:var(--accent)}
 
 <script>
 /* ====================================================================
-   PASO 1 — Los mundos
+   PASO 1 — Los mundos y el modelo de transcripción
 ==================================================================== */
 const CONTEXTOS = [
   { id:"familia",  nombre:"Familia",       color:"var(--familia)"  },
@@ -289,56 +297,46 @@ const CONTEXTOS = [
 ];
 const ctxDe = id => CONTEXTOS.find(c => c.id === id);
 
+// Modelo gratuito de Google que escucha audios.
+// Si algún día deja de existir, se cambia solo este nombre.
+const MODELO_AUDIO = "gemini-2.0-flash";
+const LIMITE_AUDIO_MB = 15;   // más grande que esto, no lo mandamos
+
 /* ====================================================================
-   PASO 2 — Dos almacenes distintos, y conviene entender por qué:
-
-   · El TEXTO de tus capturas es liviano y va en la memoria simple
-     del navegador.
-   · Las FOTOS Y AUDIOS pesan mucho y no caben ahí. Van en una base
-     de datos del teléfono llamada IndexedDB, hecha para archivos.
-
-   No es complicación por gusto: sin esto, las fotos romperían la app.
+   PASO 2 — Dónde se guarda cada cosa
+   Texto → memoria simple.  Fotos y audios → base de datos del teléfono.
 ==================================================================== */
 let respaldo = {};
-function leer(k, d){ try{const v=localStorage.getItem(k); return v?JSON.parse(v):d;}catch(e){return respaldo[k]??d;} }
-function guardar(k, v){ respaldo[k]=v; try{localStorage.setItem(k, JSON.stringify(v));}catch(e){} }
+function leer(k,d){ try{const v=localStorage.getItem(k); return v?JSON.parse(v):d;}catch(e){return respaldo[k]??d;} }
+function guardar(k,v){ respaldo[k]=v; try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
 
-const DB_NOMBRE = "androide27", DB_VER = 1;
 function abrirDB(){
-  return new Promise((ok, mal) => {
-    const r = indexedDB.open(DB_NOMBRE, DB_VER);
+  return new Promise((ok,mal)=>{
+    const r = indexedDB.open("androide27",1);
     r.onupgradeneeded = () => {
       const db = r.result;
-      if(!db.objectStoreNames.contains("adjuntos"))  db.createObjectStore("adjuntos",  {keyPath:"id"});
-      if(!db.objectStoreNames.contains("entrantes")) db.createObjectStore("entrantes", {keyPath:"id"});
+      if(!db.objectStoreNames.contains("adjuntos"))  db.createObjectStore("adjuntos", {keyPath:"id"});
+      if(!db.objectStoreNames.contains("entrantes")) db.createObjectStore("entrantes",{keyPath:"id"});
     };
-    r.onsuccess = () => ok(r.result);
-    r.onerror   = () => mal(r.error);
+    r.onsuccess=()=>ok(r.result); r.onerror=()=>mal(r.error);
   });
 }
-async function idbGuardar(store, obj){
-  const db = await abrirDB();
-  return new Promise((ok,mal)=>{ const t=db.transaction(store,"readwrite");
-    t.objectStore(store).put(obj); t.oncomplete=()=>ok(); t.onerror=()=>mal(t.error); });
-}
-async function idbLeer(store, id){
-  const db = await abrirDB();
-  return new Promise((ok,mal)=>{ const r=db.transaction(store,"readonly").objectStore(store).get(id);
-    r.onsuccess=()=>ok(r.result); r.onerror=()=>mal(r.error); });
-}
-async function idbTodos(store){
-  const db = await abrirDB();
-  return new Promise((ok,mal)=>{ const r=db.transaction(store,"readonly").objectStore(store).getAll();
-    r.onsuccess=()=>ok(r.result||[]); r.onerror=()=>mal(r.error); });
-}
-async function idbBorrar(store, id){
-  const db = await abrirDB();
-  return new Promise((ok,mal)=>{ const t=db.transaction(store,"readwrite");
-    t.objectStore(store).delete(id); t.oncomplete=()=>ok(); t.onerror=()=>mal(t.error); });
-}
+async function idbGuardar(s,o){ const db=await abrirDB();
+  return new Promise((ok,mal)=>{const t=db.transaction(s,"readwrite"); t.objectStore(s).put(o);
+    t.oncomplete=()=>ok(); t.onerror=()=>mal(t.error);}); }
+async function idbLeer(s,id){ const db=await abrirDB();
+  return new Promise((ok,mal)=>{const r=db.transaction(s,"readonly").objectStore(s).get(id);
+    r.onsuccess=()=>ok(r.result); r.onerror=()=>mal(r.error);}); }
+async function idbTodos(s){ const db=await abrirDB();
+  return new Promise((ok,mal)=>{const r=db.transaction(s,"readonly").objectStore(s).getAll();
+    r.onsuccess=()=>ok(r.result||[]); r.onerror=()=>mal(r.error);}); }
+async function idbBorrar(s,id){ const db=await abrirDB();
+  return new Promise((ok,mal)=>{const t=db.transaction(s,"readwrite"); t.objectStore(s).delete(id);
+    t.oncomplete=()=>ok(); t.onerror=()=>mal(t.error);}); }
 
 let items   = leer("items", []);
-let ajustes = leer("ajustes", { nombre:"Androide 27", firma:"Mordejai Clonsio", tema:"auto", endpoint:"" });
+let ajustes = leer("ajustes", { nombre:"Androide 27", firma:"Mordejai Clonsio",
+                                tema:"auto", endpoint:"", token:"", gemini:"" });
 let ctxElegido = "familia";
 let adjuntoPendiente = null;
 
@@ -347,18 +345,16 @@ let adjuntoPendiente = null;
 ==================================================================== */
 function aplicarTema(){
   document.documentElement.dataset.theme = ajustes.tema;
-  document.querySelectorAll("#themeSeg button").forEach(b =>
-    b.setAttribute("aria-pressed", b.dataset.t === ajustes.tema));
+  document.querySelectorAll("#themeSeg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.t===ajustes.tema));
 }
 document.getElementById("themeBtn").onclick = () => {
-  const o = ["auto","light","dark"];
-  ajustes.tema = o[(o.indexOf(ajustes.tema)+1) % 3];
-  guardar("ajustes", ajustes); aplicarTema();
-  aviso({auto:"Apariencia automática", light:"Modo claro", dark:"Modo oscuro"}[ajustes.tema]);
+  const o=["auto","light","dark"]; ajustes.tema=o[(o.indexOf(ajustes.tema)+1)%3];
+  guardar("ajustes",ajustes); aplicarTema();
+  aviso({auto:"Apariencia automática",light:"Modo claro",dark:"Modo oscuro"}[ajustes.tema]);
 };
 document.getElementById("themeSeg").onclick = e => {
-  const b = e.target.closest("button"); if(!b) return;
-  ajustes.tema = b.dataset.t; guardar("ajustes", ajustes); aplicarTema();
+  const b=e.target.closest("button"); if(!b) return;
+  ajustes.tema=b.dataset.t; guardar("ajustes",ajustes); aplicarTema();
 };
 
 /* ====================================================================
@@ -366,20 +362,15 @@ document.getElementById("themeSeg").onclick = e => {
 ==================================================================== */
 const urlsAbiertas = [];
 function dibujar(){
-  const cont = document.getElementById("list"); cont.innerHTML = "";
-  urlsAbiertas.splice(0).forEach(u => URL.revokeObjectURL(u));
-
-  const sinCtx     = items.filter(i => !i.ctx && !i.hecho);
-  const pendientes = items.filter(i =>  i.ctx && !i.hecho);
-  const hechos     = items.filter(i =>  i.hecho);
-  document.getElementById("emptyInbox").classList.toggle("hidden", items.length > 0);
-
-  const bloque = (titulo, lista) => {
-    if(!lista.length) return;
-    const h = document.createElement("p");
-    h.className = "group-label"; h.textContent = titulo; cont.appendChild(h);
-    lista.forEach(it => cont.appendChild(fila(it)));
-  };
+  const cont = document.getElementById("list"); cont.innerHTML="";
+  urlsAbiertas.splice(0).forEach(u=>URL.revokeObjectURL(u));
+  const sinCtx     = items.filter(i=>!i.ctx && !i.hecho);
+  const pendientes = items.filter(i=> i.ctx && !i.hecho);
+  const hechos     = items.filter(i=> i.hecho);
+  document.getElementById("emptyInbox").classList.toggle("hidden", items.length>0);
+  const bloque=(t,l)=>{ if(!l.length) return;
+    const h=document.createElement("p"); h.className="group-label"; h.textContent=t; cont.appendChild(h);
+    l.forEach(it=>cont.appendChild(fila(it))); };
   bloque(`Sin clasificar · ${sinCtx.length}`, sinCtx);
   bloque(`Pendientes · ${pendientes.length}`, pendientes);
   bloque("Resueltos", hechos.slice(0,12));
@@ -388,78 +379,110 @@ function dibujar(){
 function fila(it){
   const ctx = ctxDe(it.ctx);
   const div = document.createElement("div");
-  div.className = "item" + (it.hecho ? " done" : "");
+  div.className = "item" + (it.hecho?" done":"");
   div.style.setProperty("--ctx", ctx ? ctx.color : "var(--sin)");
 
-  const check = document.createElement("button");
-  check.className = "check"; check.textContent = "✓";
-  check.setAttribute("aria-label", it.hecho ? "Marcar como pendiente" : "Marcar como resuelto");
-  check.onclick = () => { it.hecho = !it.hecho; guardar("items", items); dibujar(); };
+  const check=document.createElement("button");
+  check.className="check"; check.textContent="✓";
+  check.setAttribute("aria-label", it.hecho?"Marcar como pendiente":"Marcar como resuelto");
+  check.onclick=()=>{ it.hecho=!it.hecho; guardar("items",items); dibujar(); };
 
-  const body = document.createElement("div"); body.className = "item-body";
-  if(it.texto){
-    const t = document.createElement("div"); t.className = "item-text"; t.textContent = it.texto;
-    body.appendChild(t);
+  const body=document.createElement("div"); body.className="item-body";
+  if(it.texto){ const t=document.createElement("div"); t.className="item-text"; t.textContent=it.texto; body.appendChild(t); }
+
+  if(it.adjunto) body.appendChild(cajaAdjunto(it));
+
+  // ---- estado de la transcripción del audio -----------------------
+  if(it.adjunto && (it.adjunto.tipo||"").startsWith("audio/")){
+    if(it.transcripcion){
+      const c=document.createElement("div"); c.className="trans";
+      c.innerHTML="<b>Lo que dice el audio</b>";
+      c.appendChild(document.createTextNode(it.transcripcion));
+      body.appendChild(c);
+    } else if(it.estadoAudio==="trabajando"){
+      const c=document.createElement("div"); c.className="trans";
+      c.textContent="Escuchando el audio…"; body.appendChild(c);
+    } else if(it.estadoAudio==="falló" && !it.descripcion){
+      body.appendChild(cajaPregunta(it));
+    }
+  }
+  if(it.descripcion){
+    const c=document.createElement("div"); c.className="trans";
+    c.innerHTML="<b>Lo que me dijiste que es</b>";
+    c.appendChild(document.createTextNode(it.descripcion));
+    body.appendChild(c);
   }
 
-  if(it.adjunto){
-    const caja = document.createElement("div"); caja.className = "adj";
-    caja.innerHTML = '<div class="adj-load">Abriendo archivo…</div>';
-    body.appendChild(caja);
-    idbLeer("adjuntos", it.adjunto.id).then(reg => {
-      if(!reg){ caja.innerHTML = '<div class="file">El archivo ya no está en este teléfono</div>'; return; }
-      const url = URL.createObjectURL(reg.blob); urlsAbiertas.push(url);
-      const tipo = it.adjunto.tipo || "";
-      caja.innerHTML = "";
-      if(tipo.startsWith("image/")){
-        const img = document.createElement("img");
-        img.src = url; img.alt = it.texto || "Foto capturada"; img.loading = "lazy";
-        caja.appendChild(img);
-      } else if(tipo.startsWith("audio/")){
-        const a = document.createElement("audio");
-        a.src = url; a.controls = true; a.preload = "none"; caja.appendChild(a);
-      } else {
-        const f = document.createElement("a");
-        f.className = "file"; f.href = url; f.download = it.adjunto.nombre || "archivo";
-        f.textContent = "↓ " + (it.adjunto.nombre || "Archivo adjunto");
-        caja.appendChild(f);
-      }
-    }).catch(()=>{ caja.innerHTML = '<div class="file">No se pudo abrir el archivo</div>'; });
-  }
-
-  const meta = document.createElement("div"); meta.className = "item-meta";
-  meta.innerHTML = `<span class="dot"></span>${ctx ? ctx.nombre : "Sin clasificar"} · ${cuando(it.fecha)}` +
-                   (it.origen === "compartido" ? " · compartido" : "");
+  const meta=document.createElement("div"); meta.className="item-meta";
+  meta.innerHTML=`<span class="dot"></span>${ctx?ctx.nombre:"Sin clasificar"} · ${cuando(it.fecha)}` +
+                 (it.origen==="compartido"?" · compartido":"");
   body.appendChild(meta);
 
   if(!it.ctx){
-    const asg = document.createElement("div"); asg.className = "assign";
-    CONTEXTOS.forEach(c => {
-      const b = document.createElement("button");
-      b.textContent = c.nombre; b.style.setProperty("--a", c.color);
-      b.onclick = () => { it.ctx = c.id; guardar("items", items); dibujar(); enviarAlMotor(it); };
+    const asg=document.createElement("div"); asg.className="assign";
+    CONTEXTOS.forEach(c=>{
+      const b=document.createElement("button"); b.textContent=c.nombre;
+      b.onclick=()=>{ it.ctx=c.id; guardar("items",items); dibujar(); enviarAlMotor(it); };
       asg.appendChild(b);
     });
     body.appendChild(asg);
   }
 
-  const del = document.createElement("button");
-  del.className = "del"; del.textContent = "×"; del.setAttribute("aria-label","Eliminar");
-  del.onclick = () => {
-    if(it.adjunto) idbBorrar("adjuntos", it.adjunto.id);
-    items = items.filter(x => x.id !== it.id);
-    guardar("items", items); dibujar(); aviso("Eliminado"); medirEspacio();
-  };
+  const del=document.createElement("button");
+  del.className="del"; del.textContent="×"; del.setAttribute("aria-label","Eliminar");
+  del.onclick=()=>{ if(it.adjunto) idbBorrar("adjuntos",it.adjunto.id);
+    items=items.filter(x=>x.id!==it.id); guardar("items",items); dibujar(); aviso("Eliminado"); medirEspacio(); };
 
   div.append(check, body, del);
   return div;
 }
 
+function cajaAdjunto(it){
+  const caja=document.createElement("div"); caja.className="adj";
+  caja.innerHTML='<div class="adj-load">Abriendo archivo…</div>';
+  idbLeer("adjuntos", it.adjunto.id).then(reg=>{
+    if(!reg){ caja.innerHTML='<div class="file">El archivo ya no está en este teléfono</div>'; return; }
+    const url=URL.createObjectURL(reg.blob); urlsAbiertas.push(url);
+    const tipo=it.adjunto.tipo||""; caja.innerHTML="";
+    if(tipo.startsWith("image/")){
+      const i=document.createElement("img"); i.src=url; i.loading="lazy";
+      i.alt=it.texto||"Foto capturada"; caja.appendChild(i);
+    } else if(tipo.startsWith("audio/")){
+      const a=document.createElement("audio"); a.src=url; a.controls=true; a.preload="none"; caja.appendChild(a);
+    } else {
+      const f=document.createElement("a"); f.className="file"; f.href=url;
+      f.download=it.adjunto.nombre||"archivo";
+      f.textContent="↓ "+(it.adjunto.nombre||"Archivo adjunto"); caja.appendChild(f);
+    }
+  }).catch(()=>{ caja.innerHTML='<div class="file">No se pudo abrir el archivo</div>'; });
+  return caja;
+}
+
+/* ---- la pregunta cuando la transcripción no salió ----------------- */
+function cajaPregunta(it){
+  const c=document.createElement("div"); c.className="pregunta";
+  const p=document.createElement("p");
+  p.textContent = it.motivoFallo || "No pude entender este audio. ¿De qué trata?";
+  const ta=document.createElement("textarea");
+  ta.placeholder="Cuéntamelo en una línea. Puedes dictarlo con el micrófono del teclado.";
+  const acc=document.createElement("div"); acc.className="acc";
+  const ok=document.createElement("button"); ok.className="ok"; ok.textContent="Guardar";
+  ok.onclick=()=>{ const v=ta.value.trim(); if(!v) return;
+    it.descripcion=v; guardar("items",items); dibujar(); enviarAlMotor(it); aviso("Anotado"); };
+  const rein=document.createElement("button"); rein.textContent="Reintentar";
+  rein.onclick=()=>{ it.estadoAudio="trabajando"; it.motivoFallo=""; guardar("items",items); dibujar(); transcribir(it); };
+  const luego=document.createElement("button"); luego.textContent="Después";
+  luego.onclick=()=>{ it.descripcion="(sin describir)"; guardar("items",items); dibujar(); };
+  acc.append(ok, rein, luego);
+  c.append(p, ta, acc);
+  return c;
+}
+
 function cuando(iso){
-  const d = new Date(iso), dias = Math.floor((new Date() - d)/86400000);
-  if(dias === 0) return d.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});
-  if(dias === 1) return "ayer";
-  if(dias < 7)   return `hace ${dias} días`;
+  const d=new Date(iso), dias=Math.floor((new Date()-d)/86400000);
+  if(dias===0) return d.toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});
+  if(dias===1) return "ayer";
+  if(dias<7)   return `hace ${dias} días`;
   return d.toLocaleDateString("es",{day:"numeric",month:"short"});
 }
 
@@ -467,13 +490,11 @@ function cuando(iso){
    PASO 5 — Botones de mundo
 ==================================================================== */
 function dibujarChips(){
-  const c = document.getElementById("chips"); c.innerHTML = "";
-  CONTEXTOS.forEach(ctx => {
-    const b = document.createElement("button");
-    b.className = "chip"; b.textContent = ctx.nombre;
-    b.style.setProperty("--c", ctx.color);
-    b.setAttribute("aria-pressed", ctx.id === ctxElegido);
-    b.onclick = () => { ctxElegido = ctx.id; dibujarChips(); };
+  const c=document.getElementById("chips"); c.innerHTML="";
+  CONTEXTOS.forEach(ctx=>{
+    const b=document.createElement("button"); b.className="chip"; b.textContent=ctx.nombre;
+    b.style.setProperty("--c",ctx.color); b.setAttribute("aria-pressed", ctx.id===ctxElegido);
+    b.onclick=()=>{ ctxElegido=ctx.id; dibujarChips(); };
     c.appendChild(b);
   });
 }
@@ -481,219 +502,275 @@ function dibujarChips(){
 /* ====================================================================
    PASO 6 — Guardar una captura
 ==================================================================== */
-const input   = document.getElementById("input");
-const saveBtn = document.getElementById("saveBtn");
+const input=document.getElementById("input"), saveBtn=document.getElementById("saveBtn");
 function revisarBoton(){ saveBtn.disabled = !input.value.trim() && !adjuntoPendiente; }
-input.oninput = () => {
-  revisarBoton();
-  input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 100) + "px";
-};
+input.oninput=()=>{ revisarBoton(); input.style.height="auto";
+  input.style.height=Math.min(input.scrollHeight,100)+"px"; };
 
-async function agregar({texto="", ctx=ctxElegido, origen="escrito", blob=null, nombre="", tipo=""}){
-  const id = Date.now() + "-" + Math.random().toString(36).slice(2,7);
-  let adjunto = null;
+async function agregar({texto="", ctx=ctxElegido, origen="escrito", blob=null, nombre="", tipo="", transcripcion=""}){
+  const id=Date.now()+"-"+Math.random().toString(36).slice(2,7);
+  let adjunto=null;
   if(blob){
-    const aid = "a-" + id;
-    try{
-      await idbGuardar("adjuntos", { id:aid, blob, tipo, nombre });
-      adjunto = { id:aid, tipo, nombre, tamano:blob.size };
-    }catch(e){ aviso("No hubo espacio para el archivo"); }
+    const aid="a-"+id;
+    try{ await idbGuardar("adjuntos",{id:aid,blob,tipo,nombre});
+         adjunto={id:aid,tipo,nombre,tamano:blob.size}; }
+    catch(e){ aviso("No hubo espacio para el archivo"); }
   }
-  const it = { id, texto:(texto||"").trim(), ctx, fecha:new Date().toISOString(),
-               hecho:false, origen, adjunto, enviado:false };
-  items.unshift(it); guardar("items", items);
-  dibujar(); medirEspacio(); enviarAlMotor(it);
+  const esAudio = (tipo||"").startsWith("audio/");
+  const it={ id, texto:(texto||"").trim(), ctx, fecha:new Date().toISOString(),
+             hecho:false, origen, adjunto, enviado:false,
+             transcripcion: transcripcion||"", descripcion:"",
+             estadoAudio: esAudio && !transcripcion ? "trabajando" : "" };
+  items.unshift(it); guardar("items",items); dibujar(); medirEspacio();
+  if(it.estadoAudio==="trabajando") transcribir(it);
+  else enviarAlMotor(it);
   return it;
 }
 
-saveBtn.onclick = async () => {
-  const texto = input.value;
-  const adj = adjuntoPendiente;
-  input.value = ""; input.style.height = "auto";
+saveBtn.onclick=async()=>{
+  const texto=input.value, adj=adjuntoPendiente, tr=textoDictado;
+  input.value=""; input.style.height="auto"; textoDictado="";
   limpiarPendiente(); revisarBoton();
-  await agregar({ texto, blob: adj ? adj.blob : null,
-                  nombre: adj ? adj.nombre : "", tipo: adj ? adj.tipo : "" });
+  await agregar({ texto, blob:adj?adj.blob:null, nombre:adj?adj.nombre:"",
+                  tipo:adj?adj.tipo:"", transcripcion:tr });
   ir("bandeja"); aviso("Guardado");
 };
 
 /* ====================================================================
-   PASO 7 — Adjuntar archivo o foto
+   PASO 7 — Adjuntar archivo
 ==================================================================== */
-const fileInput = document.getElementById("fileInput");
-document.getElementById("fileBtn").onclick = () => fileInput.click();
-fileInput.onchange = () => {
-  const f = fileInput.files[0]; if(!f) return;
-  ponerPendiente(f, f.name, f.type);
-  fileInput.value = "";
-};
-function ponerPendiente(blob, nombre, tipo){
-  adjuntoPendiente = { blob, nombre, tipo };
-  const caja  = document.getElementById("pend");
-  const thumb = document.getElementById("pendThumb");
+const fileInput=document.getElementById("fileInput");
+document.getElementById("fileBtn").onclick=()=>fileInput.click();
+fileInput.onchange=()=>{ const f=fileInput.files[0]; if(!f) return;
+  ponerPendiente(f,f.name,f.type); fileInput.value=""; };
+function ponerPendiente(blob,nombre,tipo){
+  adjuntoPendiente={blob,nombre,tipo};
+  const caja=document.getElementById("pend"), thumb=document.getElementById("pendThumb");
   caja.classList.remove("hidden");
-  document.getElementById("pendName").textContent = nombre || tipo || "Archivo";
-  if((tipo||"").startsWith("image/")){
-    const u = URL.createObjectURL(blob); urlsAbiertas.push(u);
-    thumb.src = u; thumb.classList.remove("hidden");
-  } else thumb.classList.add("hidden");
+  document.getElementById("pendName").textContent=nombre||tipo||"Archivo";
+  if((tipo||"").startsWith("image/")){ const u=URL.createObjectURL(blob); urlsAbiertas.push(u);
+    thumb.src=u; thumb.classList.remove("hidden"); } else thumb.classList.add("hidden");
   revisarBoton();
 }
-function limpiarPendiente(){
-  adjuntoPendiente = null;
+function limpiarPendiente(){ adjuntoPendiente=null;
   document.getElementById("pend").classList.add("hidden");
-  document.getElementById("pendThumb").classList.add("hidden");
-}
-document.getElementById("pendQuitar").onclick = () => { limpiarPendiente(); revisarBoton(); };
+  document.getElementById("pendThumb").classList.add("hidden"); }
+document.getElementById("pendQuitar").onclick=()=>{ limpiarPendiente(); revisarBoton(); };
 
 /* ====================================================================
-   PASO 8 — Grabar una nota de voz
-   Tocas el círculo, hablas, tocas otra vez para parar.
+   PASO 8 — Grabar nota de voz Y transcribirla en el propio teléfono
+   Chrome en Android tiene reconocimiento de voz incorporado, el mismo
+   del teclado. Es gratis y no manda el audio a ningún servicio.
 ==================================================================== */
-let grabadora = null, trozos = [];
+let grabadora=null, trozos=[], oidor=null, textoDictado="";
+
 document.getElementById("micBtn").onclick = async () => {
-  const btn = document.getElementById("micBtn");
-  if(grabadora && grabadora.state === "recording"){ grabadora.stop(); return; }
+  const btn=document.getElementById("micBtn");
+  if(grabadora && grabadora.state==="recording"){ grabadora.stop(); return; }
   try{
-    const señal = await navigator.mediaDevices.getUserMedia({ audio:true });
-    grabadora = new MediaRecorder(señal); trozos = [];
+    const señal = await navigator.mediaDevices.getUserMedia({audio:true});
+    grabadora = new MediaRecorder(señal); trozos=[]; textoDictado="";
     grabadora.ondataavailable = e => trozos.push(e.data);
     grabadora.onstop = () => {
-      señal.getTracks().forEach(t => t.stop());
-      const blob = new Blob(trozos, { type: grabadora.mimeType || "audio/webm" });
-      btn.classList.remove("rec"); btn.textContent = "●";
-      ponerPendiente(blob, "Nota de voz", blob.type);
-      if(!input.value.trim()) input.value = "Nota de voz";
-      revisarBoton(); aviso("Grabación lista");
+      señal.getTracks().forEach(t=>t.stop());
+      if(oidor){ try{ oidor.stop(); }catch(e){} }
+      document.getElementById("oyendo").classList.add("hidden");
+      const blob=new Blob(trozos,{type:grabadora.mimeType||"audio/webm"});
+      btn.classList.remove("rec"); btn.textContent="●";
+      ponerPendiente(blob,"Nota de voz",blob.type);
+      if(!input.value.trim()) input.value = textoDictado || "Nota de voz";
+      input.dispatchEvent(new Event("input"));
+      aviso(textoDictado ? "Grabado y transcrito" : "Grabación lista");
     };
     grabadora.start();
-    btn.classList.add("rec"); btn.textContent = "■";
+    btn.classList.add("rec"); btn.textContent="■";
+    escucharMientrasHablas();
     aviso("Grabando… toca otra vez para parar");
   }catch(e){ aviso("No se pudo usar el micrófono"); }
 };
 
+function escucharMientrasHablas(){
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!R) return;                       // si el teléfono no lo trae, seguimos igual
+  oidor = new R();
+  oidor.lang = "es-ES";
+  oidor.continuous = true;
+  oidor.interimResults = false;
+  oidor.onresult = e => {
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      if(e.results[i].isFinal) textoDictado += e.results[i][0].transcript + " ";
+    }
+  };
+  oidor.onerror = () => {};
+  try{ oidor.start(); document.getElementById("oyendo").classList.remove("hidden"); }catch(e){}
+}
+
 /* ====================================================================
-   PASO 9 — Recoger lo compartido desde WhatsApp
-   El archivo sw.js lo recibe y lo deja en la bandeja "entrantes".
+   PASO 9 — Transcribir audios ajenos con Gemini
+   Si no hay clave, si el archivo es enorme, o si algo falla,
+   la app te lo dice y te pregunta de qué trata.
+==================================================================== */
+async function transcribir(it){
+  const fallo = motivo => {
+    it.estadoAudio="falló"; it.motivoFallo=motivo;
+    guardar("items",items); dibujar();
+  };
+  if(!ajustes.gemini) return fallo("No hay clave para transcribir. ¿De qué trata este audio?");
+
+  let reg;
+  try{ reg = await idbLeer("adjuntos", it.adjunto.id); }catch(e){}
+  if(!reg) return fallo("No encuentro el archivo. ¿De qué trata?");
+  if(reg.blob.size > LIMITE_AUDIO_MB*1048576)
+    return fallo("El audio es demasiado largo para transcribirlo. ¿De qué trata?");
+
+  try{
+    const base64 = await aBase64(reg.blob);
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+                MODELO_AUDIO + ":generateContent?key=" + encodeURIComponent(ajustes.gemini);
+    const r = await fetch(url, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ contents:[{ parts:[
+        { text:"Transcribe este audio literalmente al idioma en que está hablado. " +
+               "Devuelve solo la transcripción, sin comentarios ni introducción. " +
+               "Si no se entiende nada, responde exactamente: INAUDIBLE" },
+        { inline_data:{ mime_type: reg.blob.type || "audio/ogg", data: base64 } }
+      ]}]})
+    });
+    const datos = await r.json();
+    if(!r.ok){
+      const m = datos.error ? datos.error.message : "error " + r.status;
+      return fallo("No pude transcribir (" + m + "). ¿De qué trata?");
+    }
+    const texto = (((datos.candidates||[])[0]||{}).content||{}).parts
+                    ?.map(p=>p.text||"").join(" ").trim() || "";
+    if(!texto || /^INAUDIBLE$/i.test(texto))
+      return fallo("El audio no se entiende. ¿De qué trata?");
+
+    it.transcripcion = texto; it.estadoAudio="listo";
+    guardar("items",items); dibujar(); enviarAlMotor(it);
+    aviso("Audio transcrito");
+  }catch(e){
+    fallo("Falló la transcripción (" + (e.message||"sin conexión") + "). ¿De qué trata?");
+  }
+}
+
+function aBase64(blob){
+  return new Promise((ok,mal)=>{
+    const l=new FileReader();
+    l.onload=()=>ok(String(l.result).split(",")[1]);
+    l.onerror=()=>mal(new Error("no se pudo leer el archivo"));
+    l.readAsDataURL(blob);
+  });
+}
+
+/* ====================================================================
+   PASO 10 — Enviar al motor
+==================================================================== */
+async function enviarAlMotor(it){
+  if(!ajustes.endpoint || !ajustes.token || !it.ctx) return;
+  try{
+    await fetch(ajustes.endpoint,{ method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({
+        token: ajustes.token, fecha: it.fecha, ctx: it.ctx,
+        texto: [it.texto, it.transcripcion, it.descripcion].filter(Boolean).join(" · "),
+        origen: it.origen, adjunto: it.adjunto ? (it.adjunto.nombre||it.adjunto.tipo) : "",
+        hecho: it.hecho })});
+    it.enviado=true; guardar("items",items);
+  }catch(e){}
+}
+
+/* ====================================================================
+   PASO 11 — Pantallas
+==================================================================== */
+const TITULOS={hoy:"Hoy",bandeja:"Bandeja",ajustes:"Ajustes"};
+function ir(v){
+  ["hoy","bandeja","ajustes"].forEach(n=>document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.v===v?"page":"false"));
+  document.getElementById("viewTitle").textContent=TITULOS[v];
+  document.getElementById("composer").classList.toggle("hidden", v==="ajustes");
+  document.body.style.paddingBlockEnd = v==="ajustes" ? "90px" : "";
+  if(v==="ajustes") medirEspacio();
+  window.scrollTo(0,0);
+}
+document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
+
+/* ====================================================================
+   PASO 12 — Ajustes
+==================================================================== */
+function enlazar(id, campo, porDefecto){
+  const el=document.getElementById(id);
+  el.value = ajustes[campo] || "";
+  el.oninput = () => { ajustes[campo]=el.value.trim()|| (porDefecto||"");
+    guardar("ajustes",ajustes); if(porDefecto) pintarNombres(); };
+}
+enlazar("nameInput","nombre","Androide 27");
+enlazar("firmaInput","firma","Mordejai Clonsio");
+enlazar("geminiInput","gemini");
+enlazar("endpointInput","endpoint");
+enlazar("tokenInput","token");
+
+function pintarNombres(){
+  document.getElementById("brandName").childNodes[0].nodeValue = ajustes.nombre+" ";
+  document.getElementById("brandSub").textContent = ajustes.firma;
+  document.querySelectorAll(".firma").forEach(f=>f.textContent="— "+ajustes.firma);
+  document.title = ajustes.nombre;
+}
+
+document.getElementById("exportBtn").onclick=()=>{
+  const copia = { items, ajustes: {...ajustes, gemini:"(oculta)", token:"(oculta)"} };
+  const blob=new Blob([JSON.stringify(copia,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="capturas-"+new Date().toISOString().slice(0,10)+".json"; a.click();
+  aviso("Copia descargada");
+};
+document.getElementById("copyBtn").onclick=async()=>{
+  const t=items.map(i=>{ const c=ctxDe(i.ctx);
+    return `[${c?c.nombre:"sin clasificar"}] ${i.hecho?"(resuelto) ":""}` +
+           [i.texto,i.transcripcion,i.descripcion].filter(Boolean).join(" · ");
+  }).join("\n");
+  try{ await navigator.clipboard.writeText(t); aviso("Copiado"); }catch(e){ aviso("No se pudo copiar"); }
+};
+
+async function medirEspacio(){
+  const p=document.getElementById("espacio"), b=document.getElementById("espacioBar");
+  if(!navigator.storage||!navigator.storage.estimate){ p.textContent="No disponible"; return; }
+  try{
+    const est=await navigator.storage.estimate();
+    const usage=est.usage||0, quota=est.quota||0, mb=u=>(u/1048576).toFixed(1)+" MB";
+    p.textContent=`${mb(usage)} usados de ${quota?mb(quota):"?"} disponibles`;
+    if(quota) b.style.inlineSize=Math.min(100,usage/quota*100)+"%";
+  }catch(e){ p.textContent="No disponible"; }
+}
+
+/* ====================================================================
+   PASO 13 — Recoger lo compartido y arrancar
 ==================================================================== */
 async function recogerEntrantes(){
   let llegaron;
   try{ llegaron = await idbTodos("entrantes"); }catch(e){ return; }
   if(!llegaron || !llegaron.length) return;
   for(const e of llegaron){
-    await agregar({ texto:e.texto || "", ctx:null, origen:"compartido",
-                    blob:e.blob || null, nombre:e.nombre || "", tipo:e.tipo || "" });
+    await agregar({ texto:e.texto||"", ctx:null, origen:"compartido",
+                    blob:e.blob||null, nombre:e.nombre||"", tipo:e.tipo||"" });
     await idbBorrar("entrantes", e.id);
   }
   ir("bandeja");
-  aviso(llegaron.length === 1 ? "Llegó 1 captura · elige el mundo"
-                              : `Llegaron ${llegaron.length} capturas`);
+  aviso(llegaron.length===1 ? "Llegó 1 captura · elige el mundo" : `Llegaron ${llegaron.length} capturas`);
 }
 
-/* ====================================================================
-   PASO 10 — Enviar al motor (se activa al poner la dirección)
-==================================================================== */
-async function enviarAlMotor(it){
-  if(!ajustes.endpoint || !it.ctx) return;
-  try{
-    await fetch(ajustes.endpoint, { method:"POST", mode:"no-cors",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({ ...it, adjunto: it.adjunto ? it.adjunto.nombre : null }) });
-    it.enviado = true; guardar("items", items);
-  }catch(e){}
-}
-
-/* ====================================================================
-   PASO 11 — Cambiar de pantalla
-==================================================================== */
-const TITULOS = { hoy:"Hoy", bandeja:"Bandeja", ajustes:"Ajustes" };
-function ir(v){
-  ["hoy","bandeja","ajustes"].forEach(n =>
-    document.getElementById("view-"+n).classList.toggle("hidden", n !== v));
-  document.querySelectorAll("nav button").forEach(b =>
-    b.setAttribute("aria-current", b.dataset.v === v ? "page" : "false"));
-  document.getElementById("viewTitle").textContent = TITULOS[v];
-  document.getElementById("composer").classList.toggle("hidden", v === "ajustes");
-  document.body.style.paddingBlockEnd = v === "ajustes" ? "90px" : "";
-  if(v === "ajustes") medirEspacio();
-  window.scrollTo(0,0);
-}
-document.querySelector("nav").onclick = e => {
-  const b = e.target.closest("button"); if(b) ir(b.dataset.v);
-};
-
-/* ====================================================================
-   PASO 12 — Ajustes y copias
-==================================================================== */
-const nameInput  = document.getElementById("nameInput");
-const firmaInput = document.getElementById("firmaInput");
-nameInput.value = ajustes.nombre; firmaInput.value = ajustes.firma;
-nameInput.oninput = () => {
-  ajustes.nombre = nameInput.value.trim() || "Androide 27";
-  pintarNombres(); guardar("ajustes", ajustes);
-};
-firmaInput.oninput = () => {
-  ajustes.firma = firmaInput.value.trim() || "Mordejai Clonsio";
-  pintarNombres(); guardar("ajustes", ajustes);
-};
-function pintarNombres(){
-  document.getElementById("brandName").childNodes[0].nodeValue = ajustes.nombre + " ";
-  document.getElementById("brandSub").textContent = ajustes.firma;
-  document.querySelectorAll(".firma").forEach(f => f.textContent = "— " + ajustes.firma);
-  document.title = ajustes.nombre;
-}
-const endpointInput = document.getElementById("endpointInput");
-endpointInput.value = ajustes.endpoint;
-endpointInput.oninput = () => { ajustes.endpoint = endpointInput.value.trim(); guardar("ajustes", ajustes); };
-
-document.getElementById("exportBtn").onclick = () => {
-  const blob = new Blob([JSON.stringify({items, ajustes}, null, 2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "capturas-" + new Date().toISOString().slice(0,10) + ".json";
-  a.click(); aviso("Copia descargada");
-};
-document.getElementById("copyBtn").onclick = async () => {
-  const t = items.map(i => {
-    const c = ctxDe(i.ctx);
-    return `[${c ? c.nombre : "sin clasificar"}] ${i.hecho ? "(resuelto) " : ""}${i.texto}` +
-           (i.adjunto ? ` (adjunto: ${i.adjunto.nombre || i.adjunto.tipo})` : "");
-  }).join("\n");
-  try{ await navigator.clipboard.writeText(t); aviso("Copiado"); }
-  catch(e){ aviso("No se pudo copiar"); }
-};
-
-async function medirEspacio(){
-  const p = document.getElementById("espacio"), b = document.getElementById("espacioBar");
-  if(!navigator.storage || !navigator.storage.estimate){ p.textContent = "No disponible"; return; }
-  try{
-    const est = await navigator.storage.estimate();
-    const usage = est.usage || 0, quota = est.quota || 0;
-    const mb = u => (u/1048576).toFixed(1) + " MB";
-    p.textContent = `${mb(usage)} usados de ${quota ? mb(quota) : "?"} disponibles`;
-    if(quota) b.style.inlineSize = Math.min(100, usage/quota*100) + "%";
-  }catch(e){ p.textContent = "No disponible"; }
-}
-
-/* ====================================================================
-   PASO 13 — Arranque
-==================================================================== */
 let tToast;
 function aviso(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(tToast); tToast = setTimeout(()=>t.classList.remove("show"), 2100);
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(tToast); tToast=setTimeout(()=>t.classList.remove("show"),2100);
 }
 
 document.getElementById("dateLine").textContent =
   new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
 pintarNombres(); aplicarTema(); dibujarChips(); dibujar();
-
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js").catch(()=>{});
-}
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 recogerEntrantes();
-document.addEventListener("visibilitychange", () => { if(!document.hidden) recogerEntrantes(); });
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) recogerEntrantes(); });
 </script>
 </body>
 </html>
