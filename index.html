@@ -722,11 +722,11 @@ async function agregar({texto="", ctx=ctxElegido, origen="escrito", blob=null, n
 }
 
 saveBtn.onclick=async()=>{
-  const texto=input.value, adj=adjuntoPendiente, tr=textoDictado;
-  input.value=""; input.style.height="auto"; textoDictado="";
+  const texto=input.value, adj=adjuntoPendiente;
+  input.value=""; input.style.height="auto";
   limpiarPendiente(); revisarBoton();
   await agregar({ texto, blob:adj?adj.blob:null, nombre:adj?adj.nombre:"",
-                  tipo:adj?adj.tipo:"", transcripcion:tr });
+                  tipo:adj?adj.tipo:"" });
   ir("bandeja"); aviso("Guardado");
 };
 
