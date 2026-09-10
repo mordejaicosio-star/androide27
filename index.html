@@ -404,7 +404,7 @@ textarea::placeholder{color:var(--muted)}
 /* ---------- NAVEGACIÓN --------------------------------------------- */
 nav{position:fixed; inset-block-end:0; inset-inline:0; z-index:30; background:var(--bg);
   border-block-start:1px solid var(--line); display:flex; padding-block-end:env(safe-area-inset-bottom)}
-nav button{flex:1; padding:11px 0 13px; font-size:12.5px; color:var(--muted); text-align:center}
+nav button{flex:1; padding:11px 0 13px; font-size:11px; color:var(--muted); text-align:center}
 nav button{position:relative}
 nav button b{display:block; font-size:17px; font-weight:400; margin-block-end:2px}
 .chapa{position:absolute; inset-block-start:6px; inset-inline-start:50%;
@@ -497,6 +497,30 @@ nav button[aria-current="page"]{color:var(--accent)}
 .llamada .txt small{display:block; color:var(--muted); font-size:12.5px; margin-block-start:3px}
 .llamada .fle{color:var(--muted); font-size:16px; flex:none}
 
+/* ---------- CONVERSACIÓN ------------------------------------------- */
+.chat-lista{padding-block:6px 12px; min-block-size:40vh}
+.burbuja{max-inline-size:88%; padding:11px 14px; border-radius:16px;
+  margin-block-end:10px; font-size:14.5px; line-height:1.5; white-space:pre-wrap;
+  animation:in .2s ease both}
+.burbuja.yo{margin-inline-start:auto; background:var(--accent); color:var(--accent-ink);
+  border-end-end-radius:5px}
+.burbuja.el{background:var(--surface); border:1px solid var(--line);
+  border-end-start-radius:5px}
+.burbuja.pensando{color:var(--muted); font-style:italic}
+.sugerencias{display:flex; gap:7px; flex-wrap:wrap; margin-block:4px 14px}
+.sugerencias button{border:1px solid var(--line); border-radius:999px;
+  padding:7px 13px; font-size:13px; color:var(--muted)}
+.chat-caja{position:fixed; inset-block-end:calc(60px + env(safe-area-inset-bottom));
+  inset-inline:0; background:var(--bg); border-block-start:1px solid var(--line);
+  padding:10px 20px; z-index:20}
+.chat-caja .dentro{max-inline-size:560px; margin-inline:auto; display:flex; gap:9px}
+.chat-caja input{flex:1; background:var(--surface); color:var(--text);
+  border:1px solid var(--line); border-radius:999px; padding:12px 16px;
+  font-family:inherit; font-size:15px}
+.chat-caja button{inline-size:46px; block-size:46px; border-radius:50%; flex:none;
+  background:var(--accent); color:var(--accent-ink); font-size:17px}
+.chat-caja button:disabled{opacity:.4}
+
 /* filas del plan del día */
 .plan-fila{inline-size:100%; text-align:start; display:flex; gap:12px;
   align-items:flex-start; padding:14px 2px; border-block-end:1px solid var(--line)}
@@ -580,9 +604,10 @@ nav button[aria-current="page"]{color:var(--accent)}
   <!-- ENTRADA: lo que llegó del correo y hay que decidir qué hacer con ello. -->
   <main id="view-entrada" class="hidden">
     <div class="seccion" style="margin-block-start:6px">
-      <h3>Del correo</h3>
+      <h3>Sin decidir</h3>
       <button class="recargar" id="recargarBtn">Actualizar</button>
     </div>
+    <p class="cuando-resumen" style="margin-block-end:10px">Solo lo que llegó a tus correos. Lo que aceptes pasa a tu día; lo que descartes no vuelve.</p>
     <p class="cuando-resumen" id="resumenFecha"></p>
     <div id="resumenTexto"></div>
   </main>
@@ -592,10 +617,16 @@ nav button[aria-current="page"]{color:var(--accent)}
     <div id="filtroCaja"></div>
     <div id="list"></div>
     <div class="empty hidden" id="emptyInbox">
-      <h3>Bandeja vacía</h3>
-      <p>Graba una nota de voz con el micrófono y yo la escucho, la entiendo y la convierto en pendientes. También puedes compartir fotos y audios desde WhatsApp, o escribir.</p>
+      <h3>Todavía no hay nada</h3>
+      <p>Aquí se guarda todo lo tuyo: lo que grabas, lo que subes y lo que aceptas del correo. Graba una nota de voz con el micrófono y yo la escucho, la entiendo y la convierto en pendientes. También puedes compartir fotos y audios desde WhatsApp, o escribir.</p>
       <p class="firma">— Mordejai Clonsio</p>
     </div>
+  </main>
+
+  <!-- CHAT: preguntarle lo que quieras sobre tu día. -->
+  <main id="view-chat" class="hidden">
+    <div class="sugerencias" id="sugerencias"></div>
+    <div class="chat-lista" id="chatLista"></div>
   </main>
 
   <main id="view-ajustes" class="hidden">
@@ -710,12 +741,20 @@ nav button[aria-current="page"]{color:var(--accent)}
   <button class="op" id="opTexto"><span>Escribir</span><b>✎</b></button>
   <button class="op" id="opAudio"><span>Grabar nota de voz</span><b>🎙</b></button>
 </div>
+<div class="chat-caja hidden" id="chatCaja">
+  <div class="dentro">
+    <input id="chatInput" type="text" placeholder="Pregúntame lo que quieras" autocomplete="off">
+    <button id="chatEnviar" aria-label="Enviar">↑</button>
+  </div>
+</div>
+
 <button class="fab" id="fab" aria-label="Capturar algo">+</button>
 
 <nav>
   <button data-v="hoy" aria-current="page"><b>◈</b>Hoy</button>
   <button data-v="entrada"><b>✉</b>Entrada<i class="chapa hidden" id="chapa"></i></button>
-  <button data-v="bandeja"><b>≡</b>Bandeja</button>
+  <button data-v="bandeja"><b>≡</b>Todo</button>
+  <button data-v="chat"><b>✦</b>Chat</button>
   <button data-v="ajustes"><b>⚙</b>Ajustes</button>
 </nav>
 
@@ -782,6 +821,15 @@ if(!ajustes.modelo) ajustes.modelo = MODELO_POR_DEFECTO;
    Los últimos 25 viajan en las instrucciones para que no repita el
    mismo error. Esto es lo que hace que vaya afinando con el uso. */
 let aprendidos = leer("aprendidos", []);
+
+/* Lo que descartaste con la ×. El motor deja de recogerlo en el futuro,
+   pero los correos ya recogidos siguen en el repaso: por eso la app
+   también lo recuerda y no vuelve a mostrártelo. */
+let descartados = leer("descartados", []);
+function estaDescartado(it){
+  const c = [it.asunto, it.titulo].filter(Boolean).map(x => String(x).toLowerCase());
+  return descartados.some(d => c.some(x => x.indexOf(d) !== -1 || d.indexOf(x) !== -1));
+}
 function aprender(texto, mundo){
   if(!texto || !mundo) return;
   aprendidos = aprendidos.filter(a => a.texto !== texto);
@@ -933,7 +981,7 @@ function filaPlan(it){
 function cuantasEnEntrada(){
   if(!resumenActual || !Array.isArray(resumenActual.items)) return 0;
   return resumenActual.items.filter(i => i.tipo !== "informativo" &&
-    !items.some(x => x.texto === i.titulo)).length;
+    !estaDescartado(i) && !items.some(x => x.texto === i.titulo)).length;
 }
 
 function dibujarChapa(){
@@ -960,8 +1008,7 @@ function dibujarCabecera(){
   const sub = document.createElement("p"); sub.className = "bajo-titular";
   const pend = items.filter(i => !i.hecho).length;
   const acc  = resumenActual
-    ? (resumenActual.items||[]).filter(i => i.tipo !== "informativo" &&
-        !items.some(x => x.texto === i.titulo)).length
+    ? cuantasEnEntrada()
     : 0;
   const partes = [];
   if(acc)  partes.push(acc + (acc===1 ? " cosa del correo" : " cosas del correo"));
@@ -1069,9 +1116,10 @@ function pintarResumen(texto, mensaje){
   resumenActual = datos;
   if(fecha) fecha.textContent = ajustes.ultimaFecha ? "Correo revisado " + cuando(ajustes.ultimaFecha) : "";
 
-  const acciones = datos.items.filter(i => i.tipo !== "informativo")
-                              .sort((a,b) => (a.prioridad||3) - (b.prioridad||3));
-  const infos    = datos.items.filter(i => i.tipo === "informativo");
+  const vivos = datos.items.filter(i => !estaDescartado(i));
+  const acciones = vivos.filter(i => i.tipo !== "informativo")
+                        .sort((a,b) => (a.prioridad||3) - (b.prioridad||3));
+  const infos    = vivos.filter(i => i.tipo === "informativo");
 
   if(!acciones.length && !infos.length){
     const v = document.createElement("p"); v.className = "vacio-hoy";
@@ -1195,9 +1243,98 @@ async function noMeInteresa(texto, fila){
     await fetch(ajustes.endpoint, { method:"POST", mode:"no-cors",
       headers:{"Content-Type":"text/plain;charset=utf-8"},
       body: JSON.stringify({ token: ajustes.token, tipo: "ignorar", texto: clave }) });
+    descartados.unshift(clave.toLowerCase());
+    descartados = descartados.slice(0, 200);
+    guardar("descartados", descartados);
     fila.style.display = "none";
+    dibujarChapa();
     aviso("Anotado: no te lo vuelvo a mostrar");
   }catch(e){ aviso("No se pudo avisar al motor"); }
+}
+
+/* ====================================================================
+   PASO 4f — Conversar con Mordejai Clonsio
+   La app le manda la pregunta al motor, que responde sabiendo tu
+   contexto, tus pendientes y el último repaso de tu correo.
+==================================================================== */
+let conversacion = leer("conversacion", []);
+let pensando = false;
+
+const SUGERENCIAS = [
+  "¿Qué hago primero hoy?",
+  "¿Qué tengo de Isracap Grand?",
+  "¿Se me está pasando algo?",
+  "Resúmeme el día en una frase"
+];
+
+function dibujarChat(){
+  const l = document.getElementById("chatLista"); if(!l) return;
+  l.innerHTML = "";
+
+  if(!conversacion.length){
+    const v = document.createElement("p"); v.className = "vacio-hoy";
+    v.textContent = "Pregúntame lo que quieras sobre tu día. Sé lo que tienes pendiente, " +
+                    "lo que llegó a tus correos y lo que me has contado de tus empresas.";
+    l.appendChild(v);
+  }
+
+  conversacion.slice(-30).forEach(m => {
+    const b = document.createElement("div");
+    b.className = "burbuja " + (m.quien === "yo" ? "yo" : "el");
+    b.textContent = m.texto;
+    l.appendChild(b);
+  });
+
+  if(pensando){
+    const b = document.createElement("div"); b.className = "burbuja el pensando";
+    b.textContent = "Pensando…"; l.appendChild(b);
+  }
+
+  const sg = document.getElementById("sugerencias");
+  sg.innerHTML = "";
+  if(!pensando){
+    SUGERENCIAS.forEach(t => {
+      const b = document.createElement("button"); b.textContent = t;
+      b.onclick = () => { document.getElementById("chatInput").value = t; enviarChat(); };
+      sg.appendChild(b);
+    });
+  }
+}
+
+async function enviarChat(){
+  const inp = document.getElementById("chatInput");
+  const q = inp.value.trim();
+  if(!q || pensando) return;
+  if(!ajustes.endpoint || !ajustes.token){ aviso("Falta conectar el motor"); return; }
+
+  conversacion.push({ quien:"yo", texto:q });
+  guardar("conversacion", conversacion);
+  inp.value = ""; pensando = true; dibujarChat();
+  window.scrollTo(0, document.body.scrollHeight);
+
+  // Le pasamos las últimas cuatro intervenciones para que siga el hilo.
+  const historia = conversacion.slice(-5, -1)
+    .map(m => (m.quien === "yo" ? "Mordejai: " : "Tú: ") + m.texto).join("\n");
+
+  try{
+    const url = ajustes.endpoint + (ajustes.endpoint.includes("?") ? "&" : "?") +
+      "token=" + encodeURIComponent(ajustes.token) +
+      "&tipo=chat&q=" + encodeURIComponent(q) +
+      "&historia=" + encodeURIComponent(historia.slice(0, 1200));
+    const r = await fetch(url);
+    const d = await r.json();
+    pensando = false;
+    conversacion.push({ quien:"el",
+      texto: d.ok ? (d.texto || "No supe qué responder.")
+                  : "No pude responder: " + (d.error || "error del motor") });
+  }catch(e){
+    pensando = false;
+    conversacion.push({ quien:"el", texto:"No pude conectar con el motor. ¿Hay señal?" });
+  }
+  conversacion = conversacion.slice(-40);
+  guardar("conversacion", conversacion);
+  dibujarChat();
+  window.scrollTo(0, document.body.scrollHeight);
 }
 
 /* ====================================================================
@@ -1756,12 +1893,15 @@ async function enviarAlMotor(it){
 /* ====================================================================
    PASO 11 — Pantallas
 ==================================================================== */
-const TITULOS={hoy:"Hoy",entrada:"Entrada",bandeja:"Bandeja",ajustes:"Ajustes"};
+const TITULOS={hoy:"Hoy",entrada:"Entrada",bandeja:"Todo",chat:"Chat",ajustes:"Ajustes"};
 function ir(v){
-  ["hoy","entrada","bandeja","ajustes"].forEach(n=>document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
+  ["hoy","entrada","bandeja","chat","ajustes"].forEach(n=>document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
   document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.v===v?"page":"false"));
-  document.getElementById("fab").style.display = v==="ajustes" ? "none" : "grid";
-  document.getElementById("menuFab").style.display = v==="ajustes" ? "none" : "flex";
+  const oculta = (v==="ajustes" || v==="chat");
+  document.getElementById("fab").style.display = oculta ? "none" : "grid";
+  document.getElementById("chatCaja").classList.toggle("hidden", v!=="chat");
+  if(v==="chat"){ dibujarChat(); setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),60); }
+  document.getElementById("menuFab").style.display = oculta ? "none" : "flex";
   if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); }
 
   if(v==="ajustes") medirEspacio();
@@ -1772,6 +1912,10 @@ function ir(v){
 }
 document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
 document.getElementById("recargarBtn").onclick = () => traerResumen(false);
+document.getElementById("chatEnviar").onclick = enviarChat;
+document.getElementById("chatInput").addEventListener("keydown", e => {
+  if(e.key === "Enter") enviarChat();
+});
 
 /* ---- El globo de capturar: se abre solo cuando lo pides -------- */
 function abrirCaptura(){
