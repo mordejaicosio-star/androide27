@@ -63,14 +63,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px so
 .hidden{display:none !important}
 
 /* ---------- ENCABEZADO --------------------------------------------- */
-header{padding-block:24px 12px}
-.brand{display:flex; align-items:center; gap:11px; margin-block-end:22px}
+header{padding-block:22px 6px}
+.brand{display:flex; align-items:center; gap:11px; margin-block-end:14px}
 .avatar{inline-size:46px; block-size:46px; border-radius:12px; flex:none; object-fit:cover; border:1px solid var(--line)}
 .brand-name{font-family:"Frank Ruhl Libre",serif; font-size:19px; flex:1; line-height:1.25}
 .brand-sub{display:block; font-family:"Assistant",sans-serif; font-size:12.5px; color:var(--muted)}
 .icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px; line-height:1}
 h1{font-size:31px; letter-spacing:-.01em}
-.date{color:var(--muted); font-size:14px; margin-block-start:4px}
+.date{color:var(--muted); font-size:13px; margin:0; text-transform:capitalize}
 
 /* ---------- CAPTURAS ----------------------------------------------- */
 .group-label{font-size:13px; color:var(--muted); margin-block:24px 8px;
@@ -130,14 +130,14 @@ h1{font-size:31px; letter-spacing:-.01em}
 /* Botón flotante: solo un + hasta que lo necesitas */
 .fab{position:fixed; inset-block-end:calc(76px + env(safe-area-inset-bottom));
   inset-inline-end:20px; inline-size:56px; block-size:56px; border-radius:50%;
-  background:var(--accent); color:var(--accent-ink); font-size:26px; z-index:25;
+  background:var(--accent); color:var(--accent-ink); font-size:26px; z-index:34;
   display:grid; place-items:center; box-shadow:0 6px 22px rgba(0,0,0,.28);
   transition:transform .2s}
 .fab:active{transform:scale(.94)}
 
 /* Los tres globos que salen del + */
 .menu-fab{position:fixed; inset-block-end:calc(146px + env(safe-area-inset-bottom));
-  inset-inline-end:20px; z-index:26; display:flex; flex-direction:column;
+  inset-inline-end:20px; z-index:34; display:flex; flex-direction:column;
   align-items:flex-end; gap:13px; pointer-events:none}
 .menu-fab .op{display:flex; align-items:center; gap:11px; opacity:0;
   transform:translateY(14px) scale(.9); transition:opacity .18s, transform .18s;
@@ -156,13 +156,13 @@ h1{font-size:31px; letter-spacing:-.01em}
   .menu-fab .op{transition:none} .fab{transition:none}
 }
 
-.fondo{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:26;
+.fondo{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:32;
   opacity:0; pointer-events:none; transition:opacity .22s}
 .fondo.visible{opacity:1; pointer-events:auto}
 
 .composer{position:fixed; inset-block-end:0; inset-inline:0; background:var(--bg);
-  border-start-start-radius:22px; border-start-end-radius:22px; z-index:27;
-  padding:8px 20px calc(18px + env(safe-area-inset-bottom));
+  border-start-start-radius:22px; border-start-end-radius:22px; z-index:42;
+  padding:8px 20px calc(26px + env(safe-area-inset-bottom));
   transform:translateY(110%); transition:transform .26s cubic-bezier(.2,.8,.2,1);
   box-shadow:0 -8px 40px rgba(0,0,0,.3)}
 .composer.abierta{transform:translateY(0)}
@@ -196,7 +196,7 @@ textarea::placeholder{color:var(--muted)}
 .pista{font-size:12.5px; color:var(--muted); margin:9px 0 0}
 
 /* Mientras grabas, el globo se convierte en esto y nada más */
-.grabando{text-align:center; padding-block:10px 4px}
+.grabando{text-align:center; padding-block:10px 6px}
 .grabando .punto{inline-size:14px; block-size:14px; border-radius:50%;
   background:var(--danger); margin:0 auto 14px; animation:latir 1.3s ease-in-out infinite}
 @keyframes latir{50%{opacity:.25; transform:scale(.8)}}
@@ -237,7 +237,12 @@ textarea::placeholder{color:var(--muted)}
 nav{position:fixed; inset-block-end:0; inset-inline:0; z-index:30; background:var(--bg);
   border-block-start:1px solid var(--line); display:flex; padding-block-end:env(safe-area-inset-bottom)}
 nav button{flex:1; padding:11px 0 13px; font-size:12.5px; color:var(--muted); text-align:center}
+nav button{position:relative}
 nav button b{display:block; font-size:17px; font-weight:400; margin-block-end:2px}
+.chapa{position:absolute; inset-block-start:6px; inset-inline-start:50%;
+  margin-inline-start:6px; background:var(--accent); color:var(--accent-ink);
+  font-style:normal; font-size:10.5px; font-weight:700; min-inline-size:17px;
+  block-size:17px; border-radius:99px; display:grid; place-items:center; padding-inline:4px}
 nav button[aria-current="page"]{color:var(--accent)}
 
 
@@ -313,6 +318,30 @@ nav button[aria-current="page"]{color:var(--accent)}
   border-inline-start:3px solid var(--sin)}
 .cuando-resumen{font-size:12.5px; color:var(--muted); margin:0 0 6px}
 
+/* aviso que te manda a Entrada cuando hay algo esperando */
+.llamada{inline-size:100%; text-align:start; background:var(--surface);
+  border:1px solid var(--line); border-inline-start:3px solid var(--accent);
+  border-radius:14px; padding:14px 16px; margin-block-end:18px;
+  display:flex; align-items:center; gap:13px}
+.llamada .n{font-family:"Frank Ruhl Libre",serif; font-size:27px; line-height:1;
+  color:var(--accent); flex:none}
+.llamada .txt{flex:1; font-size:14.5px; line-height:1.4}
+.llamada .txt small{display:block; color:var(--muted); font-size:12.5px; margin-block-start:3px}
+.llamada .fle{color:var(--muted); font-size:16px; flex:none}
+
+/* filas del plan del día */
+.plan-fila{inline-size:100%; text-align:start; display:flex; gap:12px;
+  align-items:flex-start; padding:14px 2px; border-block-end:1px solid var(--line)}
+.plan-fila:last-child{border-block-end:none}
+.plan-fila .bolita{inline-size:19px; block-size:19px; border:1.5px solid var(--line);
+  border-radius:6px; flex:none; margin-block-start:1px}
+.plan-fila .cont{flex:1; min-width:0}
+.plan-fila .t{display:block; font-size:15.5px; line-height:1.4}
+.plan-fila .meta{display:block; font-size:12.5px; color:var(--muted);
+  margin-block-start:4px}
+.plan-fila .meta::before{content:""; display:inline-block; inline-size:7px;
+  block-size:7px; border-radius:50%; background:var(--m); margin-inline-end:7px}
+
 /* lista de mundos con sus capturas */
 .mundo{border-block-end:1px solid var(--line)}
 .mundo:last-child{border-block-end:none}
@@ -370,28 +399,33 @@ nav button[aria-current="page"]{color:var(--accent)}
       </span>
       <button class="icon-btn" id="themeBtn" aria-label="Cambiar entre claro y oscuro">◐</button>
     </div>
-    <h1 id="viewTitle">Hoy</h1>
     <p class="date" id="dateLine"></p>
   </header>
 
+  <!-- HOY: el plan del día. Lo que tienes que hacer. -->
   <main id="view-hoy">
     <div id="cabHoy"></div>
     <div id="tira" class="tira"></div>
-    <div id="resumenTexto"></div>
-    <div class="seccion" style="margin-block-start:30px">
-      <h3>Mis capturas</h3>
+    <div id="plan"></div>
+  </main>
+
+  <!-- ENTRADA: lo que llegó del correo y hay que decidir qué hacer con ello. -->
+  <main id="view-entrada" class="hidden">
+    <div class="seccion" style="margin-block-start:6px">
+      <h3>Del correo</h3>
       <button class="recargar" id="recargarBtn">Actualizar</button>
     </div>
     <p class="cuando-resumen" id="resumenFecha"></p>
-    <div id="panel"></div>
+    <div id="resumenTexto"></div>
   </main>
 
+  <!-- BANDEJA: todo lo tuyo, con filtros. -->
   <main id="view-bandeja" class="hidden">
     <div id="filtroCaja"></div>
     <div id="list"></div>
     <div class="empty hidden" id="emptyInbox">
       <h3>Bandeja vacía</h3>
-      <p>Graba una nota de voz con el micrófono y yo la escucho, la entiendo y la convierto en pendientes. También puedes compartir fotos y audios desde WhatsApp, o escribir abajo.</p>
+      <p>Graba una nota de voz con el micrófono y yo la escucho, la entiendo y la convierto en pendientes. También puedes compartir fotos y audios desde WhatsApp, o escribir.</p>
       <p class="firma">— Mordejai Clonsio</p>
     </div>
   </main>
@@ -510,6 +544,7 @@ nav button[aria-current="page"]{color:var(--accent)}
 
 <nav>
   <button data-v="hoy" aria-current="page"><b>◈</b>Hoy</button>
+  <button data-v="entrada"><b>✉</b>Entrada<i class="chapa hidden" id="chapa"></i></button>
   <button data-v="bandeja"><b>≡</b>Bandeja</button>
   <button data-v="ajustes"><b>⚙</b>Ajustes</button>
 </nav>
@@ -645,59 +680,97 @@ function dibujar(){
 function dibujarPanel(){
   dibujarCabecera();
   dibujarTira();
+  dibujarChapa();
 
-  const p = document.getElementById("panel"); if(!p) return;
+  const p = document.getElementById("plan"); if(!p) return;
   p.innerHTML = "";
-  const pendientes = items.filter(i => !i.hecho);
-  const sinCtx = pendientes.filter(i => !i.ctx);
 
+  // Si hay cosas del correo sin decidir, lo primero es avisarte.
+  const porDecidir = cuantasEnEntrada();
+  if(porDecidir){
+    const l = document.createElement("button"); l.className = "llamada";
+    l.innerHTML = '<span class="n"></span><span class="txt"></span><span class="fle">›</span>';
+    l.querySelector(".n").textContent = porDecidir;
+    const t = l.querySelector(".txt");
+    t.textContent = porDecidir === 1
+      ? "cosa del correo esperando que decidas"
+      : "cosas del correo esperando que decidas";
+    const sm = document.createElement("small");
+    sm.textContent = "Revísalas y pasa a tu día lo que sea tarea";
+    t.appendChild(sm);
+    l.onclick = () => ir("entrada");
+    p.appendChild(l);
+  }
+
+  const pendientes = items.filter(i => !i.hecho && !i.esFuente);
   if(!pendientes.length){
     const v = document.createElement("p"); v.className = "vacio-hoy";
-    v.textContent = "No tienes capturas pendientes.";
+    v.textContent = porDecidir
+      ? "Tu día está vacío por ahora. Empieza por lo de arriba."
+      : "No tienes nada pendiente y no hay nada nuevo en el correo. Día despejado.";
     p.appendChild(v); return;
   }
 
-  CONTEXTOS.forEach(c => {
-    const suyas = pendientes.filter(i => i.ctx === c.id);
-    if(!suyas.length) return;
-    const caja = document.createElement("div");
-    caja.className = "mundo" + (abiertos.has(c.id) ? " abierto" : "");
-    caja.style.setProperty("--m", c.color);
+  // El plan va ordenado: primero lo que tiene fecha, después el resto.
+  const conFecha = pendientes.filter(i => tieneFecha(i));
+  const sinFecha = pendientes.filter(i => !tieneFecha(i));
+  const sinMundo = pendientes.filter(i => !i.ctx);
 
-    const cab = document.createElement("button");
-    cab.className = "mundo-cab";
-    cab.innerHTML = '<span class="marca"></span><span class="nom"></span>' +
-                    '<span class="num"></span><span class="fle">›</span>';
-    cab.querySelector(".nom").textContent = c.nombre;
-    cab.querySelector(".num").textContent = suyas.length;
-    cab.onclick = () => {
-      abiertos.has(c.id) ? abiertos.delete(c.id) : abiertos.add(c.id);
-      dibujarPanel();
-    };
-    caja.appendChild(cab);
-
-    if(abiertos.has(c.id)){
-      const cuerpo = document.createElement("div"); cuerpo.className = "mundo-cuerpo";
-      suyas.slice(0, 4).forEach(it => cuerpo.appendChild(lineaResumen(it, c)));
-      if(suyas.length > 4){
-        const v = document.createElement("button"); v.className = "ver-todo";
-        v.textContent = "Ver las " + suyas.length + " de " + c.nombre;
-        v.onclick = () => { filtro = c.id; ir("bandeja"); dibujar(); };
-        cuerpo.appendChild(v);
-      }
-      caja.appendChild(cuerpo);
-    }
-    p.appendChild(caja);
-  });
-
-  if(sinCtx.length){
+  if(conFecha.length){
+    p.appendChild(seccion("Con fecha"));
+    conFecha.forEach(it => p.appendChild(filaPlan(it)));
+  }
+  if(sinFecha.length){
+    p.appendChild(seccion(conFecha.length ? "El resto" : "Pendiente"));
+    sinFecha.forEach(it => p.appendChild(filaPlan(it)));
+  }
+  if(sinMundo.length){
     const a = document.createElement("button"); a.className = "aviso-sin";
-    a.textContent = sinCtx.length === 1
-      ? "1 captura esperando que le digas a qué mundo pertenece"
-      : sinCtx.length + " capturas esperando que les digas a qué mundo pertenecen";
+    a.textContent = sinMundo.length === 1
+      ? "1 captura sin mundo asignado"
+      : sinMundo.length + " capturas sin mundo asignado";
     a.onclick = () => { filtro = "sin"; ir("bandeja"); dibujar(); };
     p.appendChild(a);
   }
+}
+
+function tieneFecha(it){ return /\s—\s\S/.test(it.texto || ""); }
+
+/* Una línea del plan: se tacha desde aquí mismo. */
+function filaPlan(it){
+  const c = ctxDe(it.ctx);
+  const b = document.createElement("button"); b.className = "plan-fila";
+  b.style.setProperty("--m", c ? c.color : "var(--sin)");
+
+  const bol = document.createElement("span"); bol.className = "bolita";
+  const cont = document.createElement("span"); cont.className = "cont";
+
+  const partes = (it.texto || it.transcripcion || "Sin texto").split(" — ");
+  const t = document.createElement("span"); t.className = "t";
+  t.textContent = partes[0];
+  cont.appendChild(t);
+
+  const meta = document.createElement("span"); meta.className = "meta";
+  meta.textContent = (c ? c.nombre : "Sin mundo") + (partes[1] ? "  ·  " + partes[1] : "");
+  cont.appendChild(meta);
+
+  b.append(bol, cont);
+  b.onclick = () => { it.hecho = true; guardar("items", items); dibujar(); aviso("Hecho"); };
+  return b;
+}
+
+/* El número que aparece sobre la pestaña Entrada. */
+function cuantasEnEntrada(){
+  if(!resumenActual || !Array.isArray(resumenActual.items)) return 0;
+  return resumenActual.items.filter(i => i.tipo !== "informativo" &&
+    !items.some(x => x.texto === i.titulo)).length;
+}
+
+function dibujarChapa(){
+  const ch = document.getElementById("chapa"); if(!ch) return;
+  const n = cuantasEnEntrada();
+  ch.textContent = n;
+  ch.classList.toggle("hidden", !n);
 }
 
 /* La frase de arriba: la escribe el motor. Mientras no haya resumen,
@@ -716,7 +789,10 @@ function dibujarCabecera(){
 
   const sub = document.createElement("p"); sub.className = "bajo-titular";
   const pend = items.filter(i => !i.hecho).length;
-  const acc  = resumenActual ? (resumenActual.items||[]).filter(i=>i.tipo==="accion").length : 0;
+  const acc  = resumenActual
+    ? (resumenActual.items||[]).filter(i => i.tipo !== "informativo" &&
+        !items.some(x => x.texto === i.titulo)).length
+    : 0;
   const partes = [];
   if(acc)  partes.push(acc + (acc===1 ? " cosa del correo" : " cosas del correo"));
   if(pend) partes.push(pend + (pend===1 ? " captura tuya" : " capturas tuyas"));
@@ -831,12 +907,22 @@ function pintarResumen(texto, mensaje){
     const v = document.createElement("p"); v.className = "vacio-hoy";
     v.textContent = "Nada en el correo que merezca tu atención hoy" +
       (datos.descartados ? ". Descarté " + datos.descartados + "." : ".");
-    caja.appendChild(v); dibujarCabecera(); return;
+    caja.appendChild(v); dibujarCabecera(); dibujarChapa(); return;
   }
 
-  if(acciones.length){
+  const pendientesDeVer = acciones.filter(i => !items.some(x => x.texto === i.titulo));
+
+  if(acciones.length && !pendientesDeVer.length){
+    const v = document.createElement("button"); v.className = "llamada";
+    v.innerHTML = '<span class="n">✓</span><span class="txt"></span><span class="fle">›</span>';
+    v.querySelector(".txt").textContent = "Ya decidiste todo lo del correo. Ve a tu día.";
+    v.onclick = () => ir("hoy");
+    caja.appendChild(v);
+  }
+
+  if(pendientesDeVer.length){
     caja.appendChild(seccion("Requiere algo tuyo"));
-    acciones.forEach(it => caja.appendChild(tarjeta(it)));
+    pendientesDeVer.forEach(it => { const t = tarjeta(it); if(t) caja.appendChild(t); });
   }
 
   if(infos.length){
@@ -848,6 +934,7 @@ function pintarResumen(texto, mensaje){
     if(verInfo){
       const lista = document.createElement("div");
       infos.forEach(it => {
+        if(items.some(i => i.texto === it.titulo)) return;
         const d = document.createElement("div"); d.className = "info-item";
         d.textContent = it.titulo || "";
         const f = document.createElement("div"); f.className = "fuente";
@@ -858,6 +945,7 @@ function pintarResumen(texto, mensaje){
     }
   }
   dibujarCabecera();
+  dibujarChapa();
 }
 
 function seccion(titulo){
@@ -876,8 +964,9 @@ function tarjeta(it){
   d.className = "tarjeta" + ((it.prioridad||3) === 1 ? " p1" : "");
   d.style.setProperty("--m", ctx ? ctx.color : "var(--sin)");
 
-  const yaEsta = items.some(i => i.texto === it.titulo);
-  if(yaEsta) d.classList.add("hecha");
+  // Si ya lo pasaste a tu bandeja, esta tarjeta no tiene nada más que
+  // aportar: vive en la Bandeja. Aquí desaparece para no repetirse.
+  if(items.some(i => i.texto === it.titulo)) return null;
 
   const arriba = document.createElement("div"); arriba.className = "arriba";
   const etq = document.createElement("span"); etq.className = "etq";
@@ -906,13 +995,17 @@ function tarjeta(it){
 
   const bs = document.createElement("div"); bs.className = "botones";
   const add = document.createElement("button");
-  add.className = "add"; add.textContent = yaEsta ? "✓ En tu bandeja" : "Pasar a pendientes";
+  add.className = "add"; add.textContent = "Pasar a pendientes";
   add.onclick = async () => {
     if(items.some(i => i.texto === it.titulo)){ aviso("Ya está en tu bandeja"); return; }
-    await agregar({ texto: it.titulo, ctx: ctx ? ctx.id : null,
-                    origen: "del resumen", sugerido: ctx ? ctx.id : "" });
+    const nuevo = await agregar({ texto: it.titulo, ctx: ctx ? ctx.id : null,
+                                  origen: "del resumen", sugerido: ctx ? ctx.id : "" });
     pintarResumen(ajustes.ultimoResumen, null);
-    aviso("Pasado a pendientes");
+    avisoConDeshacer("Pasado a " + (ctx ? ctx.nombre : "pendientes"), () => {
+      items = items.filter(x => x.id !== nuevo.id);
+      guardar("items", items); dibujar();
+      pintarResumen(ajustes.ultimoResumen, null);
+    });
   };
   const no = document.createElement("button");
   no.textContent = "×"; no.setAttribute("aria-label", "No me interesa, nunca más");
@@ -1015,25 +1108,6 @@ function pararLectura(){
   hablando = false; dibujarCabecera();
 }
 document.addEventListener("visibilitychange", () => { if(document.hidden) pararLectura(); });
-
-/* Una línea del resumen: se puede tachar desde aquí mismo. */
-function lineaResumen(it, c){
-  const b = document.createElement("button"); b.className = "linea";
-  const bol = document.createElement("span"); bol.className = "bolita";
-
-  const txt = document.createElement("span"); txt.className = "txt";
-  const partes = (it.texto || it.transcripcion || it.descripcion || "Sin texto").split(" — ");
-  txt.textContent = recortar(partes[0], 70);
-  b.append(bol, txt);
-
-  if(partes[1]){
-    const cu = document.createElement("span"); cu.className = "cuando";
-    cu.textContent = recortar(partes[1], 18);
-    b.appendChild(cu);
-  }
-  b.onclick = () => { it.hecho = true; guardar("items", items); dibujar(); aviso("Hecho"); };
-  return b;
-}
 
 function recortar(t, n){
   t = (t||"").replace(/\s+/g, " ").trim();
@@ -1512,16 +1586,17 @@ async function enviarAlMotor(it){
 /* ====================================================================
    PASO 11 — Pantallas
 ==================================================================== */
-const TITULOS={hoy:"Hoy",bandeja:"Bandeja",ajustes:"Ajustes"};
+const TITULOS={hoy:"Hoy",entrada:"Entrada",bandeja:"Bandeja",ajustes:"Ajustes"};
 function ir(v){
-  ["hoy","bandeja","ajustes"].forEach(n=>document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
+  ["hoy","entrada","bandeja","ajustes"].forEach(n=>document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
   document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.v===v?"page":"false"));
-  document.getElementById("viewTitle").textContent=TITULOS[v];
   document.getElementById("fab").style.display = v==="ajustes" ? "none" : "grid";
   document.getElementById("menuFab").style.display = v==="ajustes" ? "none" : "flex";
   if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); }
 
   if(v==="ajustes") medirEspacio();
+  if(v==="hoy") dibujarPanel();
+  if(v==="entrada" && ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
   if(v==="hoy") dibujarPanel();
   window.scrollTo(0,0);
 }
