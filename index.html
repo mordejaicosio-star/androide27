@@ -194,6 +194,28 @@ textarea::placeholder{color:var(--muted)}
 .pend span{flex:1; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .oyendo{font-size:12.5px; color:var(--danger); margin-block-start:7px}
 .pista{font-size:12.5px; color:var(--muted); margin:9px 0 0}
+
+/* Mientras grabas, el globo se convierte en esto y nada más */
+.grabando{text-align:center; padding-block:10px 4px}
+.grabando .punto{inline-size:14px; block-size:14px; border-radius:50%;
+  background:var(--danger); margin:0 auto 14px; animation:latir 1.3s ease-in-out infinite}
+@keyframes latir{50%{opacity:.25; transform:scale(.8)}}
+@media (prefers-reduced-motion:reduce){.grabando .punto{animation:none}}
+.grabando .reloj{font-family:"Frank Ruhl Libre",serif; font-size:38px; line-height:1;
+  margin:0 0 6px}
+.grabando .dice{font-size:13.5px; color:var(--muted); margin:0 0 18px}
+.grab-botones{display:flex; gap:11px; align-items:stretch}
+.tirar{inline-size:68px; flex:none; border:1.5px solid var(--danger); color:var(--danger);
+  border-radius:14px; font-size:22px; display:grid; place-items:center}
+.tirar:active{background:var(--danger); color:#fff}
+.parar{flex:1; background:var(--accent); color:var(--accent-ink); border-radius:14px;
+  padding:17px; font-size:16.5px; font-weight:600}
+
+/* aviso con deshacer */
+.toast.con-boton{display:flex; align-items:center; gap:14px; pointer-events:auto;
+  padding-inline-end:8px}
+.toast .deshacer{color:var(--accent); font-weight:600; font-size:13.5px;
+  padding:5px 10px; border-radius:8px; border:1px solid var(--line)}
 .tool{position:relative}
 
 /* ---------- AJUSTES ------------------------------------------------ */
@@ -449,6 +471,18 @@ nav button[aria-current="page"]{color:var(--accent)}
 <div class="composer" id="composer">
   <div class="composer-inner">
     <div class="asa"></div>
+
+    <div class="grabando hidden" id="grabando">
+      <div class="punto"></div>
+      <p class="reloj" id="reloj">0:00</p>
+      <p class="dice">Te escucho. La papelera lo descarta sin guardar nada.</p>
+      <div class="grab-botones">
+        <button class="tirar" id="cancelarBtn" aria-label="Descartar la grabación">🗑</button>
+        <button class="parar" id="pararBtn">Parar y guardar</button>
+      </div>
+    </div>
+
+    <div id="normal">
     <div class="pend hidden" id="pend">
       <img id="pendThumb" alt="" class="hidden">
       <span id="pendName"></span>
@@ -461,6 +495,7 @@ nav button[aria-current="page"]{color:var(--accent)}
       <button class="tool" id="fileBtn" aria-label="Adjuntar foto o archivo">🖼</button>
       <button class="tool" id="micBtn" aria-label="Grabar nota de voz">🎙</button>
       <button class="save" id="saveBtn" disabled>Guardar</button>
+    </div>
     </div>
     <input type="file" id="fileInput" accept="image/*,audio/*,application/pdf" class="hidden">
   </div>
@@ -1221,27 +1256,69 @@ document.getElementById("pendQuitar").onclick=()=>{ limpiarPendiente(); revisarB
 ==================================================================== */
 let grabadora=null, trozos=[];
 
-document.getElementById("micBtn").onclick = async () => {
-  const btn=document.getElementById("micBtn");
-  if(grabadora && grabadora.state==="recording"){ grabadora.stop(); return; }
+let relojInt = null, inicioGrab = 0;
+
+function pintarReloj(){
+  const seg = Math.floor((Date.now() - inicioGrab) / 1000);
+  const m = Math.floor(seg / 60), r = seg % 60;
+  document.getElementById("reloj").textContent = m + ":" + String(r).padStart(2, "0");
+}
+
+function modoGrabando(si){
+  document.getElementById("grabando").classList.toggle("hidden", !si);
+  document.getElementById("normal").classList.toggle("hidden", si);
+}
+
+async function empezarAGrabar(){
+  if(grabadora && grabadora.state === "recording") return;
   try{
     const señal = await navigator.mediaDevices.getUserMedia({audio:true});
-    grabadora = new MediaRecorder(señal); trozos=[];
+    grabadora = new MediaRecorder(señal); trozos = [];
+    let cancelado = false;
+
     grabadora.ondataavailable = e => trozos.push(e.data);
-    grabadora.onstop = () => {
-      señal.getTracks().forEach(t=>t.stop());
-      const blob=new Blob(trozos,{type:grabadora.mimeType||"audio/webm"});
-      btn.classList.remove("rec"); btn.textContent="🎙";
-      document.getElementById("oyendo").classList.add("hidden");
-      ponerPendiente(blob,"Nota de voz",blob.type);
-      if(!input.value.trim()){ input.value="Nota de voz"; input.dispatchEvent(new Event("input")); }
-      aviso("Grabación lista · toca Guardar");
+    grabadora.onstop = async () => {
+      señal.getTracks().forEach(t => t.stop());
+      clearInterval(relojInt); modoGrabando(false);
+      if(cancelado){ cerrarCaptura(); aviso("Descartado"); return; }
+
+      const blob = new Blob(trozos, { type: grabadora.mimeType || "audio/webm" });
+      const segundos = (Date.now() - inicioGrab) / 1000;
+
+      // Si duró menos de un segundo, casi seguro fue sin querer.
+      if(segundos < 1){ cerrarCaptura(); aviso("Demasiado corto, no lo guardé"); return; }
+
+      const texto = input.value.trim();
+      input.value = ""; input.style.height = "auto";
+      cerrarCaptura(); ir("bandeja");
+      const nuevo = await agregar({ texto: texto || "Nota de voz", blob,
+                                    nombre: "Nota de voz", tipo: blob.type });
+      avisoConDeshacer("Guardado · escuchando el audio", () => {
+        if(nuevo.adjunto) idbBorrar("adjuntos", nuevo.adjunto.id);
+        items = items.filter(x => x.id !== nuevo.id);
+        guardar("items", items); dibujar(); medirEspacio();
+        aviso("Descartado");
+      });
     };
+
+    document.getElementById("pararBtn").onclick = () => {
+      if(grabadora && grabadora.state === "recording") grabadora.stop();
+    };
+    document.getElementById("cancelarBtn").onclick = () => {
+      cancelado = true;
+      if(grabadora && grabadora.state === "recording") grabadora.stop();
+    };
+
     grabadora.start();
-    btn.classList.add("rec"); btn.textContent="■";
-    document.getElementById("oyendo").classList.remove("hidden");
-  }catch(e){ aviso("No se pudo usar el micrófono"); }
-};
+    modoGrabando(true);
+    inicioGrab = Date.now(); pintarReloj();
+    relojInt = setInterval(pintarReloj, 500);
+
+  }catch(e){ aviso("No se pudo usar el micrófono"); cerrarCaptura(); }
+}
+
+// El botón del micrófono dentro del globo hace lo mismo.
+document.getElementById("micBtn").onclick = empezarAGrabar;
 
 /* ====================================================================
    PASO 9 — Escuchar, entender y separar
@@ -1300,7 +1377,7 @@ async function transcribir(it){
       // El audio NO es una tarea: es el original del que salieron.
       // Se queda archivado con su transcripción, y cada pendiente
       // sale como una captura propia, limpia.
-      it.texto  = "Nota de voz";
+      it.texto  = salida.titulo ? salida.titulo : "Nota de voz";
       it.esFuente = true;
       it.hecho  = true;          // archivado, no cuenta como pendiente
       guardar("items",items);
@@ -1315,7 +1392,8 @@ async function transcribir(it){
       aviso(tareas.length===1 ? "1 pendiente sacado del audio"
                               : `${tareas.length} pendientes sacados del audio`);
     } else {
-      it.texto = it.texto && it.texto !== "Nota de voz" ? it.texto : salida.transcripcion;
+      it.texto = salida.titulo ? salida.titulo
+               : (it.texto && it.texto !== "Nota de voz" ? it.texto : salida.transcripcion);
       guardar("items",items); dibujar(); enviarAlMotor(it);
       aviso("Audio transcrito · no encontré pendientes");
     }
@@ -1332,7 +1410,9 @@ function instruccionAnalisis(apertura){
   return apertura + ' Eres el asistente de Mordejai, que trabaja en tres empresas ' +
     '(Proserco, Isracap e Isracap Grand) y tiene esposa y cuatro hijos.\n\n' +
     'Devuelve SOLO un JSON válido, sin ``` y sin ninguna palabra fuera del JSON:\n' +
-    '{"transcripcion":"...","tareas":[{"texto":"...","mundo":"","cuando":""}]}\n\n' +
+    '{"titulo":"...","transcripcion":"...","tareas":[{"texto":"...","mundo":"","cuando":""}]}\n\n' +
+    'titulo: de qué va esta nota, en 3 a 6 palabras, como el nombre de un archivo. ' +
+    'Ejemplos: "Pendientes del proyecto Hadassa", "Compras y turno del dentista".\n' +
     'transcripcion: lo que se dice, literal, en el idioma original. Si te doy texto ' +
     'escrito en vez de audio, copia ese texto tal cual aquí.\n' +
     'tareas: un elemento POR CADA asunto distinto. Si hay tres cosas diferentes, ' +
@@ -1488,7 +1568,7 @@ document.getElementById("opTexto").onclick = () => {
 // Grabar: abre el globo y empieza a grabar de una vez.
 document.getElementById("opAudio").onclick = () => {
   cerrarMenu(); abrirCaptura();
-  setTimeout(() => document.getElementById("micBtn").click(), 280);
+  setTimeout(empezarAGrabar, 260);
 };
 
 // Foto: abre directamente el selector del teléfono.
@@ -1666,8 +1746,25 @@ async function recogerEntrantes(){
 }
 
 let tToast;
+
+/* Aviso con un botón de deshacer, para los diez segundos siguientes.
+   Si no lo tocas, desaparece y la captura se queda. */
+function avisoConDeshacer(msg, alDeshacer){
+  const t = document.getElementById("toast");
+  t.innerHTML = ""; t.classList.add("show", "con-boton");
+  t.appendChild(document.createTextNode(msg));
+  const b = document.createElement("button");
+  b.className = "deshacer"; b.textContent = "Deshacer";
+  b.onclick = () => { t.classList.remove("show", "con-boton"); alDeshacer(); };
+  t.appendChild(b);
+  clearTimeout(tToast);
+  tToast = setTimeout(() => t.classList.remove("show", "con-boton"), 10000);
+}
+
 function aviso(msg){
-  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  const t=document.getElementById("toast");
+  t.classList.remove("con-boton");
+  t.textContent=msg; t.classList.add("show");
   clearTimeout(tToast); tToast=setTimeout(()=>t.classList.remove("show"),2100);
 }
 
