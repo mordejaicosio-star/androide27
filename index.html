@@ -172,6 +172,8 @@ textarea::placeholder{color:var(--muted)}
 .pend img{inline-size:34px; block-size:34px; border-radius:6px; object-fit:cover}
 .pend span{flex:1; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .oyendo{font-size:12.5px; color:var(--danger); margin-block-start:7px}
+.pista{font-size:12.5px; color:var(--muted); margin:9px 0 0}
+.tool{position:relative}
 
 /* ---------- AJUSTES ------------------------------------------------ */
 .field{margin-block-end:20px}
@@ -433,8 +435,9 @@ nav button[aria-current="page"]{color:var(--accent)}
     </div>
     <textarea id="input" rows="1" placeholder="¿Qué no se puede perder?"></textarea>
     <p class="oyendo hidden" id="oyendo">Grabando… habla con naturalidad</p>
+    <p class="pista">Escribe, adjunta una foto o graba una nota de voz</p>
     <div class="row">
-      <button class="tool" id="fileBtn" aria-label="Adjuntar foto o archivo">＋</button>
+      <button class="tool" id="fileBtn" aria-label="Adjuntar foto o archivo">🖼</button>
       <button class="tool" id="micBtn" aria-label="Grabar nota de voz">🎙</button>
       <button class="save" id="saveBtn" disabled>Guardar</button>
     </div>
@@ -1421,16 +1424,30 @@ function abrirCaptura(){
   document.getElementById("composer").classList.add("abierta");
   document.getElementById("fondo").classList.add("visible");
   document.getElementById("fab").style.display = "none";
-  setTimeout(() => input.focus(), 220);
 }
 function cerrarCaptura(){
   document.getElementById("composer").classList.remove("abierta");
   document.getElementById("fondo").classList.remove("visible");
   document.getElementById("fab").style.display = "grid";
+  document.getElementById("composer").style.marginBlockEnd = "0";
   input.blur();
 }
 document.getElementById("fab").onclick = abrirCaptura;
 document.getElementById("fondo").onclick = cerrarCaptura;
+
+/* En Android el teclado tapa la parte de abajo de la pantalla. Esto
+   levanta el globo justo lo que mide el teclado, para que los botones
+   sigan a la vista mientras escribes. */
+if(window.visualViewport){
+  const ajustarPorTeclado = () => {
+    const c = document.getElementById("composer");
+    if(!c.classList.contains("abierta")) return;
+    const tapado = window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop;
+    c.style.marginBlockEnd = (tapado > 60 ? tapado : 0) + "px";
+  };
+  window.visualViewport.addEventListener("resize", ajustarPorTeclado);
+  window.visualViewport.addEventListener("scroll", ajustarPorTeclado);
+}
 
 /* ====================================================================
    PASO 12 — Ajustes
