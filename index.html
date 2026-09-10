@@ -207,6 +207,121 @@ html[data-theme="robot"] body{animation:deriva 26s linear infinite}
   html[data-theme="robot"] body{ animation:none }
 }
 
+
+/* ---------- TEMA ANDROIDE · nivel visor ---------------------------- */
+
+/* marco de HUD en las cuatro esquinas de la pantalla */
+html[data-theme="robot"] body::before{
+  content:""; position:fixed; inset:8px; pointer-events:none; z-index:6;
+  border:1px solid rgba(53,214,232,.13);
+  clip-path:polygon(0 0,34px 0,34px 1px,1px 1px,1px 34px,0 34px,
+                    0 100%,34px 100%,34px calc(100% - 1px),1px calc(100% - 1px),
+                    1px calc(100% - 34px),0 calc(100% - 34px),
+                    100% 100%,calc(100% - 34px) 100%,calc(100% - 34px) calc(100% - 1px),
+                    calc(100% - 1px) calc(100% - 1px),calc(100% - 1px) calc(100% - 34px),
+                    100% calc(100% - 34px),
+                    100% 0,calc(100% - 34px) 0,calc(100% - 34px) 1px,
+                    calc(100% - 1px) 1px,calc(100% - 1px) 34px,100% 34px);
+}
+
+/* esquinas cortadas en vez de redondeadas */
+html[data-theme="robot"] .tarjeta,
+html[data-theme="robot"] .grupo,
+html[data-theme="robot"] .llamada,
+html[data-theme="robot"] .vacio-hoy,
+html[data-theme="robot"] .info-tog{
+  border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+html[data-theme="robot"] .burbuja.el{
+  border-radius:0;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+html[data-theme="robot"] .burbuja.yo{
+  border-radius:0;
+  clip-path:polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+/* el titular con barrido de luz */
+html[data-theme="robot"] .titular{
+  background:linear-gradient(90deg, var(--text) 0%, var(--text) 40%,
+             var(--accent) 50%, var(--text) 60%, var(--text) 100%);
+  background-size:280% 100%;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:brilloTitular 6s linear infinite;
+}
+@keyframes brilloTitular{ from{background-position:120% 0} to{background-position:-120% 0} }
+
+/* anillo girando alrededor del avatar */
+html[data-theme="robot"] .brand{position:relative}
+html[data-theme="robot"] .avatar{border-radius:4px}
+html[data-theme="robot"] .brand::before{
+  content:""; position:absolute; inset-block-start:-4px; inset-inline-start:-4px;
+  inline-size:54px; block-size:54px; border-radius:50%;
+  border:1px solid transparent; border-block-start-color:var(--accent);
+  border-inline-end-color:rgba(53,214,232,.35);
+  animation:gira 3.2s linear infinite; pointer-events:none;
+}
+@keyframes gira{ to{transform:rotate(360deg)} }
+
+/* etiquetas como lecturas de instrumento */
+html[data-theme="robot"] .etq{
+  clip-path:polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  padding-inline:11px;
+}
+html[data-theme="robot"] .plazo::before{content:"⟦ "}
+html[data-theme="robot"] .plazo::after{content:" ⟧"}
+html[data-theme="robot"] .fuente::before{content:"◂ "; color:var(--accent); opacity:.7}
+
+/* píldoras angulares */
+html[data-theme="robot"] .pill{
+  border-radius:0;
+  clip-path:polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+}
+html[data-theme="robot"] .pill.puesta{box-shadow:inset 0 0 14px rgba(53,214,232,.22)}
+
+/* la barra de abajo como consola */
+html[data-theme="robot"] nav{
+  background:linear-gradient(180deg, rgba(53,214,232,.07), transparent 60%), var(--bg);
+  border-block-start-color:rgba(53,214,232,.3);
+}
+
+/* barra de carga arriba, cuando está trabajando */
+html[data-theme="robot"] .hud-load{display:block}
+.hud-load{display:none; position:fixed; inset-block-start:0; inset-inline:0;
+  block-size:2px; z-index:80; background:transparent; overflow:hidden}
+.hud-load.activa::after{
+  content:""; display:block; block-size:100%; inline-size:38%;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation:cargando 1.1s linear infinite;
+}
+@keyframes cargando{ from{transform:translateX(-100%)} to{transform:translateX(360%)} }
+
+/* viñeta: la pantalla se oscurece hacia los bordes */
+html[data-theme="robot"] .wrap::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:4;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45) 100%);
+}
+
+/* los grupos de Ajustes con cabecera de panel */
+html[data-theme="robot"] .grupo h4::before{content:"▸ "; color:var(--accent)}
+html[data-theme="robot"] .chequeo .luz{border-radius:0; box-shadow:0 0 8px currentColor}
+
+/* deslizar: los fondos también en clave de máquina */
+html[data-theme="robot"] .swipe .tras.hecho{
+  background:linear-gradient(90deg, var(--familia), transparent);
+}
+html[data-theme="robot"] .swipe .tras.aplaza{
+  background:linear-gradient(270deg, var(--grand), transparent);
+}
+
+@media (prefers-reduced-motion:reduce){
+  html[data-theme="robot"] .titular{animation:none; color:var(--text);
+    -webkit-text-fill-color:var(--text)}
+  html[data-theme="robot"] .brand::before{animation:none}
+  .hud-load.activa::after{animation:none; inline-size:100%}
+}
+
 @media (prefers-color-scheme: light) {
   html[data-theme="auto"] {
     --bg:#F3F4F2; --surface:#FFFFFF; --raised:#ECEDE9; --line:#DEDFD9;
@@ -775,6 +890,8 @@ nav button[aria-current="page"]{color:var(--accent)}
 
 </div>
 
+<div class="hud-load" id="hudLoad"></div>
+
 <div class="buscador" id="buscador">
   <div class="b-cab">
     <input id="buscarInput" type="search" placeholder="Buscar en todo…" autocomplete="off">
@@ -1230,6 +1347,39 @@ function dibujarChapa(){
 
 /* La frase de arriba: la escribe el motor. Mientras no haya resumen,
    ponemos algo sobrio en vez de dejarlo vacío. */
+/* La barrita de arriba mientras el sistema trabaja. */
+function trabajando(si){
+  const h = document.getElementById("hudLoad");
+  if(h) h.classList.toggle("activa", !!si);
+}
+
+/* En el tema Androide, el titular no aparece: se descodifica, como si
+   la máquina lo estuviera resolviendo delante de ti. */
+const LETRAS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&/*+<>";
+let decodTimer = null, ultimoTitular = "";
+
+function ponerTitular(el, texto){
+  const robot = document.documentElement.dataset.theme === "robot";
+  const menos = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!robot || menos || texto === ultimoTitular){ el.textContent = texto; ultimoTitular = texto; return; }
+  ultimoTitular = texto;
+
+  clearInterval(decodTimer);
+  let paso = 0;
+  const total = texto.length;
+  decodTimer = setInterval(() => {
+    let salida = "";
+    for(let i = 0; i < total; i++){
+      const c = texto[i];
+      if(c === " " || i < paso) salida += c;
+      else salida += LETRAS[Math.floor(Math.random() * LETRAS.length)];
+    }
+    el.textContent = salida;
+    paso += Math.max(1, Math.round(total / 26));
+    if(paso > total){ clearInterval(decodTimer); el.textContent = texto; }
+  }, 28);
+}
+
 function cFilTitular(){
   if(mundoDelDia){
     const c = ctxDe(mundoDelDia);
@@ -1247,7 +1397,7 @@ function dibujarCabecera(){
   const izq = document.createElement("div"); izq.className = "izq";
 
   const h = document.createElement("h2"); h.className = "titular";
-  h.textContent = cFilTitular();
+  ponerTitular(h, cFilTitular());
   izq.appendChild(h);
 
   const sub = document.createElement("p"); sub.className = "bajo-titular";
@@ -1324,6 +1474,7 @@ async function traerResumen(silencioso){
     return;
   }
   const btn = document.getElementById("recargarBtn");
+  trabajando(true);
   if(btn){ btn.classList.add("girando"); btn.textContent = "Buscando…"; }
   try{
     const url = ajustes.endpoint + (ajustes.endpoint.includes("?") ? "&" : "?") +
@@ -1350,6 +1501,7 @@ async function traerResumen(silencioso){
     if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
     else pintarResumen(null, "No se pudo conectar con el motor. ¿Hay señal?");
   }finally{
+    trabajando(false);
     if(btn){ btn.classList.remove("girando"); btn.textContent = "Actualizar"; }
   }
 }
@@ -1790,7 +1942,7 @@ async function enviarChat(){
                       adjChat.texto + "\n\n" : "") + (q || "¿Qué me dice esto?");
   adjChat = null;
   document.getElementById("adjChat").classList.add("hidden");
-  inp.value = ""; pensando = true; dibujarChat();
+  inp.value = ""; pensando = true; trabajando(true); dibujarChat();
   window.scrollTo(0, document.body.scrollHeight);
 
   const historia = c.mensajes.slice(-5, -1)
@@ -1817,6 +1969,7 @@ async function enviarChat(){
     pensando = false;
     c.mensajes.push({ quien:"el", texto:"No pude conectar con el motor. ¿Hay señal?" });
   }
+  trabajando(false);
   c.mensajes = c.mensajes.slice(-60);
   c.actualizada = Date.now();
   guardar("chats", chats);
@@ -2333,9 +2486,11 @@ document.getElementById("micBtn").onclick = empezarAGrabar;
 ==================================================================== */
 async function transcribir(it){
   const fallo = motivo => {
+    trabajando(false);
     it.estadoAudio="falló"; it.motivoFallo=motivo;
     guardar("items",items); dibujar();
   };
+  trabajando(true);
   if(!ajustes.gemini) return fallo("No hay clave para transcribir. ¿De qué trata este audio?");
 
   let reg;
@@ -2371,6 +2526,7 @@ async function transcribir(it){
     if(!salida || !salida.transcripcion || /^INAUDIBLE$/i.test(salida.transcripcion))
       return fallo("El audio no se entiende. ¿De qué trata?");
 
+    trabajando(false);
     it.transcripcion = salida.transcripcion;
     it.estadoAudio   = "listo";
 
