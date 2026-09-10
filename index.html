@@ -209,6 +209,29 @@ html[data-theme="robot"] body{animation:deriva 26s linear infinite}
 
 
 /* ---------- TEMA ANDROIDE · nivel visor ---------------------------- */
+html[data-theme="robot"] .buscador{
+  background:linear-gradient(180deg, rgba(53,214,232,.05), transparent 30%), var(--bg);
+}
+html[data-theme="robot"] .b-cab input,
+html[data-theme="robot"] .chat-caja input{
+  border-radius:0;
+  clip-path:polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+html[data-theme="robot"] .b-item{border-block-end-color:rgba(53,214,232,.18)}
+html[data-theme="robot"] .b-res .grupo-b::before{content:"◂ "; color:var(--accent)}
+html[data-theme="robot"] .ch-btn, html[data-theme="robot"] .ch-adj,
+html[data-theme="robot"] .chat-item .mini{border-radius:3px}
+html[data-theme="robot"] .hoja-chats{
+  border-start-start-radius:0; border-start-end-radius:0;
+  border-block-start:1px solid var(--accent);
+  box-shadow:0 -8px 40px rgba(0,0,0,.5), inset 0 22px 40px -30px var(--accent);
+}
+html[data-theme="robot"] .chat-caja{
+  border-block-start-color:rgba(53,214,232,.3);
+  background:linear-gradient(180deg, rgba(53,214,232,.05), transparent 60%), var(--bg);
+}
+html[data-theme="robot"] .chat-caja button{border-radius:8px}
+
 
 /* marco de HUD en las cuatro esquinas de la pantalla */
 html[data-theme="robot"] body::before{
@@ -636,7 +659,56 @@ nav button[aria-current="page"]{color:var(--accent)}
 .llamada .txt small{display:block; color:var(--muted); font-size:12.5px; margin-block-start:3px}
 .llamada .fle{color:var(--muted); font-size:16px; flex:none}
 
+/* ---------- BUSCADOR ----------------------------------------------- */
+.buscador{position:fixed; inset:0; background:var(--bg); z-index:70;
+  display:none; flex-direction:column}
+.buscador.abierto{display:flex}
+.b-cab{display:flex; align-items:center; gap:8px; padding:14px 20px;
+  border-block-end:1px solid var(--line)}
+.b-cab input{flex:1; background:var(--surface); color:var(--text);
+  border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+  font-family:inherit; font-size:16px}
+.b-res{flex:1; overflow-y:auto; padding:6px 20px 30px}
+.b-res .grupo-b{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--muted); margin-block:18px 6px}
+.b-item{inline-size:100%; text-align:start; padding:12px 4px;
+  border-block-end:1px solid var(--line); font-size:14.5px; line-height:1.4}
+.b-item small{display:block; color:var(--muted); font-size:12px; margin-block-start:3px}
+.b-item mark{background:transparent; color:var(--accent); font-weight:600}
+
 /* ---------- CONVERSACIÓN ------------------------------------------- */
+.chat-cab{display:flex; align-items:center; gap:10px; margin-block:4px 12px;
+  padding-block-end:12px; border-block-end:1px solid var(--line)}
+.ch-titulo{flex:1; font-size:14.5px; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap; color:var(--muted); cursor:pointer;
+  text-decoration:underline dotted; text-underline-offset:3px}
+.ch-btn{inline-size:36px; block-size:36px; border-radius:10px; border:1px solid var(--line);
+  color:var(--muted); font-size:16px; flex:none; display:grid; place-items:center}
+.ch-adj{inline-size:44px; block-size:46px; border-radius:12px; border:1px solid var(--line);
+  color:var(--muted); font-size:16px; flex:none; background:var(--surface)}
+.adjunto-chat{display:flex; align-items:center; gap:8px; background:var(--raised);
+  border-radius:10px; padding:7px 10px; margin-block-end:8px; font-size:13px;
+  max-inline-size:560px; margin-inline:auto}
+.adjunto-chat span{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--muted)}
+
+.hoja-chats{position:fixed; inset-block-end:0; inset-inline:0; background:var(--bg);
+  border-start-start-radius:22px; border-start-end-radius:22px; z-index:44;
+  padding:8px 20px calc(24px + env(safe-area-inset-bottom)); max-block-size:70vh;
+  overflow-y:auto; transform:translateY(110%);
+  transition:transform .26s cubic-bezier(.2,.8,.2,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,.3)}
+.hoja-chats.abierta{transform:translateY(0)}
+.chat-item{display:flex; align-items:center; gap:10px; inline-size:100%;
+  padding:12px 4px; border-block-end:1px solid var(--line); text-align:start}
+.chat-item:last-child{border-block-end:none}
+.chat-item .tt{flex:1; font-size:14.5px; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap}
+.chat-item .tt small{display:block; color:var(--muted); font-size:11.5px; margin-block-start:2px}
+.chat-item .mini{inline-size:32px; block-size:32px; border-radius:8px;
+  border:1px solid var(--line); color:var(--muted); font-size:14px; flex:none}
+.chat-item.activa .tt{color:var(--accent)}
+.chat-item .mini.fija{color:var(--accent); border-color:var(--accent)}
 .chat-lista{padding-block:6px 12px; min-block-size:40vh}
 .burbuja{max-inline-size:88%; padding:11px 14px; border-radius:16px;
   margin-block-end:10px; font-size:14.5px; line-height:1.5; white-space:pre-wrap;
@@ -871,6 +943,8 @@ nav button[aria-current="page"]{color:var(--accent)}
       <h4>Revisión del sistema</h4>
       <div id="revision"><p class="hint">Toca revisar para comprobar que cada pieza está viva.</p></div>
       <div class="fila-btn"><button class="ghost" id="revisarBtn">Revisar ahora</button></div>
+      <div class="fila-btn"><button class="ghost" id="olvidarDescartes">Olvidar lo descartado</button></div>
+      <p class="hint" id="cuantosDescartes"></p>
     </section>
 
     <section class="grupo">
@@ -1034,7 +1108,9 @@ let aprendidos = leer("aprendidos", []);
 let descartados = leer("descartados", []);
 function estaDescartado(it){
   const c = [it.asunto, it.titulo].filter(Boolean).map(x => String(x).toLowerCase());
-  return descartados.some(d => c.some(x => x.indexOf(d) !== -1 || d.indexOf(x) !== -1));
+  // Solo cuenta si lo descartado aparece dentro del asunto o del título, y
+  // solo con textos largos: una palabra suelta escondería medio correo.
+  return descartados.some(d => d.length >= 10 && c.some(x => x.indexOf(d) !== -1));
 }
 function aprender(texto, mundo){
   if(!texto || !mundo) return;
@@ -3034,6 +3110,22 @@ async function revisarSistema(){
 }
 
 document.getElementById("revisarBtn").onclick = revisarSistema;
+
+/* Si un día Entrada aparece vacía sin motivo, casi seguro es que algo
+   quedó descartado de más. Esto lo borra todo y vuelve a mostrarlo. */
+function pintarCuantosDescartes(){
+  const p = document.getElementById("cuantosDescartes");
+  p.textContent = descartados.length
+    ? descartados.length + " cosas ocultas por haberlas descartado. Si echas algo en falta en Entrada, olvídalas."
+    : "No hay nada oculto por descarte.";
+}
+document.getElementById("olvidarDescartes").onclick = () => {
+  descartados = []; guardar("descartados", descartados);
+  pintarCuantosDescartes(); dibujarChapa();
+  if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
+  aviso("Vuelve a mostrarse todo");
+};
+pintarCuantosDescartes();
 
 async function medirEspacio(){
   const p=document.getElementById("espacio"), b=document.getElementById("espacioBar");
