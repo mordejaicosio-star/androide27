@@ -40,6 +40,66 @@ html[data-theme="light"] {
   --familia:#3F7A56; --proserco:#3A5F96; --isracap:#6F4A92;
   --grand:#9A5527; --personal:#5A6579; --sin:#767F8D;
 }
+/* ---------- TEMA ANDROIDE -----------------------------------------
+   Estética de interfaz de máquina: fondo de rejilla, acentos de
+   pantalla, tipografía monoespaciada en las etiquetas. Los colores
+   salen del propio ícono: azul de visor y rojo de sensor.
+------------------------------------------------------------------- */
+html[data-theme="robot"] {
+  --bg:#050A12; --surface:#0B1522; --raised:#12202F; --line:#1D3549;
+  --text:#D6E9F5; --muted:#5F8299; --accent:#35D6E8; --accent-ink:#04222A;
+  --danger:#FF5C4D;
+  --familia:#3FD9A0; --proserco:#4FA8FF; --isracap:#B478FF;
+  --grand:#FF9F45; --personal:#6E8AA6; --sin:#3B5A73;
+  --radius:6px;
+}
+html[data-theme="robot"] body{
+  background-image:
+    linear-gradient(rgba(53,214,232,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53,214,232,.045) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+/* barrido lento de pantalla */
+html[data-theme="robot"] body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:5;
+  background:linear-gradient(rgba(53,214,232,0) 0%, rgba(53,214,232,.05) 50%, rgba(53,214,232,0) 100%);
+  background-size:100% 220px; animation:barrido 7s linear infinite;
+}
+@keyframes barrido{from{background-position:0 -220px} to{background-position:0 100vh}}
+@media (prefers-reduced-motion:reduce){ html[data-theme="robot"] body::after{animation:none; opacity:.35} }
+
+html[data-theme="robot"] .titular,
+html[data-theme="robot"] h1, html[data-theme="robot"] h2,
+html[data-theme="robot"] h3, html[data-theme="robot"] .brand-name,
+html[data-theme="robot"] .reloj, html[data-theme="robot"] .n,
+html[data-theme="robot"] .num, html[data-theme="robot"] .total b{
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  letter-spacing:-.02em; font-weight:500;
+}
+html[data-theme="robot"] .brand-sub,
+html[data-theme="robot"] .meta, html[data-theme="robot"] .fuente,
+html[data-theme="robot"] .date, html[data-theme="robot"] .etq,
+html[data-theme="robot"] .plazo, html[data-theme="robot"] .cuando-resumen{
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  letter-spacing:.02em; font-size:11.5px; text-transform:uppercase;
+}
+html[data-theme="robot"] .tarjeta{
+  border:1px solid var(--line); border-inline-start:2px solid var(--m,var(--accent));
+  box-shadow:inset 0 0 26px rgba(53,214,232,.05);
+}
+html[data-theme="robot"] .tarjeta.p1{
+  box-shadow:inset 0 0 26px rgba(53,214,232,.07), 0 0 0 1px rgba(53,214,232,.25);
+}
+html[data-theme="robot"] .etq{border-radius:3px}
+html[data-theme="robot"] .pill, html[data-theme="robot"] .chip{border-radius:4px}
+html[data-theme="robot"] .fab{border-radius:12px; box-shadow:0 0 22px rgba(53,214,232,.45)}
+html[data-theme="robot"] .avatar{border-color:var(--accent); box-shadow:0 0 14px rgba(53,214,232,.3)}
+html[data-theme="robot"] .leer{box-shadow:0 0 16px rgba(53,214,232,.25)}
+html[data-theme="robot"] .seccion h3{color:var(--accent)}
+html[data-theme="robot"] .grabando .punto{box-shadow:0 0 18px var(--danger)}
+html[data-theme="robot"] #intro img{border-radius:10px; box-shadow:0 0 60px rgba(53,214,232,.35)}
+html[data-theme="robot"] #intro p{font-family:ui-monospace,monospace; letter-spacing:.08em}
+
 @media (prefers-color-scheme: light) {
   html[data-theme="auto"] {
     --bg:#F3F4F2; --surface:#FFFFFF; --raised:#ECEDE9; --line:#DEDFD9;
@@ -225,8 +285,9 @@ textarea::placeholder{color:var(--muted)}
   border:1px solid var(--line); border-radius:10px; padding:11px 13px;
   font-family:inherit; font-size:15px}
 .hint{font-size:13px; color:var(--muted); margin-block-start:7px}
-.seg{display:flex; gap:6px}
-.seg button{flex:1; border:1px solid var(--line); border-radius:10px; padding:10px; font-size:14.5px; color:var(--muted)}
+.seg{display:flex; gap:6px; flex-wrap:wrap}
+.seg button{flex:1; min-inline-size:70px; border:1px solid var(--line); border-radius:10px;
+  padding:10px 6px; font-size:14px; color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--raised); color:var(--text); border-color:var(--accent)}
 .ghost{border:1px solid var(--line); border-radius:10px; padding:11px 16px;
   font-size:14.5px; inline-size:100%; margin-block-end:9px}
@@ -442,10 +503,12 @@ nav button[aria-current="page"]{color:var(--accent)}
     <div class="field">
       <label>Apariencia</label>
       <div class="seg" id="themeSeg">
-        <button data-t="auto" aria-pressed="true">Automático</button>
+        <button data-t="auto" aria-pressed="true">Auto</button>
         <button data-t="light" aria-pressed="false">Claro</button>
         <button data-t="dark" aria-pressed="false">Oscuro</button>
+        <button data-t="robot" aria-pressed="false">Androide</button>
       </div>
+      <p class="hint">El modo Androide es el de la máquina: rejilla, acentos de pantalla y tipografía de terminal.</p>
     </div>
     <div class="field">
       <label for="geminiInput">Clave para transcribir audios</label>
@@ -634,9 +697,9 @@ function aplicarTema(){
   document.querySelectorAll("#themeSeg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.t===ajustes.tema));
 }
 document.getElementById("themeBtn").onclick = () => {
-  const o=["auto","light","dark"]; ajustes.tema=o[(o.indexOf(ajustes.tema)+1)%3];
+  const o=["auto","light","dark","robot"]; ajustes.tema=o[(o.indexOf(ajustes.tema)+1)%4];
   guardar("ajustes",ajustes); aplicarTema();
-  aviso({auto:"Apariencia automática",light:"Modo claro",dark:"Modo oscuro"}[ajustes.tema]);
+  aviso({auto:"Apariencia automática",light:"Modo claro",dark:"Modo oscuro",robot:"Modo Androide"}[ajustes.tema]);
 };
 document.getElementById("themeSeg").onclick = e => {
   const b=e.target.closest("button"); if(!b) return;
