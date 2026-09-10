@@ -545,6 +545,16 @@ textarea::placeholder{color:var(--muted)}
 .chequeo.duda .luz{background:var(--grand)}
 .chequeo .qq{flex:1}
 .chequeo .qq small{display:block; color:var(--muted); font-size:12px; margin-block-start:2px}
+.linea-op{display:flex; align-items:center; gap:10px; font-size:14px;
+  color:var(--text); margin-block-end:0}
+.linea-op input{inline-size:20px; block-size:20px; flex:none; accent-color:var(--accent)}
+.sub-t{font-size:12px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--muted); margin:18px 0 8px}
+.oculto-item{display:flex; align-items:center; gap:10px; padding:10px 0;
+  border-block-end:1px solid var(--line); font-size:13.5px}
+.oculto-item span{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.oculto-item button{border:1px solid var(--line); border-radius:8px; padding:5px 11px;
+  font-size:12.5px; color:var(--accent); flex:none}
 .fila-btn{display:flex; gap:8px; margin-block-end:12px}
 .fila-btn .ghost{margin:0; flex:1}
 .field{margin-block-end:20px}
@@ -629,7 +639,8 @@ nav button[aria-current="page"]{color:var(--accent)}
 .tarjeta .fuente{font-size:12px; color:var(--muted); margin-block-start:11px;
   display:flex; gap:6px; align-items:center; flex-wrap:wrap}
 .tarjeta .fuente .sep{opacity:.4}
-.tarjeta .botones{display:flex; gap:7px; margin-block-start:12px}
+.tarjeta .botones{display:flex; gap:7px; margin-block-start:12px; flex-wrap:wrap}
+.tarjeta .botones .peligro{color:var(--danger); border-color:var(--danger)}
 .tarjeta .botones button{border:1px solid var(--line); border-radius:10px;
   padding:7px 14px; font-size:13px; color:var(--muted); flex:none}
 .tarjeta .botones .add{flex:1; text-align:center; background:var(--raised); color:var(--text)}
@@ -637,6 +648,11 @@ nav button[aria-current="page"]{color:var(--accent)}
 .tarjeta.hecha .add{background:var(--m); border-color:var(--m); color:#fff}
 
 /* informativos: más discretos, plegados */
+.leyenda{border:1px dashed var(--line); border-radius:12px; padding:12px 14px;
+  margin-block-end:16px}
+.leyenda p{margin:0 0 6px; font-size:12.5px; color:var(--muted); line-height:1.45}
+.leyenda p:last-child{margin-block-end:0}
+.leyenda b{color:var(--text); font-weight:600}
 .info-tog{inline-size:100%; text-align:start; font-size:13.5px; color:var(--muted);
   border:1px dashed var(--line); border-radius:12px; padding:12px 14px; margin-block-start:10px}
 .info-item{padding:11px 4px; border-block-end:1px solid var(--line); font-size:14px}
@@ -721,6 +737,11 @@ nav button[aria-current="page"]{color:var(--accent)}
 .burbuja.el{background:var(--surface); border:1px solid var(--line);
   border-end-start-radius:5px}
 .burbuja.pensando{color:var(--muted); font-style:italic}
+.burbuja-pie{display:flex; gap:7px; margin-block-start:10px;
+  padding-block-start:9px; border-block-start:1px solid var(--line)}
+.oir{border:1px solid var(--line); border-radius:9px; padding:5px 11px;
+  font-size:12px; color:var(--muted)}
+.oir.sonando{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
 .sugerencias{display:flex; gap:7px; flex-wrap:wrap; margin-block:4px 14px}
 .sugerencias button{border:1px solid var(--line); border-radius:999px;
   padding:7px 13px; font-size:13px; color:var(--muted)}
@@ -830,7 +851,11 @@ nav button[aria-current="page"]{color:var(--accent)}
       <h3>Sin decidir</h3>
       <button class="recargar" id="recargarBtn">Actualizar</button>
     </div>
-    <p class="cuando-resumen" style="margin-block-end:10px">Solo lo que llegó a tus correos. Lo que aceptes pasa a tu día; lo que descartes no vuelve.</p>
+    <div class="leyenda">
+      <p><b>Pasar a mi día</b> — se convierte en tarea tuya y aparece en Hoy.</p>
+      <p><b>Hoy no</b> — lo quito de tu vista. El correo sigue intacto y puede volver a salir si cambia algo.</p>
+      <p><b>Nunca más</b> — dejo de traerte cosas parecidas, también las futuras. Reversible en Ajustes.</p>
+    </div>
     <p class="cuando-resumen" id="resumenFecha"></p>
     <div id="resumenTexto"></div>
   </main>
@@ -898,6 +923,12 @@ nav button[aria-current="page"]{color:var(--accent)}
         <select id="vozSel"><option value="">La que traiga el teléfono</option></select>
       </div>
       <div class="campo">
+        <label class="linea-op">
+          <input type="checkbox" id="leerRespuestas">
+          <span>Leerme las respuestas del chat en cuanto lleguen</span>
+        </label>
+      </div>
+      <div class="campo">
         <label for="velSel">Velocidad</label>
         <select id="velSel">
           <option value="0.8">Pausada</option>
@@ -946,8 +977,19 @@ nav button[aria-current="page"]{color:var(--accent)}
       <h4>Revisión del sistema</h4>
       <div id="revision"><p class="hint">Toca revisar para comprobar que cada pieza está viva.</p></div>
       <div class="fila-btn"><button class="ghost" id="revisarBtn">Revisar ahora</button></div>
-      <div class="fila-btn"><button class="ghost" id="olvidarDescartes">Olvidar lo descartado</button></div>
-      <p class="hint" id="cuantosDescartes"></p>
+    </section>
+
+    <section class="grupo">
+      <h4>Lo que he ocultado</h4>
+      <p class="hint">Aquí está todo lo que has quitado de tu vista, y puedes devolverlo cuando quieras. Nada de esto borra correos.</p>
+
+      <p class="sub-t">Quitado con "Hoy no"</p>
+      <div id="listaDescartes"></div>
+      <div class="fila-btn"><button class="ghost" id="olvidarDescartes">Devolver todo</button></div>
+
+      <p class="sub-t">Bloqueado con "Nunca más"</p>
+      <div id="listaBloqueos"><p class="hint">Toca revisar para verlos.</p></div>
+      <div class="fila-btn"><button class="ghost" id="verBloqueos">Ver bloqueados</button></div>
     </section>
 
     <section class="grupo">
@@ -1242,6 +1284,19 @@ function dibujarPanel(){
   // Hoy es hoy: lo vencido, lo de hoy y lo que no tiene fecha. Lo demás
   // vive detrás de "Ver los próximos días", para no llenar la pantalla
   // con cosas que todavía no te tocan.
+  // La primera vez conviene decir qué hace cada gesto.
+  if(!ajustes.vistoGestos){
+    const g = document.createElement("div"); g.className = "leyenda";
+    g.innerHTML = "<p><b>Toca</b> una línea o <b>deslízala a la derecha</b> para marcarla hecha.</p>" +
+                  "<p><b>Deslízala a la izquierda</b> para aplazarla un día.</p>" +
+                  "<p>Todo se puede deshacer durante diez segundos.</p>";
+    const ok = document.createElement("button"); ok.className = "ghost";
+    ok.style.marginBlockStart = "8px"; ok.textContent = "Entendido";
+    ok.onclick = () => { ajustes.vistoGestos = true; guardar("ajustes", ajustes); dibujarPanel(); };
+    g.appendChild(ok);
+    p.appendChild(g);
+  }
+
   const deHoy = [0, 1, 6];
   grupos.forEach((g, idx) => {
     if(!g.lista.length) return;
@@ -1762,7 +1817,7 @@ function tarjeta(it){
   // Descartar: fuera de mi día, pero el correo sigue intacto y
   // mañana me lo puede volver a contar si cambia algo.
   const fuera = document.createElement("button");
-  fuera.textContent = "Ahora no";
+  fuera.textContent = "Hoy no";
   fuera.onclick = () => {
     descartados.unshift(String(it.asunto || it.titulo).toLowerCase().slice(0,60));
     descartados = descartados.slice(0, 200);
@@ -1773,11 +1828,12 @@ function tarjeta(it){
 
   // Nunca más: además le dice al motor que deje de traer esto.
   const nunca = document.createElement("button");
-  nunca.textContent = "🚫";
-  nunca.setAttribute("aria-label", "No me interesa nunca más de este remitente");
+  nunca.className = "peligro"; nunca.textContent = "Nunca más";
   nunca.onclick = () => {
-    if(!confirm("¿Dejo de traerte cosas como ésta para siempre?\n\n" +
-                "Se apunta en la hoja Ignorar del motor y puedes deshacerlo desde ahí.")) return;
+    if(!confirm("BLOQUEAR PARA SIEMPRE\n\n" +
+                "Dejaré de traerte correos parecidos a éste, también los futuros.\n\n" +
+                "No borra ningún correo: tu Gmail queda intacto.\n" +
+                "Puedes deshacerlo en Ajustes → Lo que he bloqueado.")) return;
     noMeInteresa(it.asunto || it.titulo, d);
   };
 
@@ -1858,10 +1914,29 @@ function dibujarChat(){
     l.appendChild(v);
   }
 
-  msgs.slice(-40).forEach(m => {
+  msgs.slice(-40).forEach((m, i) => {
     const b = document.createElement("div");
     b.className = "burbuja " + (m.quien === "yo" ? "yo" : "el");
     b.textContent = m.texto;
+
+    // Sus respuestas se pueden escuchar, con la misma voz que lee tu día.
+    if(m.quien !== "yo"){
+      const pie = document.createElement("div"); pie.className = "burbuja-pie";
+      const oir = document.createElement("button");
+      const sonando = leyendoMensaje === m.texto;
+      oir.className = "oir" + (sonando ? " sonando" : "");
+      oir.textContent = sonando ? "■  Parar" : "▶  Escuchar";
+      oir.onclick = () => sonando ? pararLectura() : leerEnVoz(m.texto);
+
+      const copiar = document.createElement("button");
+      copiar.className = "oir"; copiar.textContent = "⧉  Copiar";
+      copiar.onclick = async () => {
+        try{ await navigator.clipboard.writeText(m.texto); aviso("Copiado"); }
+        catch(e){ aviso("No se pudo copiar"); }
+      };
+      pie.append(oir, copiar);
+      b.appendChild(pie);
+    }
     l.appendChild(b);
   });
 
@@ -2088,6 +2163,8 @@ async function enviarChat(){
     c.mensajes.push({ quien:"el", texto:"No pude conectar con el motor. ¿Hay señal?" });
   }
   trabajando(false);
+  const ultima = c.mensajes[c.mensajes.length - 1];
+  if(ajustes.leerRespuestas && ultima && ultima.quien !== "yo") leerEnVoz(ultima.texto);
   c.mensajes = c.mensajes.slice(-60);
   c.actualizada = Date.now();
   guardar("chats", chats);
@@ -2202,6 +2279,7 @@ function buscar(q){
    Usa la voz que ya trae Android. No cuesta nada y funciona sin señal.
 ==================================================================== */
 let hablando = false;
+let leyendoMensaje = null;   // qué respuesta se está leyendo ahora
 
 function vocesDisponibles(){
   return (window.speechSynthesis.getVoices() || []).filter(v => /^es(-|_)/i.test(v.lang));
@@ -2295,7 +2373,36 @@ function paraLeer(it){
 
 function pararLectura(){
   window.speechSynthesis.cancel();
-  hablando = false; dibujarCabecera();
+  hablando = false; leyendoMensaje = null;
+  dibujarCabecera();
+  if(document.getElementById("view-chat") &&
+     !document.getElementById("view-chat").classList.contains("hidden")) dibujarChat();
+}
+
+/* Leer en alto un texto suelto: lo usa el chat para sus respuestas.
+   Se parte en frases porque los mensajes largos se cortan solos en
+   algunos teléfonos. */
+function leerEnVoz(texto){
+  if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
+  window.speechSynthesis.cancel();
+  leyendoMensaje = texto; hablando = true; dibujarChat();
+
+  const voz = vozElegida();
+  const trozos = String(texto)
+    .replace(/[✓•▸]/g, "")
+    .split(/(?<=[.!?:\n])\s+/)
+    .map(t => t.trim()).filter(Boolean);
+
+  trozos.forEach((t, i) => {
+    const f = new SpeechSynthesisUtterance(t);
+    f.lang = "es-ES";
+    if(voz) f.voice = voz;
+    f.rate = Number(ajustes.velocidad || 1);
+    if(i === trozos.length - 1) f.onend = () => {
+      hablando = false; leyendoMensaje = null; dibujarChat();
+    };
+    window.speechSynthesis.speak(f);
+  });
 }
 document.addEventListener("visibilitychange", () => { if(document.hidden) pararLectura(); });
 
@@ -2338,7 +2445,8 @@ function fila(it){
 
   const check=document.createElement("button");
   check.className="check"; check.textContent="✓";
-  check.setAttribute("aria-label", it.hecho?"Marcar como pendiente":"Marcar como resuelto");
+  check.setAttribute("aria-label", it.hecho?"Devolver a pendientes":"Marcar como hecho");
+  check.title = it.hecho ? "Devolver a pendientes" : "Marcar como hecho";
   check.onclick=()=>{
     it.hecho=!it.hecho; guardar("items",items); dibujar();
     avisarEstado(it, it.hecho ? "hecho" : "pendiente");
@@ -2401,6 +2509,8 @@ function fila(it){
   const del=document.createElement("button");
   del.className="del"; del.textContent="×"; del.setAttribute("aria-label","Eliminar");
   del.onclick=()=>{
+    if(!confirm("¿Borrar esto del todo?\n\nDesaparece de tu historia y de la hoja. " +
+                "Si solo quieres marcarlo como hecho, usa la casilla de la izquierda.")) return;
     avisarEstado(it, "borrado");
     if(it.adjunto) idbBorrar("adjuntos",it.adjunto.id);
     items=items.filter(x=>x.id!==it.id); guardar("items",items); dibujar();
@@ -3258,11 +3368,71 @@ document.getElementById("revisarBtn").onclick = revisarSistema;
 /* Si un día Entrada aparece vacía sin motivo, casi seguro es que algo
    quedó descartado de más. Esto lo borra todo y vuelve a mostrarlo. */
 function pintarCuantosDescartes(){
-  const p = document.getElementById("cuantosDescartes");
-  p.textContent = descartados.length
-    ? descartados.length + " cosas ocultas por haberlas descartado. Si echas algo en falta en Entrada, olvídalas."
-    : "No hay nada oculto por descarte.";
+  const c = document.getElementById("listaDescartes");
+  c.innerHTML = "";
+  if(!descartados.length){
+    const p = document.createElement("p"); p.className = "hint";
+    p.textContent = "Nada oculto."; c.appendChild(p); return;
+  }
+  descartados.forEach((d, i) => {
+    const f = document.createElement("div"); f.className = "oculto-item";
+    const t = document.createElement("span"); t.textContent = d;
+    const b = document.createElement("button"); b.textContent = "Devolver";
+    b.onclick = () => {
+      descartados.splice(i, 1); guardar("descartados", descartados);
+      pintarCuantosDescartes(); dibujarChapa();
+      if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
+      aviso("Vuelve a mostrarse");
+    };
+    f.append(t, b); c.appendChild(f);
+  });
 }
+
+/* Los bloqueos viven en el motor, así que hay que pedírselos. */
+async function verBloqueos(){
+  const c = document.getElementById("listaBloqueos");
+  c.innerHTML = '<p class="hint">Preguntando al motor…</p>';
+  if(!ajustes.endpoint || !ajustes.token){
+    c.innerHTML = '<p class="hint">Falta conectar el motor.</p>'; return;
+  }
+  try{
+    const url = ajustes.endpoint + (ajustes.endpoint.includes("?") ? "&" : "?") +
+                "token=" + encodeURIComponent(ajustes.token) + "&tipo=ignorados";
+    const r = await fetch(url);
+    const d = await r.json();
+    c.innerHTML = "";
+    if(!d.ok || !d.lista || !d.lista.length){
+      c.innerHTML = '<p class="hint">No has bloqueado nada.</p>'; return;
+    }
+    d.lista.forEach(x => {
+      const f = document.createElement("div"); f.className = "oculto-item";
+      const t = document.createElement("span");
+      t.textContent = x.texto; t.title = x.nota || "";
+      const b = document.createElement("button"); b.textContent = "Desbloquear";
+      b.onclick = async () => {
+        b.textContent = "…";
+        try{
+          const u = ajustes.endpoint + (ajustes.endpoint.includes("?") ? "&" : "?") +
+                    "token=" + encodeURIComponent(ajustes.token) +
+                    "&tipo=desbloquear&fila=" + x.fila;
+          const rr = await fetch(u); const dd = await rr.json();
+          if(dd.ok){ aviso("Desbloqueado"); verBloqueos(); }
+          else { aviso("No se pudo"); b.textContent = "Desbloquear"; }
+        }catch(e){ aviso("Sin conexión"); b.textContent = "Desbloquear"; }
+      };
+      f.append(t, b); c.appendChild(f);
+    });
+  }catch(e){ c.innerHTML = '<p class="hint">No pude preguntarle al motor.</p>'; }
+}
+document.getElementById("verBloqueos").onclick = verBloqueos;
+
+const leerResp = document.getElementById("leerRespuestas");
+leerResp.checked = !!ajustes.leerRespuestas;
+leerResp.onchange = () => {
+  ajustes.leerRespuestas = leerResp.checked;
+  guardar("ajustes", ajustes);
+  aviso(leerResp.checked ? "Te leeré las respuestas" : "Solo cuando lo pidas");
+};
 document.getElementById("olvidarDescartes").onclick = () => {
   descartados = []; guardar("descartados", descartados);
   pintarCuantosDescartes(); dibujarChapa();
