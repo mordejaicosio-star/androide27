@@ -135,6 +135,27 @@ h1{font-size:31px; letter-spacing:-.01em}
   transition:transform .2s}
 .fab:active{transform:scale(.94)}
 
+/* Los tres globos que salen del + */
+.menu-fab{position:fixed; inset-block-end:calc(146px + env(safe-area-inset-bottom));
+  inset-inline-end:20px; z-index:26; display:flex; flex-direction:column;
+  align-items:flex-end; gap:13px; pointer-events:none}
+.menu-fab .op{display:flex; align-items:center; gap:11px; opacity:0;
+  transform:translateY(14px) scale(.9); transition:opacity .18s, transform .18s;
+  pointer-events:none}
+.menu-fab.abierto .op{opacity:1; transform:none; pointer-events:auto}
+.menu-fab.abierto .op:nth-child(1){transition-delay:.06s}
+.menu-fab.abierto .op:nth-child(2){transition-delay:.03s}
+.menu-fab .op span{background:var(--surface); border:1px solid var(--line);
+  border-radius:9px; padding:6px 12px; font-size:13.5px; white-space:nowrap;
+  box-shadow:0 3px 14px rgba(0,0,0,.18)}
+.menu-fab .op b{inline-size:48px; block-size:48px; border-radius:50%; flex:none;
+  background:var(--surface); border:1px solid var(--line); font-size:19px;
+  display:grid; place-items:center; box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.fab.girado{transform:rotate(45deg)}
+@media (prefers-reduced-motion:reduce){
+  .menu-fab .op{transition:none} .fab{transition:none}
+}
+
 .fondo{position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:26;
   opacity:0; pointer-events:none; transition:opacity .22s}
 .fondo.visible{opacity:1; pointer-events:auto}
@@ -445,6 +466,11 @@ nav button[aria-current="page"]{color:var(--accent)}
   </div>
 </div>
 
+<div class="menu-fab" id="menuFab">
+  <button class="op" id="opFoto"><span>Foto o archivo</span><b>🖼</b></button>
+  <button class="op" id="opTexto"><span>Escribir</span><b>✎</b></button>
+  <button class="op" id="opAudio"><span>Grabar nota de voz</span><b>🎙</b></button>
+</div>
 <button class="fab" id="fab" aria-label="Capturar algo">+</button>
 
 <nav>
@@ -1162,7 +1188,7 @@ saveBtn.onclick=async()=>{
   limpiarPendiente(); revisarBoton();
   await agregar({ texto, blob:adj?adj.blob:null, nombre:adj?adj.nombre:"",
                   tipo:adj?adj.tipo:"" });
-  cerrarCaptura(); ir("bandeja"); aviso("Guardado");
+  cerrarMenu(); cerrarCaptura(); ir("bandeja"); aviso("Guardado");
 };
 
 /* ====================================================================
@@ -1171,7 +1197,9 @@ saveBtn.onclick=async()=>{
 const fileInput=document.getElementById("fileInput");
 document.getElementById("fileBtn").onclick=()=>fileInput.click();
 fileInput.onchange=()=>{ const f=fileInput.files[0]; if(!f) return;
-  ponerPendiente(f,f.name,f.type); fileInput.value=""; };
+  ponerPendiente(f,f.name,f.type); fileInput.value="";
+  if(!document.getElementById("composer").classList.contains("abierta")) abrirCaptura();
+};
 function ponerPendiente(blob,nombre,tipo){
   adjuntoPendiente={blob,nombre,tipo};
   const caja=document.getElementById("pend"), thumb=document.getElementById("pendThumb");
@@ -1410,7 +1438,8 @@ function ir(v){
   document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.v===v?"page":"false"));
   document.getElementById("viewTitle").textContent=TITULOS[v];
   document.getElementById("fab").style.display = v==="ajustes" ? "none" : "grid";
-  if(v==="ajustes") cerrarCaptura();
+  document.getElementById("menuFab").style.display = v==="ajustes" ? "none" : "flex";
+  if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); }
 
   if(v==="ajustes") medirEspacio();
   if(v==="hoy") dibujarPanel();
@@ -1424,16 +1453,49 @@ function abrirCaptura(){
   document.getElementById("composer").classList.add("abierta");
   document.getElementById("fondo").classList.add("visible");
   document.getElementById("fab").style.display = "none";
+  document.getElementById("menuFab").style.display = "none";
 }
 function cerrarCaptura(){
   document.getElementById("composer").classList.remove("abierta");
   document.getElementById("fondo").classList.remove("visible");
   document.getElementById("fab").style.display = "grid";
+  document.getElementById("menuFab").style.display = "flex";
   document.getElementById("composer").style.marginBlockEnd = "0";
   input.blur();
 }
-document.getElementById("fab").onclick = abrirCaptura;
-document.getElementById("fondo").onclick = cerrarCaptura;
+/* El + despliega tres opciones. Cada una va directa a lo suyo. */
+function menuAbierto(){ return document.getElementById("menuFab").classList.contains("abierto"); }
+function abrirMenu(){
+  document.getElementById("menuFab").classList.add("abierto");
+  document.getElementById("fab").classList.add("girado");
+  document.getElementById("fondo").classList.add("visible");
+}
+function cerrarMenu(){
+  document.getElementById("menuFab").classList.remove("abierto");
+  document.getElementById("fab").classList.remove("girado");
+  document.getElementById("fondo").classList.remove("visible");
+}
+
+document.getElementById("fab").onclick = () => menuAbierto() ? cerrarMenu() : abrirMenu();
+document.getElementById("fondo").onclick = () => { cerrarMenu(); cerrarCaptura(); };
+
+// Escribir: abre el globo y salta al teclado.
+document.getElementById("opTexto").onclick = () => {
+  cerrarMenu(); abrirCaptura();
+  setTimeout(() => input.focus(), 260);
+};
+
+// Grabar: abre el globo y empieza a grabar de una vez.
+document.getElementById("opAudio").onclick = () => {
+  cerrarMenu(); abrirCaptura();
+  setTimeout(() => document.getElementById("micBtn").click(), 280);
+};
+
+// Foto: abre directamente el selector del teléfono.
+document.getElementById("opFoto").onclick = () => {
+  cerrarMenu();
+  document.getElementById("fileInput").click();
+};
 
 /* En Android el teclado tapa la parte de abajo de la pantalla. Esto
    levanta el globo justo lo que mide el teclado, para que los botones
