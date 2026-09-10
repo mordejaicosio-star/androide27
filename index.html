@@ -186,65 +186,72 @@ nav button[aria-current="page"]{color:var(--accent)}
 #intro p{margin:0; font-family:"Frank Ruhl Libre",serif; font-size:19px; color:var(--text)}
 #intro small{color:var(--muted); font-size:13px; margin-block-start:-12px}
 
-/* ---------- PANEL GENERAL ------------------------------------------ */
-.cab-hoy{display:flex; align-items:flex-start; gap:12px}
-.cab-hoy .izq{flex:1}
-.leer{inline-size:52px; block-size:52px; border-radius:50%; flex:none;
+/* ---------- CABECERA DE HOY ---------------------------------------- */
+.cab-hoy{display:flex; align-items:flex-start; gap:14px; margin-block:2px 4px}
+.cab-hoy .izq{flex:1; min-width:0}
+.titular{font-family:"Frank Ruhl Libre",serif; font-size:23px; line-height:1.3;
+  margin:0 0 6px; letter-spacing:-.01em}
+.bajo-titular{color:var(--muted); font-size:13.5px; margin:0}
+.leer{inline-size:48px; block-size:48px; border-radius:50%; flex:none;
   border:1px solid var(--line); background:var(--surface); color:var(--accent);
-  font-size:19px; display:grid; place-items:center; margin-block-start:6px}
+  font-size:17px; display:grid; place-items:center}
 .leer.sonando{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
-.leyendo{font-size:13px; color:var(--accent); margin:8px 0 0}
-.total{display:flex; align-items:baseline; gap:11px; margin-block:6px 2px}
-.total b{font-family:"Frank Ruhl Libre",serif; font-weight:500; font-size:52px; line-height:1}
-.total span{color:var(--muted); font-size:14.5px}
-.total-sub{color:var(--muted); font-size:13.5px; margin:0 0 4px}
 
-.mundos{margin-block-start:14px}
-.mundo{border-block-end:1px solid var(--line)}
-.mundo:last-child{border-block-end:none}
-.mundo-cab{inline-size:100%; text-align:start; display:flex; align-items:center; gap:11px;
-  padding:13px 2px}
-.mundo-cab .marca{inline-size:9px; block-size:9px; border-radius:50%; background:var(--m); flex:none}
-.mundo-cab .nom{flex:1; font-size:15.5px}
-.mundo-cab .num{font-family:"Frank Ruhl Libre",serif; font-size:20px; color:var(--text)}
-.mundo-cab .fle{color:var(--muted); font-size:12px; inline-size:14px; text-align:end;
-  transition:transform .2s}
-.mundo.abierto .fle{transform:rotate(90deg)}
-.mundo.vacio .nom, .mundo.vacio .num{opacity:.4}
+/* tira compacta de mundos */
+.tira{display:flex; gap:7px; overflow-x:auto; margin-block:18px 4px;
+  padding-block-end:3px; scrollbar-width:none}
+.tira::-webkit-scrollbar{display:none}
+.pill{border:1px solid var(--line); border-radius:999px; padding:6px 13px;
+  font-size:13px; color:var(--muted); white-space:nowrap; flex:none;
+  display:flex; align-items:center; gap:7px}
+.pill .p{inline-size:7px; block-size:7px; border-radius:50%; background:var(--m)}
+.pill b{font-weight:600; color:var(--text)}
+.pill.cero{opacity:.35}
 
-.mundo-cuerpo{padding:0 2px 13px; margin-block-start:-3px}
-.linea{display:flex; gap:9px; align-items:flex-start; padding:7px 0; inline-size:100%; text-align:start}
-.linea .bolita{inline-size:15px; block-size:15px; border:1.5px solid var(--line);
-  border-radius:5px; flex:none; margin-block-start:3px}
-.linea .txt{flex:1; font-size:14px; color:var(--muted); line-height:1.4}
-.linea .cuando{color:var(--m); font-size:12.5px; white-space:nowrap}
-.ver-todo{font-size:13.5px; color:var(--accent); padding:6px 0; inline-size:100%; text-align:start}
+/* ---------- TARJETAS DEL RESUMEN ----------------------------------- */
+.seccion{display:flex; align-items:center; gap:9px; margin-block:26px 10px}
+.seccion h3{font-size:15px; font-family:"Assistant",sans-serif; font-weight:600;
+  color:var(--muted); letter-spacing:.02em; text-transform:uppercase; font-size:12.5px}
+.seccion::after{content:""; flex:1; block-size:1px; background:var(--line)}
 
-.aviso-sin{background:var(--raised); border-radius:var(--radius); padding:13px 15px;
+.tarjeta{background:var(--surface); border-radius:16px; padding:15px 16px;
+  margin-block-end:10px; border-inline-start:3px solid var(--m,var(--sin));
+  animation:in .25s ease both}
+.tarjeta.p1{box-shadow:0 1px 0 var(--line), 0 6px 22px rgba(0,0,0,.10)}
+.tarjeta .arriba{display:flex; align-items:center; gap:8px; margin-block-end:8px}
+.tarjeta .etq{font-size:11px; padding:2px 9px; border-radius:999px;
+  background:var(--m); color:#fff; font-weight:600; letter-spacing:.02em}
+.tarjeta .plazo{font-size:12px; color:var(--accent); font-weight:600}
+.tarjeta .tit{font-size:16px; line-height:1.35; margin:0}
+.tarjeta .porque{font-size:13.5px; color:var(--muted); margin:7px 0 0; line-height:1.45}
+.tarjeta .accion{font-size:13.5px; margin:9px 0 0; padding-inline-start:11px;
+  border-inline-start:2px solid var(--line)}
+.tarjeta .fuente{font-size:12px; color:var(--muted); margin-block-start:11px;
+  display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+.tarjeta .fuente .sep{opacity:.4}
+.tarjeta .botones{display:flex; gap:7px; margin-block-start:12px}
+.tarjeta .botones button{border:1px solid var(--line); border-radius:10px;
+  padding:7px 14px; font-size:13px; color:var(--muted); flex:none}
+.tarjeta .botones .add{flex:1; text-align:center}
+.tarjeta.hecha{opacity:.45}
+.tarjeta.hecha .add{background:var(--m); border-color:var(--m); color:#fff}
+
+/* informativos: más discretos, plegados */
+.info-tog{inline-size:100%; text-align:start; font-size:13.5px; color:var(--muted);
+  border:1px dashed var(--line); border-radius:12px; padding:12px 14px; margin-block-start:10px}
+.info-item{padding:11px 4px; border-block-end:1px solid var(--line); font-size:14px}
+.info-item:last-child{border-block-end:none}
+.info-item .fuente{font-size:12px; color:var(--muted); margin-block-start:4px}
+
+.aviso-sin{background:var(--raised); border-radius:14px; padding:13px 15px;
   margin-block-start:16px; font-size:14px; inline-size:100%; text-align:start;
   border-inline-start:3px solid var(--sin)}
-.resumen-caja{margin-block-start:26px; border-block-start:1px solid var(--line); padding-block-start:18px}
-.resumen-caja .fila{display:flex; align-items:center; gap:10px; margin-block-end:8px}
-.resumen-caja h3{font-size:18px; flex:1}
+.cuando-resumen{font-size:12.5px; color:var(--muted); margin:0}
 .recargar{border:1px solid var(--line); border-radius:9px; padding:6px 12px;
   font-size:13px; color:var(--muted); flex:none}
 .recargar.girando{opacity:.5}
-.resumen-texto{white-space:pre-wrap; font-size:14.5px; line-height:1.55}
-.resumen-texto .bloque{font-family:"Frank Ruhl Libre",serif; font-size:15px;
-  color:var(--accent); margin-block:14px 6px; display:block}
-.resumen-linea{display:flex; gap:9px; align-items:flex-start; padding:5px 0}
-.resumen-linea .cont{flex:1}
-.resumen-linea .acc{display:flex; gap:4px; flex:none}
-.resumen-linea .acc button{inline-size:30px; block-size:30px; border-radius:8px;
-  border:1px solid var(--line); color:var(--muted); font-size:15px; line-height:1}
-.resumen-linea .acc .mas:hover{color:var(--accent); border-color:var(--accent)}
-.resumen-linea .acc .no:hover{color:var(--danger); border-color:var(--danger)}
-.resumen-linea.puesta .cont{opacity:.5}
-.resumen-linea.puesta .acc .mas{background:var(--familia); border-color:var(--familia); color:#fff}
-.resumen-linea .mundo-tag{font-size:11.5px; padding:1px 7px; border-radius:999px;
-  background:var(--raised); color:var(--muted); margin-inline-end:6px; white-space:nowrap}
-.cuando-resumen{font-size:12.5px; color:var(--muted); margin:0 0 12px}
-.resumen-caja p{margin:0 0 9px; font-size:14.5px; color:var(--muted)}
+.vacio-hoy{border:1px dashed var(--line); border-radius:16px; padding:26px 20px;
+  color:var(--muted); font-size:14.5px; margin-block-start:16px}
 
 /* ---------- FILTRO ACTIVO ------------------------------------------ */
 .filtros{margin-block:16px 4px; padding-block-end:3px}
@@ -281,15 +288,15 @@ nav button[aria-current="page"]{color:var(--accent)}
   </header>
 
   <main id="view-hoy">
-    <div id="panel"></div>
-    <div class="resumen-caja">
-      <div class="fila">
-        <h3>Resumen del día</h3>
-        <button class="recargar" id="recargarBtn">Actualizar</button>
-      </div>
-      <p class="cuando-resumen" id="resumenFecha"></p>
-      <div id="resumenTexto"></div>
+    <div id="cabHoy"></div>
+    <div id="tira" class="tira"></div>
+    <div id="resumenTexto"></div>
+    <div class="seccion" style="margin-block-start:30px">
+      <h3>Mis capturas</h3>
+      <button class="recargar" id="recargarBtn">Actualizar</button>
     </div>
+    <p class="cuando-resumen" id="resumenFecha"></p>
+    <div id="panel"></div>
   </main>
 
   <main id="view-bandeja" class="hidden">
@@ -525,49 +532,25 @@ function dibujar(){
    bandeja se filtra y muestra solo ése.
 ==================================================================== */
 function dibujarPanel(){
+  dibujarCabecera();
+  dibujarTira();
+
   const p = document.getElementById("panel"); if(!p) return;
   p.innerHTML = "";
-
   const pendientes = items.filter(i => !i.hecho);
-  const sinCtx     = pendientes.filter(i => !i.ctx);
+  const sinCtx = pendientes.filter(i => !i.ctx);
 
-  // ---- cabecera: número grande + botón de leer en voz alta ----
-  const cab = document.createElement("div"); cab.className = "cab-hoy";
-  const izq = document.createElement("div"); izq.className = "izq";
-
-  const leer = document.createElement("button");
-  leer.className = "leer" + (hablando ? " sonando" : "");
-  leer.textContent = hablando ? "■" : "▶";
-  leer.setAttribute("aria-label", hablando ? "Parar la lectura" : "Escuchar mis pendientes");
-  leer.onclick = () => hablando ? pararLectura() : leerPendientes();
-
-  const tot = document.createElement("div"); tot.className = "total";
-  const b = document.createElement("b"); b.textContent = pendientes.length;
-  const sp = document.createElement("span");
-  sp.textContent = pendientes.length === 1 ? "cosa por hacer" : "cosas por hacer";
-  tot.append(b, sp); izq.appendChild(tot);
-
-  const sub = document.createElement("p"); sub.className = "total-sub";
-  const conFecha = pendientes.filter(i => /—\s*\S/.test(i.texto||"")).length;
-  sub.textContent = pendientes.length === 0
-    ? "Nada pendiente. Buen momento."
-    : (conFecha ? conFecha + " con fecha puesta" : "Ninguna tiene fecha todavía");
-  izq.appendChild(sub);
-
-  cab.append(izq, leer); p.appendChild(cab);
-  if(hablando){
-    const l = document.createElement("p"); l.className = "leyendo";
-    l.textContent = "Leyendo… toca el cuadrado para parar";
-    p.appendChild(l);
+  if(!pendientes.length){
+    const v = document.createElement("p"); v.className = "vacio-hoy";
+    v.textContent = "No tienes capturas pendientes.";
+    p.appendChild(v); return;
   }
 
-  // ---- cada mundo, desplegable ----
-  const lista = document.createElement("div"); lista.className = "mundos";
   CONTEXTOS.forEach(c => {
     const suyas = pendientes.filter(i => i.ctx === c.id);
+    if(!suyas.length) return;
     const caja = document.createElement("div");
-    caja.className = "mundo" + (suyas.length ? "" : " vacio") +
-                     (abiertos.has(c.id) ? " abierto" : "");
+    caja.className = "mundo" + (abiertos.has(c.id) ? " abierto" : "");
     caja.style.setProperty("--m", c.color);
 
     const cab = document.createElement("button");
@@ -577,58 +560,107 @@ function dibujarPanel(){
     cab.querySelector(".nom").textContent = c.nombre;
     cab.querySelector(".num").textContent = suyas.length;
     cab.onclick = () => {
-      if(!suyas.length) return;
       abiertos.has(c.id) ? abiertos.delete(c.id) : abiertos.add(c.id);
       dibujarPanel();
     };
     caja.appendChild(cab);
 
-    if(abiertos.has(c.id) && suyas.length){
+    if(abiertos.has(c.id)){
       const cuerpo = document.createElement("div"); cuerpo.className = "mundo-cuerpo";
       suyas.slice(0, 4).forEach(it => cuerpo.appendChild(lineaResumen(it, c)));
       if(suyas.length > 4){
-        const v = document.createElement("button");
-        v.className = "ver-todo";
+        const v = document.createElement("button"); v.className = "ver-todo";
         v.textContent = "Ver las " + suyas.length + " de " + c.nombre;
         v.onclick = () => { filtro = c.id; ir("bandeja"); dibujar(); };
         cuerpo.appendChild(v);
       }
       caja.appendChild(cuerpo);
     }
-    lista.appendChild(caja);
+    p.appendChild(caja);
   });
-  p.appendChild(lista);
 
-  // ---- lo que falta clasificar ----
   if(sinCtx.length){
-    const a = document.createElement("button");
-    a.className = "aviso-sin";
+    const a = document.createElement("button"); a.className = "aviso-sin";
     a.textContent = sinCtx.length === 1
       ? "1 captura esperando que le digas a qué mundo pertenece"
       : sinCtx.length + " capturas esperando que les digas a qué mundo pertenecen";
-    a.onclick = () => { filtro = null; ir("bandeja"); dibujar(); };
+    a.onclick = () => { filtro = "sin"; ir("bandeja"); dibujar(); };
     p.appendChild(a);
   }
 }
 
+/* La frase de arriba: la escribe el motor. Mientras no haya resumen,
+   ponemos algo sobrio en vez de dejarlo vacío. */
+function dibujarCabecera(){
+  const c = document.getElementById("cabHoy"); if(!c) return;
+  c.innerHTML = "";
+  const caja = document.createElement("div"); caja.className = "cab-hoy";
+  const izq = document.createElement("div"); izq.className = "izq";
+
+  const h = document.createElement("h2"); h.className = "titular";
+  h.textContent = resumenActual && resumenActual.titular
+    ? resumenActual.titular
+    : new Date().toLocaleDateString("es",{weekday:"long", day:"numeric", month:"long"});
+  izq.appendChild(h);
+
+  const sub = document.createElement("p"); sub.className = "bajo-titular";
+  const pend = items.filter(i => !i.hecho).length;
+  const acc  = resumenActual ? (resumenActual.items||[]).filter(i=>i.tipo==="accion").length : 0;
+  const partes = [];
+  if(acc)  partes.push(acc + (acc===1 ? " cosa del correo" : " cosas del correo"));
+  if(pend) partes.push(pend + (pend===1 ? " captura tuya" : " capturas tuyas"));
+  if(resumenActual && resumenActual.descartados)
+    partes.push(resumenActual.descartados + " descartados");
+  sub.textContent = partes.join(" · ") || "Sin nada pendiente";
+  izq.appendChild(sub);
+
+  const leer = document.createElement("button");
+  leer.className = "leer" + (hablando ? " sonando" : "");
+  leer.textContent = hablando ? "■" : "▶";
+  leer.setAttribute("aria-label", hablando ? "Parar" : "Escuchar mi día");
+  leer.onclick = () => hablando ? pararLectura() : leerPendientes();
+
+  caja.append(izq, leer);
+  c.appendChild(caja);
+}
+
+/* Tira compacta de mundos: un vistazo y un toque para filtrar. */
+function dibujarTira(){
+  const t = document.getElementById("tira"); if(!t) return;
+  t.innerHTML = "";
+  const pendientes = items.filter(i => !i.hecho);
+  CONTEXTOS.forEach(c => {
+    const n = pendientes.filter(i => i.ctx === c.id).length;
+    const b = document.createElement("button");
+    b.className = "pill" + (n ? "" : " cero");
+    b.style.setProperty("--m", c.color);
+    b.innerHTML = '<span class="p"></span>';
+    b.append(document.createTextNode(c.nombre + " "));
+    const num = document.createElement("b"); num.textContent = n;
+    b.appendChild(num);
+    b.onclick = () => { filtro = c.id; ir("bandeja"); dibujar(); };
+    t.appendChild(b);
+  });
+}
+
 /* ====================================================================
-   PASO 4d — Traer el resumen desde el motor
-   La app le pide al script de Google el último resumen escrito.
-   Se guarda en el teléfono para que se vea aunque no haya señal.
+   PASO 4d — Traer del motor lo que decidió, y pintarlo
+   El motor ya no manda un texto: manda información estructurada.
+   Por eso cada cosa puede verse como una tarjeta con su origen.
 ==================================================================== */
+let resumenActual = null;
+let verInfo = false;
+
 async function traerResumen(silencioso){
-  const caja = document.getElementById("resumenTexto");
   if(!ajustes.endpoint || !ajustes.token){
     pintarResumen(null, "Falta conectar el motor. En Ajustes, pega la dirección y la palabra secreta.");
     return;
   }
   const btn = document.getElementById("recargarBtn");
   if(btn){ btn.classList.add("girando"); btn.textContent = "Buscando…"; }
-
   try{
-    const url = ajustes.endpoint +
-      (ajustes.endpoint.includes("?") ? "&" : "?") +
-      "token=" + encodeURIComponent(ajustes.token);
+    const url = ajustes.endpoint + (ajustes.endpoint.includes("?") ? "&" : "?") +
+                "token=" + encodeURIComponent(ajustes.token);
     const r = await fetch(url);
     const d = await r.json();
 
@@ -639,15 +671,14 @@ async function traerResumen(silencioso){
       return;
     }
     if(!d.resumen){
-      pintarResumen(null, "El motor todavía no ha escrito ningún resumen. Genera uno desde la hoja.");
+      pintarResumen(null, "El motor todavía no ha escrito nada. Genera un resumen desde la hoja.");
       return;
     }
     ajustes.ultimoResumen = d.resumen;
     ajustes.ultimaFecha   = d.fecha || new Date().toISOString();
     guardar("ajustes", ajustes);
     pintarResumen(ajustes.ultimoResumen, null);
-    if(!silencioso) aviso("Resumen actualizado");
-
+    if(!silencioso) aviso("Actualizado");
   }catch(e){
     if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
     else pintarResumen(null, "No se pudo conectar con el motor. ¿Hay señal?");
@@ -656,84 +687,135 @@ async function traerResumen(silencioso){
   }
 }
 
-/* Convierte el texto plano del motor en algo legible:
-   los títulos en color, y cada [Mundo] como etiqueta. */
 function pintarResumen(texto, mensaje){
-  const caja = document.getElementById("resumenTexto");
+  const caja  = document.getElementById("resumenTexto");
   const fecha = document.getElementById("resumenFecha");
   if(!caja) return;
   caja.innerHTML = "";
 
   if(!texto){
-    fecha.textContent = "";
-    const p = document.createElement("p");
-    p.className = "empty"; p.style.marginBlockStart = "0";
+    resumenActual = null;
+    if(fecha) fecha.textContent = "";
+    const p = document.createElement("p"); p.className = "vacio-hoy";
     p.textContent = mensaje || "";
-    caja.appendChild(p);
-    return;
+    caja.appendChild(p); dibujarCabecera(); return;
   }
 
-  fecha.textContent = ajustes.ultimaFecha
-    ? "Generado " + cuando(ajustes.ultimaFecha) : "";
+  const datos = leerJSON(texto);
+  if(!datos || !Array.isArray(datos.items)){
+    const p = document.createElement("p"); p.className = "vacio-hoy";
+    p.style.whiteSpace = "pre-wrap";
+    p.textContent = texto;      // formato antiguo, se muestra tal cual
+    caja.appendChild(p); return;
+  }
 
-  texto.split("\n").forEach(linea => {
-    const l = linea.trim();
-    if(!l) return;
+  resumenActual = datos;
+  if(fecha) fecha.textContent = ajustes.ultimaFecha ? "Correo revisado " + cuando(ajustes.ultimaFecha) : "";
 
-    if(/^(PRIMERO|DESPUÉS|DESPUES|DESCARTADO)/i.test(l)){
-      const b = document.createElement("span"); b.className = "bloque";
-      b.textContent = l; caja.appendChild(b); return;
+  const acciones = datos.items.filter(i => i.tipo !== "informativo")
+                              .sort((a,b) => (a.prioridad||3) - (b.prioridad||3));
+  const infos    = datos.items.filter(i => i.tipo === "informativo");
+
+  if(!acciones.length && !infos.length){
+    const v = document.createElement("p"); v.className = "vacio-hoy";
+    v.textContent = "Nada en el correo que merezca tu atención hoy" +
+      (datos.descartados ? ". Descarté " + datos.descartados + "." : ".");
+    caja.appendChild(v); dibujarCabecera(); return;
+  }
+
+  if(acciones.length){
+    caja.appendChild(seccion("Requiere algo tuyo"));
+    acciones.forEach(it => caja.appendChild(tarjeta(it)));
+  }
+
+  if(infos.length){
+    const tog = document.createElement("button"); tog.className = "info-tog";
+    tog.textContent = (verInfo ? "▾ " : "▸ ") + infos.length +
+      (infos.length === 1 ? " cosa que solo debes saber" : " cosas que solo debes saber");
+    tog.onclick = () => { verInfo = !verInfo; pintarResumen(texto, null); };
+    caja.appendChild(tog);
+    if(verInfo){
+      const lista = document.createElement("div");
+      infos.forEach(it => {
+        const d = document.createElement("div"); d.className = "info-item";
+        d.textContent = it.titulo || "";
+        const f = document.createElement("div"); f.className = "fuente";
+        f.textContent = fuenteDe(it);
+        d.appendChild(f); lista.appendChild(d);
+      });
+      caja.appendChild(lista);
     }
-
-    const fila = document.createElement("div"); fila.className = "resumen-linea";
-    const cont = document.createElement("div"); cont.className = "cont";
-    const m = l.match(/^-?\s*\[([^\]]+)\]\s*(.*)$/);
-    if(m){
-      const tag = document.createElement("span"); tag.className = "mundo-tag";
-      tag.textContent = m[1];
-      const ctx = CONTEXTOS.find(c => c.nombre.toLowerCase() === m[1].toLowerCase());
-      if(ctx){ tag.style.background = ctx.color; tag.style.color = "#fff"; }
-      cont.append(tag, document.createTextNode(m[2]));
-    } else {
-      cont.textContent = l.replace(/^-\s*/, "");
-    }
-    // ¿ya la pasé a la bandeja alguna vez?
-    const limpio = (m ? m[2] : l.replace(/^-\s*/, "")).trim();
-    const yaEsta = items.some(i => i.texto === limpio);
-    if(yaEsta) fila.classList.add("puesta");
-
-    const acc = document.createElement("div"); acc.className = "acc";
-
-    const mas = document.createElement("button");
-    mas.className = "mas"; mas.textContent = yaEsta ? "✓" : "+";
-    mas.setAttribute("aria-label", "Pasar a mis pendientes");
-    mas.onclick = async () => {
-      if(items.some(i => i.texto === limpio)){ aviso("Ya está en tu bandeja"); return; }
-      const ctx = m ? CONTEXTOS.find(c => c.nombre.toLowerCase() === m[1].toLowerCase()) : null;
-      await agregar({ texto: limpio, ctx: ctx ? ctx.id : null,
-                      origen: "del resumen", sugerido: ctx ? ctx.id : "" });
-      pintarResumen(ajustes.ultimoResumen, null);
-      aviso("Pasado a pendientes");
-    };
-
-    const no = document.createElement("button");
-    no.className = "no"; no.textContent = "×";
-    no.setAttribute("aria-label", "No me interesa, no me lo vuelvas a mostrar");
-    no.onclick = () => noMeInteresa(limpio, fila);
-
-    acc.append(mas, no);
-    fila.append(cont, acc);
-    caja.appendChild(fila);
-  });
+  }
+  dibujarCabecera();
 }
 
-/* Descartar algo del resumen para siempre. Se lo decimos al motor,
-   que lo apunta en su hoja "Ignorar" y deja de recogerlo. Si algún día
-   te arrepientes, se borra esa fila en la hoja y vuelve. */
+function seccion(titulo){
+  const s = document.createElement("div"); s.className = "seccion";
+  const h = document.createElement("h3"); h.textContent = titulo;
+  s.appendChild(h); return s;
+}
+
+function fuenteDe(it){
+  return [it.de, it.asunto, it.cuenta].filter(Boolean).join("  ·  ");
+}
+
+function tarjeta(it){
+  const ctx = CONTEXTOS.find(c => c.nombre.toLowerCase() === String(it.mundo||"").toLowerCase());
+  const d = document.createElement("div");
+  d.className = "tarjeta" + ((it.prioridad||3) === 1 ? " p1" : "");
+  d.style.setProperty("--m", ctx ? ctx.color : "var(--sin)");
+
+  const yaEsta = items.some(i => i.texto === it.titulo);
+  if(yaEsta) d.classList.add("hecha");
+
+  const arriba = document.createElement("div"); arriba.className = "arriba";
+  const etq = document.createElement("span"); etq.className = "etq";
+  etq.textContent = it.mundo || "Sin mundo";
+  arriba.appendChild(etq);
+  if(it.cuando){
+    const pl = document.createElement("span"); pl.className = "plazo";
+    pl.textContent = it.cuando; arriba.appendChild(pl);
+  }
+  d.appendChild(arriba);
+
+  const tit = document.createElement("p"); tit.className = "tit";
+  tit.textContent = it.titulo || ""; d.appendChild(tit);
+
+  if(it.porQue){
+    const pq = document.createElement("p"); pq.className = "porque";
+    pq.textContent = it.porQue; d.appendChild(pq);
+  }
+  if(it.accion){
+    const ac = document.createElement("p"); ac.className = "accion";
+    ac.textContent = it.accion; d.appendChild(ac);
+  }
+
+  const f = document.createElement("div"); f.className = "fuente";
+  f.textContent = fuenteDe(it); d.appendChild(f);
+
+  const bs = document.createElement("div"); bs.className = "botones";
+  const add = document.createElement("button");
+  add.className = "add"; add.textContent = yaEsta ? "✓ En tu bandeja" : "Pasar a pendientes";
+  add.onclick = async () => {
+    if(items.some(i => i.texto === it.titulo)){ aviso("Ya está en tu bandeja"); return; }
+    await agregar({ texto: it.titulo, ctx: ctx ? ctx.id : null,
+                    origen: "del resumen", sugerido: ctx ? ctx.id : "" });
+    pintarResumen(ajustes.ultimoResumen, null);
+    aviso("Pasado a pendientes");
+  };
+  const no = document.createElement("button");
+  no.textContent = "×"; no.setAttribute("aria-label", "No me interesa, nunca más");
+  no.onclick = () => noMeInteresa(it.asunto || it.titulo, d);
+  bs.append(add, no);
+  d.appendChild(bs);
+  return d;
+}
+
+/* Descartar para siempre: se lo decimos al motor, que lo apunta en su
+   hoja "Ignorar" y deja de recogerlo. Si te arrepientes, borras esa fila. */
 async function noMeInteresa(texto, fila){
-  // Nos quedamos con lo más identificable: nombres propios o el asunto.
-  const clave = texto.replace(/^\W+/, "").split(/[:.\u2014]/)[0].trim().slice(0, 60);
-  if(!clave){ aviso("No sabría qué ignorar de esta línea"); return; }
+  const clave = String(texto||"").replace(/^\W+/, "").split(/[:.\u2014]/)[0].trim().slice(0, 60);
+  if(!clave){ aviso("No sabría qué ignorar de esto"); return; }
   if(!ajustes.endpoint || !ajustes.token){ aviso("Falta conectar el motor"); return; }
   try{
     await fetch(ajustes.endpoint, { method:"POST", mode:"no-cors",
@@ -745,9 +827,8 @@ async function noMeInteresa(texto, fila){
 }
 
 /* ====================================================================
-   PASO 4c — Leer los pendientes en voz alta
-   Usa la voz que ya trae Android, la misma que lee mensajes. No cuesta
-   nada, no gasta cuota y funciona sin conexión.
+   PASO 4e — Leer el día en voz alta
+   Usa la voz que ya trae Android. No cuesta nada y funciona sin señal.
 ==================================================================== */
 let hablando = false;
 
@@ -765,41 +846,50 @@ function vozElegida(){
 
 function leerPendientes(){
   if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
-  const pendientes = items.filter(i => !i.hecho);
-
-  // Armamos el guion: primero el total, después mundo por mundo.
   const partes = [];
-  if(!pendientes.length){
-    partes.push("No tienes nada pendiente.");
-  } else {
-    partes.push(pendientes.length === 1
-      ? "Tienes una cosa por hacer."
-      : "Tienes " + pendientes.length + " cosas por hacer.");
+
+  // Primero lo que decidió el motor, que es lo que de verdad importa.
+  if(resumenActual){
+    if(resumenActual.titular) partes.push(resumenActual.titular);
+    const acc = (resumenActual.items||[]).filter(i => i.tipo !== "informativo")
+                 .sort((a,b)=>(a.prioridad||3)-(b.prioridad||3));
+    if(acc.length){
+      partes.push(acc.length === 1 ? "Una cosa requiere algo tuyo."
+                                   : acc.length + " cosas requieren algo tuyo.");
+      acc.slice(0,6).forEach(i => {
+        partes.push(i.mundo + ". " + i.titulo + (i.cuando ? ", para " + i.cuando : "") +
+                    (i.accion ? ". " + i.accion : ""));
+      });
+    }
+    const inf = (resumenActual.items||[]).filter(i => i.tipo === "informativo").length;
+    if(inf) partes.push(inf === 1 ? "Y una cosa informativa." : "Y " + inf + " cosas informativas.");
+  }
+
+  // Después tus propias capturas.
+  const pendientes = items.filter(i => !i.hecho);
+  if(pendientes.length){
+    partes.push(pendientes.length === 1 ? "Tienes además una captura tuya pendiente."
+                                        : "Tienes además " + pendientes.length + " capturas tuyas.");
     CONTEXTOS.forEach(c => {
       const suyas = pendientes.filter(i => i.ctx === c.id);
       if(!suyas.length) return;
-      partes.push("En " + c.nombre + ", " + suyas.length +
-                  (suyas.length === 1 ? " pendiente." : " pendientes."));
-      suyas.slice(0, 6).forEach(it => partes.push(paraLeer(it)));
-      if(suyas.length > 6) partes.push("Y " + (suyas.length - 6) + " más.");
+      partes.push("En " + c.nombre + ":");
+      suyas.slice(0,4).forEach(it => partes.push(paraLeer(it)));
+      if(suyas.length > 4) partes.push("Y " + (suyas.length - 4) + " más.");
     });
-    const sin = pendientes.filter(i => !i.ctx).length;
-    if(sin) partes.push(sin === 1
-      ? "Además, una captura sin clasificar."
-      : "Además, " + sin + " capturas sin clasificar.");
   }
 
-  window.speechSynthesis.cancel();
-  hablando = true; dibujarPanel();
+  if(!partes.length) partes.push("No tienes nada pendiente.");
 
+  window.speechSynthesis.cancel();
+  hablando = true; dibujarCabecera();
   const voz = vozElegida();
   partes.forEach((t, i) => {
     const frase = new SpeechSynthesisUtterance(t);
     frase.lang = "es-ES";
     if(voz) frase.voice = voz;
     frase.rate = Number(ajustes.velocidad || 1);
-    // una pausa natural entre bloques
-    if(i === partes.length - 1) frase.onend = () => { hablando = false; dibujarPanel(); };
+    if(i === partes.length - 1) frase.onend = () => { hablando = false; dibujarCabecera(); };
     window.speechSynthesis.speak(frase);
   });
 }
@@ -811,10 +901,8 @@ function paraLeer(it){
 
 function pararLectura(){
   window.speechSynthesis.cancel();
-  hablando = false; dibujarPanel();
+  hablando = false; dibujarCabecera();
 }
-
-// si sales de la app, que no siga hablando sola
 document.addEventListener("visibilitychange", () => { if(document.hidden) pararLectura(); });
 
 /* Una línea del resumen: se puede tachar desde aquí mismo. */
