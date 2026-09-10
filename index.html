@@ -643,6 +643,9 @@ nav button[aria-current="page"]{color:var(--accent)}
 .info-item:last-child{border-block-end:none}
 .info-item .fuente{font-size:12px; color:var(--muted); margin-block-start:4px}
 
+.agenda-tog{inline-size:100%; text-align:start; font-size:13.5px; color:var(--muted);
+  border:1px dashed var(--line); border-radius:12px; padding:13px 15px;
+  margin-block-start:18px}
 .aviso-sin{background:var(--raised); border-radius:14px; padding:13px 15px;
   margin-block-start:16px; font-size:14px; inline-size:100%; text-align:start;
   border-inline-start:3px solid var(--sin)}
@@ -1149,6 +1152,7 @@ document.getElementById("themeSeg").onclick = e => {
 const urlsAbiertas = [];
 let filtro = null;          // si eliges un mundo en el panel, solo se ve ése
 let mundoDelDia = null;      // si eliges un mundo en la tira, Hoy solo muestra ése
+let verAgenda = false;       // si además quieres ver los días que vienen
 
 function dibujar(){
   const cont = document.getElementById("list"); cont.innerHTML="";
@@ -1225,23 +1229,40 @@ function dibujarPanel(){
   const mias      = pendientes.filter(i => !i.esperandoA);
 
   const grupos = [
-    { nombre:"Vencido",     lista:[], clase:"urgente" },
-    { nombre:"Hoy",         lista:[] },
-    { nombre:"Mañana",      lista:[] },
-    { nombre:"Esta semana", lista:[] },
-    { nombre:"Más adelante",lista:[] },
-    { nombre:"Sin fecha",   lista:[] }
+    { nombre:"Vencido",           lista:[], clase:"urgente" },
+    { nombre:"Hoy",               lista:[] },
+    { nombre:"Mañana",            lista:[] },
+    { nombre:"Esta semana",       lista:[] },
+    { nombre:"La semana que viene", lista:[] },
+    { nombre:"Más adelante",      lista:[] },
+    { nombre:"Sin fecha",         lista:[] }
   ];
   mias.forEach(it => grupos[cajonDe(it)].lista.push(it));
 
-  grupos.forEach(g => {
+  // Hoy es hoy: lo vencido, lo de hoy y lo que no tiene fecha. Lo demás
+  // vive detrás de "Ver los próximos días", para no llenar la pantalla
+  // con cosas que todavía no te tocan.
+  const deHoy = [0, 1, 6];
+  grupos.forEach((g, idx) => {
     if(!g.lista.length) return;
+    if(!verAgenda && deHoy.indexOf(idx) === -1) return;
     const sec = seccion(g.nombre + "  ·  " + g.lista.length);
     if(g.clase === "urgente") sec.classList.add("urgente");
     p.appendChild(sec);
     g.lista.sort((a,b) => (a.vence||"9999").localeCompare(b.vence||"9999"))
            .forEach(it => p.appendChild(filaPlan(it)));
   });
+
+  // el acceso a los próximos días, discreto
+  const masAdelante = mias.filter(it => deHoy.indexOf(cajonDe(it)) === -1);
+  if(masAdelante.length){
+    const b = document.createElement("button"); b.className = "agenda-tog";
+    b.textContent = verAgenda
+      ? "▾  Ocultar los próximos días"
+      : "▸  Ver los próximos días  ·  " + masAdelante.length;
+    b.onclick = () => { verAgenda = !verAgenda; dibujarPanel(); };
+    p.appendChild(b);
+  }
 
   if(esperando.length){
     p.appendChild(seccion("Esperando a otros  ·  " + esperando.length));
@@ -1259,17 +1280,29 @@ function dibujarPanel(){
   }
 }
 
-/* En qué cajón cae cada tarea según su fecha real. */
+/* En qué cajón cae cada tarea. Va por semanas de calendario, no por
+   "dentro de siete días": en Israel la semana empieza en domingo, así
+   que el jueves que viene es semana siguiente aunque sean 7 días. */
+function finDeSemana(desde){
+  const d = new Date(desde); d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + (6 - d.getDay()));   // sábado de esa semana
+  return d;
+}
+
 function cajonDe(it){
-  if(!it.vence) return 5;
+  if(!it.vence) return 6;
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const d = new Date(it.vence + "T00:00:00");
   const dias = Math.round((d - hoy) / 86400000);
   if(dias < 0) return 0;
   if(dias === 0) return 1;
   if(dias === 1) return 2;
-  if(dias <= 7) return 3;
-  return 4;
+
+  const finEsta = finDeSemana(hoy);
+  const finSiguiente = new Date(finEsta); finSiguiente.setDate(finSiguiente.getDate() + 7);
+  if(d <= finEsta) return 3;
+  if(d <= finSiguiente) return 4;
+  return 5;
 }
 
 /* Cómo se lee una fecha: "vencido hace 3 días", "el jueves"… */
@@ -1282,8 +1315,12 @@ function comoSuena(iso){
   if(dias === -1) return "venció ayer";
   if(dias === 0) return "hoy";
   if(dias === 1) return "mañana";
-  if(dias <= 7) return "el " + d.toLocaleDateString("es",{weekday:"long"});
-  return d.toLocaleDateString("es",{day:"numeric", month:"short"});
+  // A partir de pasado mañana ponemos día, número y mes: "el jueves"
+  // a secas se presta a confusión y "17/09" no se lee de un vistazo.
+  const dia = d.toLocaleDateString("es", {weekday:"long"});
+  const num = d.getDate();
+  const mes = d.toLocaleDateString("es", {month:"long"});
+  return "el " + dia + " " + num + " de " + mes;
 }
 
 function diasDesde(iso){
@@ -1327,8 +1364,8 @@ function filaPlan(it, esEspera){
     trozos.push("esperas a " + it.esperandoA + (d > 0 ? " · hace " + d + (d === 1 ? " día" : " días") : ""));
   } else if(it.vence){
     trozos.push(comoSuena(it.vence));
-  } else if(partes[1]){
-    trozos.push(partes[1]);
+  } else if(it.cuandoTexto || partes[1]){
+    trozos.push(it.cuandoTexto || partes[1]);
   }
   meta.textContent = trozos.join("  ·  ");
   if(it.vence && cajonDe(it) === 0) meta.classList.add("tarde");
@@ -1478,18 +1515,22 @@ function dibujarCabecera(){
 
   const sub = document.createElement("p"); sub.className = "bajo-titular";
   const cFil = mundoDelDia ? ctxDe(mundoDelDia) : null;
-  const pend = (mundoDelDia
-    ? items.filter(i => !i.hecho && !i.esFuente && i.ctx === mundoDelDia)
-    : items.filter(i => !i.hecho && !i.esFuente)).length;
+
   const acc  = resumenActual
     ? cuantasEnEntrada()
     : 0;
+  const base = items.filter(i => !i.hecho && !i.esFuente &&
+    (!mundoDelDia || i.ctx === mundoDelDia));
+  const paraHoy = base.filter(i => !i.esperandoA && [0,1,6].indexOf(cajonDe(i)) !== -1).length;
+  const luego   = base.length - paraHoy;
+
   const partes = [];
   if(!mundoDelDia && acc) partes.push(acc + (acc===1 ? " cosa del correo" : " cosas del correo"));
-  if(pend) partes.push(pend + (pend===1 ? " cosa por hacer" : " cosas por hacer"));
+  if(paraHoy) partes.push(paraHoy + (paraHoy===1 ? " cosa para hoy" : " cosas para hoy"));
+  if(luego) partes.push(luego + " más adelante");
   if(!mundoDelDia && resumenActual && resumenActual.descartados)
     partes.push(resumenActual.descartados + " descartados");
-  sub.textContent = partes.join(" · ") || "Sin nada pendiente";
+  sub.textContent = partes.join("  ·  ") || "Sin nada pendiente";
   izq.appendChild(sub);
 
   const leer = document.createElement("button");
@@ -1709,7 +1750,8 @@ function tarjeta(it){
     if(items.some(i => i.texto === it.titulo)){ aviso("Ya está en tu bandeja"); return; }
     const nuevo = await agregar({ texto: it.titulo, ctx: ctx ? ctx.id : null,
                                   origen: "del resumen", sugerido: ctx ? ctx.id : "",
-                                  vence: it.vence || "", esperandoA: it.esperandoA || "" });
+                                  vence: fechaDe(it), cuandoTexto: it.cuando || "",
+                                  esperandoA: it.esperandoA || "" });
     pintarResumen(ajustes.ultimoResumen, null);
     avisoConDeshacer("Pasado a " + (ctx ? ctx.nombre : "pendientes"), () => {
       items = items.filter(x => x.id !== nuevo.id);
@@ -2212,8 +2254,14 @@ function leerPendientes(){
       partes.push("Para hoy:");
       dehoy.slice(0,5).forEach(it => partes.push(paraLeer(it)));
     }
-    const resto = pendientes.length - vencidas.length - dehoy.length - espera.length;
-    if(resto > 0) partes.push("Y " + resto + " cosas más sin fecha de hoy.");
+    const sinFecha = pendientes.filter(i => !i.esperandoA && cajonDe(i) === 6);
+    if(sinFecha.length){
+      partes.push("Sin fecha:");
+      sinFecha.slice(0,4).forEach(it => partes.push(paraLeer(it)));
+    }
+    const luego = pendientes.filter(i => !i.esperandoA &&
+      [0,1,6].indexOf(cajonDe(i)) === -1).length;
+    if(luego) partes.push("Y " + luego + " cosas para los próximos días.");
     if(espera.length){
       partes.push(espera.length === 1 ? "Además esperas a una persona:"
                                       : "Además esperas a " + espera.length + " personas:");
@@ -2420,7 +2468,7 @@ function revisarBoton(){ saveBtn.disabled = !input.value.trim() && !adjuntoPendi
 input.oninput=()=>{ revisarBoton(); input.style.height="auto";
   input.style.height=Math.min(input.scrollHeight,100)+"px"; };
 
-async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion="", sugerido="", vence="", esperandoA=""}){
+async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion="", sugerido="", vence="", cuandoTexto="", esperandoA=""}){
   const id=Date.now()+"-"+Math.random().toString(36).slice(2,7);
   let adjunto=null;
   if(blob){
@@ -2433,7 +2481,7 @@ async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre=
   const it={ id, texto:(texto||"").trim(), ctx, fecha:new Date().toISOString(),
              hecho:false, origen, adjunto, enviado:false,
              transcripcion: transcripcion||"", descripcion:"", sugerido: sugerido||"",
-             vence: vence||"", esperandoA: esperandoA||"", esperandoDesde: esperandoA ? new Date().toISOString() : "",
+             vence: vence||"", cuandoTexto: cuandoTexto||"", esperandoA: esperandoA||"", esperandoDesde: esperandoA ? new Date().toISOString() : "",
              estadoAudio: esAudio && !transcripcion ? "trabajando" : "" };
   items.unshift(it); guardar("items",items); dibujar(); medirEspacio();
   if(it.estadoAudio==="trabajando") transcribir(it);
@@ -2622,7 +2670,8 @@ async function transcribir(it){
                         ctx: mundoValido(t.mundo) ? t.mundo : null,
                         origen: "del audio",
                         sugerido: mundoValido(t.mundo) ? t.mundo : "",
-                        vence: t.vence || "", esperandoA: t.esperandoA || "" });
+                        vence: fechaDe(t), cuandoTexto: t.cuando || "",
+                        esperandoA: t.esperandoA || "" });
       }
       dibujar();
       aviso(tareas.length===1 ? "1 pendiente sacado del audio"
@@ -2661,7 +2710,12 @@ function instruccionAnalisis(apertura){
     'personal = suyo propio, salud, amigos. Si de verdad no puedes saberlo, deja "".\n' +
     'cuando: la fecha o plazo tal como se dice (mañana, el lunes, fin de mes). Vacío si no hay.\n' +
     'vence: esa misma fecha calculada, en formato AAAA-MM-DD. HOY ES ' + hoyISO() +
-    ', úsalo para calcular. Si no hay plazo, deja "".\n' +
+    ' (' + diaDeHoy() + '), úsalo para calcular.\n' +
+    'OJO CON LOS DÍAS DE LA SEMANA: "el jueves" es el jueves más próximo que todavía ' +
+    'no ha pasado; si hoy ES jueves, se refiere al de dentro de 7 días, nunca a hoy. ' +
+    '"el próximo jueves" y "el jueves que viene" son siempre el de la SEMANA SIGUIENTE. ' +
+    'En Israel la semana empieza en domingo y el sábado no se trabaja: si una fecha cae ' +
+    'en sábado, pásala al domingo siguiente. Si no hay plazo, deja "".\n' +
     'esperandoA: si lo dicho no depende de que Mordejai actúe sino de que otra persona ' +
     'responda o entregue, pon el nombre de esa persona. Si depende de él, deja "".\n\n' +
     'Si no se entiende nada, devuelve {"transcripcion":"INAUDIBLE","tareas":[]}';
@@ -2692,7 +2746,8 @@ async function analizarTexto(it){
     // La primera se queda en esta captura; si había más, salen aparte.
     const p = tareas[0];
     it.texto = textoTarea(p);
-    it.vence = p.vence || ""; it.esperandoA = p.esperandoA || "";
+    it.vence = fechaDe(p); it.cuandoTexto = p.cuando || "";
+    it.esperandoA = p.esperandoA || "";
     if(mundoValido(p.mundo)){ it.ctx = p.mundo; it.sugerido = p.mundo; }
     guardar("items",items); dibujar(); enviarAlMotor(it);
 
@@ -2701,16 +2756,105 @@ async function analizarTexto(it){
       await agregar({ texto: textoTarea(t),
                       ctx: mundoValido(t.mundo) ? t.mundo : null,
                       origen: "escrito", sugerido: mundoValido(t.mundo) ? t.mundo : "",
-                      vence: t.vence || "", esperandoA: t.esperandoA || "" });
+                      vence: fechaDe(t), cuandoTexto: t.cuando || "",
+                      esperandoA: t.esperandoA || "" });
     }
     aviso(tareas.length===1 ? "Clasificado" : tareas.length + " pendientes separados");
   }catch(e){ /* si falla, la captura se queda sin clasificar y la asignas tú */ }
 }
 
 function hoyISO(){ return new Date().toISOString().slice(0,10); }
+function diaDeHoy(){
+  return new Date().toLocaleDateString("es",{weekday:"long"});
+}
 
-function textoTarea(t){
-  return t.cuando ? (t.texto + " — " + t.cuando) : t.texto;
+function textoTarea(t){ return t.texto; }
+
+/* ====================================================================
+   Traducir a fecha lo que tú dijiste.
+   Calcular qué día es "el martes" es aritmética, no criterio, así que
+   no lo dejamos en manos del modelo: si él no devuelve la fecha, la
+   sacamos aquí. Y si tampoco se puede, se queda sin fecha, nunca
+   inventada.
+==================================================================== */
+const DIAS_SEMANA = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio",
+               "agosto","septiembre","octubre","noviembre","diciembre"];
+
+function aISO(d){
+  return d.getFullYear() + "-" +
+         String(d.getMonth()+1).padStart(2,"0") + "-" +
+         String(d.getDate()).padStart(2,"0");
+}
+
+function fechaDeTexto(txt){
+  if(!txt) return "";
+  const t = String(txt).toLowerCase().trim()
+    .replace(/miercoles/g,"miércoles").replace(/sabado/g,"sábado");
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const suma = n => { const d = new Date(hoy); d.setDate(d.getDate()+n); return aISO(d); };
+
+  if(/\bhoy\b/.test(t)) return suma(0);
+  if(/pasado ma[ñn]ana/.test(t)) return suma(2);
+  if(/\bma[ñn]ana\b/.test(t)) return suma(1);
+
+  const enDias = t.match(/en (\d+) d[ií]as?/);
+  if(enDias) return suma(Number(enDias[1]));
+
+  const enSemanas = t.match(/en (\d+) semanas?/);
+  if(enSemanas) return suma(Number(enSemanas[1]) * 7);
+
+  // "el martes", "el martes que viene", "el próximo martes"
+  for(let i = 0; i < 7; i++){
+    if(t.indexOf(DIAS_SEMANA[i]) === -1) continue;
+    let faltan = (i - hoy.getDay() + 7) % 7;
+    if(faltan === 0) faltan = 7;                     // si hoy es martes, el martes es dentro de 7
+    if(/(pr[oó]xim|que viene|siguiente)/.test(t)) faltan += 7;
+    if(i === 6) faltan += 1;                         // sábado no se trabaja: pasa al domingo
+    return suma(faltan);
+  }
+
+  if(/(semana que viene|pr[oó]xima semana)/.test(t)){
+    const d = new Date(hoy);
+    d.setDate(d.getDate() + (7 - d.getDay()));       // domingo de la semana siguiente
+    return aISO(d);
+  }
+  if(/fin de mes|fin del mes/.test(t)){
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+    return aISO(d);
+  }
+  if(/fin de semana/.test(t)) return "";             // ambiguo aquí, mejor sin fecha
+
+  // "el 15", "15 de septiembre", "15/09"
+  const conMes = t.match(/(\d{1,2})\s*(?:de\s+)?([a-zé]+)/);
+  if(conMes){
+    const m = MESES.findIndex(x => x.startsWith(conMes[2].slice(0,4)));
+    if(m >= 0){
+      const dia = Number(conMes[1]);
+      let d = new Date(hoy.getFullYear(), m, dia);
+      if(d < hoy) d = new Date(hoy.getFullYear() + 1, m, dia);
+      return aISO(d);
+    }
+  }
+  const barra = t.match(/(\d{1,2})[\/\-](\d{1,2})/);
+  if(barra){
+    let d = new Date(hoy.getFullYear(), Number(barra[2]) - 1, Number(barra[1]));
+    if(d < hoy) d = new Date(hoy.getFullYear() + 1, Number(barra[2]) - 1, Number(barra[1]));
+    return aISO(d);
+  }
+  const soloDia = t.match(/^el (\d{1,2})$/);
+  if(soloDia){
+    const dia = Number(soloDia[1]);
+    let d = new Date(hoy.getFullYear(), hoy.getMonth(), dia);
+    if(d < hoy) d = new Date(hoy.getFullYear(), hoy.getMonth() + 1, dia);
+    return aISO(d);
+  }
+  return "";
+}
+
+/* La fecha que vale: la del modelo si la dio, la calculada si no. */
+function fechaDe(t){
+  return (t.vence && /^\d{4}-\d{2}-\d{2}$/.test(t.vence)) ? t.vence : fechaDeTexto(t.cuando);
 }
 function mundoValido(m){
   return !!CONTEXTOS.find(c => c.id === m);
