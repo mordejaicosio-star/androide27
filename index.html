@@ -880,13 +880,19 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 @keyframes latirMic{50%{opacity:.6}}
 
 /* menú del más */
-.menu-chat{max-inline-size:560px; margin:0 auto 9px; display:flex;
-  flex-direction:column; gap:6px}
-.menu-chat button{display:flex; align-items:center; gap:11px; inline-size:100%;
-  text-align:start; background:var(--surface); border:1px solid var(--line);
-  border-radius:12px; padding:11px 13px; font-size:14px}
-.menu-chat .mi{inline-size:30px; block-size:30px; border-radius:9px; flex:none;
+.menu-chat{max-inline-size:560px; margin:0 auto 10px; background:var(--surface);
+  border:1px solid var(--line); border-radius:16px; overflow:hidden}
+.menu-chat button{display:flex; align-items:center; gap:13px; inline-size:100%;
+  text-align:start; background:transparent; border:none;
+  border-block-end:1px solid var(--line); padding:13px 15px;
+  font-size:14.5px; color:var(--text)}
+.menu-chat button:last-child{border-block-end:none}
+.menu-chat button:active{background:var(--raised)}
+.menu-chat .mi{inline-size:34px; block-size:34px; border-radius:10px; flex:none;
   background:var(--raised); color:var(--accent); display:grid; place-items:center}
+html[data-theme="robot"] .menu-chat{border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))}
+html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
 
 /* mientras hablas */
 .grab-chat{max-inline-size:560px; margin:0 auto 9px; display:flex; align-items:center;
@@ -897,7 +903,8 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 .grab-chat .crono{font-family:"Frank Ruhl Libre",serif; font-size:16px; flex:none}
 .grab-chat .dicho{flex:1; min-width:0; font-size:13px; color:var(--muted);
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.grab-chat .suelta{font-size:11px; color:var(--danger); flex:none}
+.grab-chat .suelta{font-size:12px; color:#fff; flex:none; background:var(--danger);
+  border-radius:9px; padding:7px 13px; font-weight:600}
 
 /* al soltar: enviar o cancelar */
 .rev-chat{max-inline-size:560px; margin:0 auto 9px; display:flex; align-items:center;
@@ -1315,7 +1322,7 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
     <span class="pulso"></span>
     <span class="crono" id="chatCrono">0:00</span>
     <span class="dicho" id="chatDicho">Te escucho…</span>
-    <span class="suelta">suelta para terminar</span>
+    <button class="suelta" id="chatFin">Terminar</button>
   </div>
 
   <!-- al soltar -->
@@ -1327,7 +1334,7 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 
   <div class="dentro" id="chatDentro">
     <button class="ch-adj" id="chatMas" aria-label="Adjuntar"></button>
-    <input id="chatInput" type="text" placeholder="Escribe o mantén pulsado el micrófono" autocomplete="off">
+    <input id="chatInput" type="text" placeholder="Escribe o toca el micrófono" autocomplete="off">
     <button class="ch-mic" id="chatMic" aria-label="Mantén pulsado para hablar"></button>
     <button id="chatEnviar" aria-label="Enviar">↑</button>
   </div>
@@ -1930,9 +1937,19 @@ function cFilTitular(){
     const c = ctxDe(mundoDelDia);
     return "Tu día en " + (c ? c.nombre : "este mundo");
   }
-  return resumenActual && resumenActual.titular
-    ? resumenActual.titular
-    : new Date().toLocaleDateString("es",{weekday:"long", day:"numeric", month:"long"});
+  // El titular habla del día que se escribió. Si es de ayer, no vale:
+  // te estaría contando cosas que ya pasaron o que ya resolviste.
+  if(resumenActual && resumenActual.titular && resumenDeHoy())
+    return resumenActual.titular;
+  return new Date().toLocaleDateString("es",{weekday:"long", day:"numeric", month:"long"});
+}
+
+/* ¿El repaso que tenemos guardado es de hoy? */
+function resumenDeHoy(){
+  if(!ajustes.ultimaFecha) return false;
+  const d = new Date(ajustes.ultimaFecha); d.setHours(0,0,0,0);
+  const h = new Date(); h.setHours(0,0,0,0);
+  return d.getTime() === h.getTime();
 }
 
 function dibujarCabecera(){
@@ -1990,6 +2007,8 @@ function dibujarCabecera(){
   if(luego) partes.push(luego + " más adelante");
   if(!mundoDelDia && resumenActual && resumenActual.descartados)
     partes.push(resumenActual.descartados + " descartados");
+  if(resumenActual && !resumenDeHoy())
+    partes.push("el repaso del correo es de " + cuando(ajustes.ultimaFecha));
   sub.textContent = partes.join("  ·  ") || "Sin nada pendiente";
   izq.appendChild(sub);
 
@@ -2398,7 +2417,13 @@ function pintarResumen(texto, mensaje){
   }
 
   resumenActual = datos;
-  if(fecha) fecha.textContent = ajustes.ultimaFecha ? "Correo revisado " + cuando(ajustes.ultimaFecha) : "";
+  if(fecha){
+    fecha.textContent = ajustes.ultimaFecha
+      ? (resumenDeHoy() ? "Correo revisado " + cuando(ajustes.ultimaFecha)
+                        : "⚠ Esto es de " + cuando(ajustes.ultimaFecha) + ", no de hoy")
+      : "";
+    fecha.style.color = resumenDeHoy() ? "" : "var(--grand)";
+  }
 
   const vivos = datos.items.filter(i => !estaDescartado(i));
   const acciones = vivos.filter(i => i.tipo !== "informativo")
@@ -2874,14 +2899,17 @@ function cerrarDictado(){
   if(t) verRevision(t);
 }
 
-// mantener pulsado
-mic.addEventListener("pointerdown", e => {
-  e.preventDefault(); mic.setPointerCapture(e.pointerId); empezarDictado();
-});
-mic.addEventListener("pointerup", () => pararDictado(false));
-mic.addEventListener("pointercancel", () => pararDictado(true));
+/* Un toque empieza, otro termina.
+   Probé con mantener pulsado y Android lo corta solo: al abrir el
+   micrófono el sistema se queda con el gesto y suelta el botón por su
+   cuenta. Así es estable. */
+mic.onclick = () => {
+  if(oidorChat || (grabChat && grabChat.state === "recording")) pararDictado(false);
+  else empezarDictado();
+};
 
 /* ---- enviar o tirar lo dictado ---- */
+document.getElementById("chatFin").onclick = () => pararDictado(false);
 document.getElementById("chatRevSi").onclick = () => {
   const t = document.getElementById("chatRevTxt").textContent;
   verRevision(null);
@@ -3255,7 +3283,7 @@ function leerPendientes(){
   // ---- Lo del correo, solo lo que sigue sin decidir ----
   // (antes contaba también lo descartado y lo que ya habías pasado
   //  a tu día, y por eso te daba números que no cuadraban)
-  if(resumenActual && !mundoDelDia){
+  if(resumenActual && !mundoDelDia && resumenDeHoy()){
     if(resumenActual.titular) partes.push(resumenActual.titular);
 
     const sinDecidir = (resumenActual.items || [])
