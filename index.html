@@ -332,10 +332,10 @@ html[data-theme="robot"] .marcador{border-radius:0;
   clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   box-shadow:inset 0 0 18px rgba(53,214,232,.06)}
 html[data-theme="robot"] .marcador b{text-shadow:0 0 12px var(--accent)}
-html[data-theme="robot"] .retrato img{border-radius:6px; border-color:var(--accent)}
-html[data-theme="robot"] .retrato .aro{border-radius:10px}
-html[data-theme="robot"] .retrato .halo{border-radius:8px}
-html[data-theme="robot"] .retrato .barrido{border-radius:6px}
+html[data-theme="robot"] .retrato img{border-radius:8px; border-color:var(--accent)}
+html[data-theme="robot"] .retrato .aro{border-radius:50%}
+html[data-theme="robot"] .retrato .halo{border-radius:10px}
+html[data-theme="robot"] .retrato .barrido{border-radius:8px}
 html[data-theme="robot"] .retrato::after{content:""; position:absolute; inset:-13px;
   border:1px solid rgba(53,214,232,.3); pointer-events:none;
   clip-path:polygon(0 0,18px 0,18px 1px,1px 1px,1px 18px,0 18px,
@@ -636,19 +636,19 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 
 /* ---------- CABECERA DE HOY ---------------------------------------- */
 /* ---------- EL ANDROIDE ------------------------------------------- */
-.hero{display:flex; gap:16px; align-items:center; margin-block:6px 4px}
-.retrato{position:relative; inline-size:112px; block-size:112px; flex:none}
-.retrato img{inline-size:100%; block-size:100%; border-radius:22px; object-fit:cover;
+.hero{display:flex; gap:18px; align-items:center; margin-block:8px 6px}
+.retrato{position:relative; inline-size:136px; block-size:136px; flex:none}
+.retrato img{inline-size:100%; block-size:100%; border-radius:26px; object-fit:cover;
   display:block; border:1px solid var(--line)}
-.retrato .aro{position:absolute; inset:-7px; border-radius:28px;
+.retrato .aro{position:absolute; inset:-11px; border-radius:50%;
   border:1.5px solid transparent; border-block-start-color:var(--accent);
-  border-inline-end-color:var(--accent); opacity:.55;
+  border-inline-end-color:var(--accent); opacity:.5;
   animation:giroAro 5s linear infinite}
 @keyframes giroAro{to{transform:rotate(360deg)}}
-.retrato .halo{position:absolute; inset:-3px; border-radius:25px; pointer-events:none;
+.retrato .halo{position:absolute; inset:-3px; border-radius:29px; pointer-events:none;
   box-shadow:0 0 0 0 var(--accent); animation:respiraHalo 4s ease-in-out infinite}
 @keyframes respiraHalo{50%{box-shadow:0 0 26px -4px var(--accent)}}
-.retrato .barrido{position:absolute; inset:0; border-radius:22px; overflow:hidden;
+.retrato .barrido{position:absolute; inset:0; border-radius:26px; overflow:hidden;
   pointer-events:none}
 .retrato .barrido::after{content:""; position:absolute; inset-inline:0; block-size:34%;
   background:linear-gradient(180deg, transparent, rgba(255,255,255,.14), transparent);
@@ -679,7 +679,7 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 
 .saludo{font-size:11.5px; color:var(--muted); margin:0 0 3px;
   text-transform:uppercase; letter-spacing:.07em}
-.hero-n{font-family:"Frank Ruhl Libre",serif; font-size:20px; margin:0; line-height:1.2}
+.hero-n{font-family:"Frank Ruhl Libre",serif; font-size:22px; margin:0; line-height:1.2}
 .marcadores{display:flex; gap:8px; margin-block:16px 2px}
 .marcador{flex:1; border:1px solid var(--line); border-radius:13px;
   padding:11px 6px 9px; text-align:center; background:var(--surface)}
@@ -4130,6 +4130,7 @@ function aviso(msg){
 document.getElementById("dateLine").textContent =
   new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
 pintarNombres(); aplicarTema(); dibujar();
+document.querySelector(".avatar").classList.add("fuera");
 document.querySelectorAll("nav button[data-i]").forEach(b => {
   b.querySelector("b").appendChild(icono(b.dataset.i, 21));
 });
