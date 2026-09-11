@@ -332,6 +332,9 @@ html[data-theme="robot"] .marcador{border-radius:0;
   clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   box-shadow:inset 0 0 18px rgba(53,214,232,.06)}
 html[data-theme="robot"] .marcador b{text-shadow:0 0 12px var(--accent)}
+html[data-theme="robot"] .dia{border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px))}
+html[data-theme="robot"] .cal-salto input, html[data-theme="robot"] .cal-modo{border-radius:3px}
 html[data-theme="robot"] .retrato img{border-radius:8px; border-color:var(--accent)}
 html[data-theme="robot"] .retrato .aro{border-radius:50%}
 html[data-theme="robot"] .retrato .halo{border-radius:10px}
@@ -707,10 +710,27 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 
 /* ---------- CALENDARIO --------------------------------------------- */
 .cal-cab{display:flex; align-items:center; gap:10px; margin-block:14px 10px}
-.cal-cab h3{flex:1; font-size:17px; text-transform:capitalize}
+.cal-cab h3{flex:1; font-size:16px; text-transform:capitalize; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .cal-nav{inline-size:32px; block-size:32px; border:1px solid var(--line);
   border-radius:9px; color:var(--muted); display:grid; place-items:center}
-.semana{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-block-end:16px}
+.semana{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-block-end:12px}
+.mes{display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-block-end:12px}
+.mes .dia{aspect-ratio:1/1}
+.mes .dia .dn{font-size:13.5px}
+.mes-letras{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
+  margin-block-end:6px}
+.mes-letras span{text-align:center; font-size:10px; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.04em}
+.dia.fuera{opacity:.25}
+.dia .pts i.hecho{background:var(--muted); opacity:.6}
+.cal-modo{border:1px solid var(--line); border-radius:9px; padding:6px 12px;
+  font-size:12.5px; color:var(--muted); flex:none}
+.cal-salto{display:flex; gap:8px; align-items:center; margin-block-end:14px}
+.cal-salto input{flex:1; background:var(--surface); color:var(--text);
+  border:1px solid var(--line); border-radius:10px; padding:9px 12px;
+  font-family:inherit; font-size:14px}
+.cal-salto .ghost{inline-size:auto; padding-inline:16px}
 .dia{aspect-ratio:1/1.15; border:1px solid var(--line); border-radius:11px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:3px; background:var(--surface); padding:2px}
@@ -964,11 +984,8 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
   <header>
     <div class="brand">
       <img class="avatar" src="icon-192.png" alt="">
-      <span class="brand-name" id="brandName">Androide 27
-        <span class="brand-sub" id="brandSub">Mordejai Clonsio</span>
-      </span>
+      <span class="brand-name" id="brandName">Androide 27</span>
       <button class="icon-btn" id="buscarBtn" aria-label="Buscar">⌕</button>
-      <button class="icon-btn" id="themeBtn" aria-label="Cambiar entre claro y oscuro">◐</button>
     </div>
     <p class="date" id="dateLine"></p>
   </header>
@@ -1341,11 +1358,6 @@ function aplicarTema(){
   document.documentElement.dataset.theme = ajustes.tema;
   document.querySelectorAll("#themeSeg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.t===ajustes.tema));
 }
-document.getElementById("themeBtn").onclick = () => {
-  const o=["auto","light","dark","robot"]; ajustes.tema=o[(o.indexOf(ajustes.tema)+1)%4];
-  guardar("ajustes",ajustes); aplicarTema();
-  aviso({auto:"Apariencia automática",light:"Modo claro",dark:"Modo oscuro",robot:"Modo Androide"}[ajustes.tema]);
-};
 document.getElementById("themeSeg").onclick = e => {
   const b=e.target.closest("button"); if(!b) return;
   ajustes.tema=b.dataset.t; guardar("ajustes",ajustes); aplicarTema();
@@ -1766,6 +1778,7 @@ function dibujarCabecera(){
   ret.innerHTML = '<img src="icon-512.png" alt=""><span class="aro"></span>' +
                   '<span class="halo"></span><span class="barrido"></span>';
   ret.onclick = () => { son("toque"); hablando ? pararLectura() : leerPendientes(); };
+  ret.title = "Tócame para escuchar tu día";
 
   const lado = document.createElement("div");
   lado.style.flex = "1"; lado.style.minWidth = "0";
@@ -1810,14 +1823,7 @@ function dibujarCabecera(){
   sub.textContent = partes.join("  ·  ") || "Sin nada pendiente";
   izq.appendChild(sub);
 
-  const leer = document.createElement("button");
-  leer.className = "leer" + (hablando ? " sonando" : "");
-  leer.textContent = "";
-  leer.appendChild(icono(hablando ? "ajustes" : "voz", 19));
-  leer.setAttribute("aria-label", hablando ? "Parar" : "Escuchar mi día");
-  leer.onclick = () => hablando ? pararLectura() : leerPendientes();
-
-  caja.append(izq, leer);
+  caja.appendChild(izq);
   c.appendChild(caja);
 
   // ---- Los cuatro marcadores ----
@@ -1850,6 +1856,8 @@ function dibujarCabecera(){
 ==================================================================== */
 let verCalendario = false;
 let semanaBase = null;      // domingo de la semana que estás mirando
+let mesBase = null;         // mes que estás mirando en vista mensual
+let calMes = false;         // false = semana, true = mes
 let diaElegido = null;      // día concreto que estás mirando
 
 function domingoDe(d){
@@ -1868,64 +1876,130 @@ function dibujarCalendario(){
   if(!semanaBase) semanaBase = domingoDe(hoy);
   if(!diaElegido) diaElegido = aISO(hoy);
 
-  // cabecera con el mes y las flechas
+  // ---- cabecera: mes, flechas y el cambio semana/mes ----
   const cab = document.createElement("div"); cab.className = "cal-cab";
+
   const atras = document.createElement("button"); atras.className = "cal-nav";
   atras.appendChild(icono("flecha", 15));
   atras.style.transform = "scaleX(-1)";
-  atras.onclick = () => { semanaBase.setDate(semanaBase.getDate() - 7); dibujarPanel(); };
+  atras.onclick = () => { mover(-1); };
 
   const h = document.createElement("h3");
-  h.textContent = semanaBase.toLocaleDateString("es", {month:"long", year:"numeric"});
+  h.textContent = (calMes ? mesBase : semanaBase)
+    .toLocaleDateString("es", {month:"long", year:"numeric"});
 
   const alante = document.createElement("button"); alante.className = "cal-nav";
   alante.appendChild(icono("flecha", 15));
-  alante.onclick = () => { semanaBase.setDate(semanaBase.getDate() + 7); dibujarPanel(); };
+  alante.onclick = () => { mover(1); };
 
-  cab.append(atras, h, alante);
+  const cambio = document.createElement("button"); cambio.className = "cal-modo";
+  cambio.textContent = calMes ? "Semana" : "Mes";
+  cambio.onclick = () => {
+    calMes = !calMes; son("toque");
+    if(calMes) mesBase = new Date((diaElegido || aISO(hoy)) + "T00:00:00");
+    else semanaBase = domingoDe(new Date((diaElegido || aISO(hoy)) + "T00:00:00"));
+    dibujarPanel();
+  };
+
+  cab.append(atras, h, alante, cambio);
   c.appendChild(cab);
 
-  // los siete días
-  const pendientes = items.filter(i => !i.hecho && !i.esFuente &&
+  function mover(n){
+    if(calMes){ mesBase.setMonth(mesBase.getMonth() + n); }
+    else { semanaBase.setDate(semanaBase.getDate() + n * 7); }
+    son("toque"); dibujarPanel();
+  }
+
+  // ---- qué hay cada día: pendientes y también lo ya hecho ----
+  const todas = items.filter(i => !i.esFuente && i.vence &&
     (!mundoDelDia || i.ctx === mundoDelDia));
+  const porDia = {};
+  todas.forEach(i => { (porDia[i.vence] = porDia[i.vence] || []).push(i); });
+
   const letras = ["D","L","M","X","J","V","S"];
-  const rejilla = document.createElement("div"); rejilla.className = "semana";
+  const rejilla = document.createElement("div");
+  rejilla.className = calMes ? "mes" : "semana";
 
-  for(let i = 0; i < 7; i++){
-    const d = new Date(semanaBase); d.setDate(d.getDate() + i);
+  const celda = (d, fuera) => {
     const iso = aISO(d);
-    const delDia = pendientes.filter(x => x.vence === iso);
-
+    const delDia = porDia[iso] || [];
     const b = document.createElement("button");
     b.className = "dia" + (iso === aISO(hoy) ? " hoy" : "") +
                   (iso === diaElegido ? " elegido" : "") +
-                  (i === 6 ? " finde" : "");
-    b.innerHTML = '<span class="dl"></span><span class="dn"></span><span class="pts"></span>';
-    b.querySelector(".dl").textContent = letras[i];
+                  (d.getDay() === 6 ? " finde" : "") +
+                  (fuera ? " fuera" : "");
+    b.innerHTML = (calMes ? '' : '<span class="dl"></span>') +
+                  '<span class="dn"></span><span class="pts"></span>';
+    if(!calMes) b.querySelector(".dl").textContent = letras[d.getDay()];
     b.querySelector(".dn").textContent = d.getDate();
 
     const pts = b.querySelector(".pts");
-    const mundos = [...new Set(delDia.map(x => x.ctx))].slice(0, 3);
-    mundos.forEach(m => {
-      const cc = ctxDe(m);
-      const p = document.createElement("i");
+    [...new Set(delDia.filter(x => !x.hecho).map(x => x.ctx))].slice(0, 3).forEach(m => {
+      const cc = ctxDe(m); const p = document.createElement("i");
       p.style.setProperty("--m", cc ? cc.color : "var(--sin)");
       pts.appendChild(p);
     });
+    if(!delDia.filter(x => !x.hecho).length && delDia.length){
+      const p = document.createElement("i"); p.className = "hecho";
+      pts.appendChild(p);
+    }
 
     b.onclick = () => { diaElegido = iso; son("toque"); dibujarPanel(); };
-    rejilla.appendChild(b);
+    return b;
+  };
+
+  if(calMes){
+    // encabezado de letras + rejilla del mes completo
+    const cabL = document.createElement("div"); cabL.className = "mes-letras";
+    letras.forEach(l => { const x = document.createElement("span"); x.textContent = l; cabL.appendChild(x); });
+    c.appendChild(cabL);
+
+    const primero = new Date(mesBase.getFullYear(), mesBase.getMonth(), 1);
+    const arranque = domingoDe(primero);
+    for(let i = 0; i < 42; i++){
+      const d = new Date(arranque); d.setDate(d.getDate() + i);
+      if(i >= 35 && d.getMonth() !== mesBase.getMonth()) break;
+      rejilla.appendChild(celda(d, d.getMonth() !== mesBase.getMonth()));
+    }
+  } else {
+    for(let i = 0; i < 7; i++){
+      const d = new Date(semanaBase); d.setDate(d.getDate() + i);
+      rejilla.appendChild(celda(d, false));
+    }
   }
   c.appendChild(rejilla);
 
-  // lo que cae en el día elegido
+  // ---- saltar a una fecha cualquiera ----
+  const salto = document.createElement("div"); salto.className = "cal-salto";
+  const inp = document.createElement("input");
+  inp.type = "date"; inp.value = diaElegido;
+  inp.onchange = () => {
+    if(!inp.value) return;
+    diaElegido = inp.value;
+    const d = new Date(inp.value + "T00:00:00");
+    semanaBase = domingoDe(d); mesBase = new Date(d);
+    son("toque"); dibujarPanel();
+  };
+  const btnHoy = document.createElement("button"); btnHoy.className = "ghost";
+  btnHoy.style.margin = "0"; btnHoy.textContent = "Hoy";
+  btnHoy.onclick = () => {
+    diaElegido = aISO(hoy); semanaBase = domingoDe(hoy); mesBase = new Date(hoy);
+    son("toque"); dibujarPanel();
+  };
+  salto.append(inp, btnHoy);
+  c.appendChild(salto);
+
+  // ---- lo que cae en el día elegido ----
   const elegido = new Date(diaElegido + "T00:00:00");
   const t = document.createElement("p"); t.className = "cal-dia-t";
   t.textContent = elegido.toLocaleDateString("es",
-    {weekday:"long", day:"numeric", month:"long"});
+    {weekday:"long", day:"numeric", month:"long", year:"numeric"});
   c.appendChild(t);
 
-  const delDia = pendientes.filter(x => x.vence === diaElegido);
+  const delDia = porDia[diaElegido] || [];
+  const abiertas = delDia.filter(x => !x.hecho);
+  const cerradas = delDia.filter(x => x.hecho);
+
   if(!delDia.length){
     const v = document.createElement("p"); v.className = "vacio-hoy";
     v.textContent = elegido.getDay() === 6
@@ -1933,7 +2007,14 @@ function dibujarCalendario(){
       : "Nada agendado para este día.";
     c.appendChild(v);
   } else {
-    delDia.forEach(it => c.appendChild(filaPlan(it)));
+    abiertas.forEach(it => c.appendChild(filaPlan(it)));
+    if(cerradas.length){
+      c.appendChild(seccion("Ya hecho  ·  " + cerradas.length));
+      cerradas.forEach(it => {
+        const f = filaPlan(it); f.style.opacity = ".5";
+        c.appendChild(f);
+      });
+    }
   }
 }
 
@@ -2786,64 +2867,76 @@ function vozElegida(){
 }
 
 function leerPendientes(){
-  if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
   const partes = [];
+  const cFil = mundoDelDia ? ctxDe(mundoDelDia) : null;
 
-  // Primero lo que decidió el motor, que es lo que de verdad importa.
-  if(resumenActual){
+  if(cFil) partes.push("Tu día en " + cFil.nombre + ".");
+
+  // ---- Lo del correo, solo lo que sigue sin decidir ----
+  // (antes contaba también lo descartado y lo que ya habías pasado
+  //  a tu día, y por eso te daba números que no cuadraban)
+  if(resumenActual && !mundoDelDia){
     if(resumenActual.titular) partes.push(resumenActual.titular);
-    const acc = (resumenActual.items||[]).filter(i => i.tipo !== "informativo")
-                 .sort((a,b)=>(a.prioridad||3)-(b.prioridad||3));
-    if(acc.length){
-      partes.push(acc.length === 1 ? "Una cosa requiere algo tuyo."
-                                   : acc.length + " cosas requieren algo tuyo.");
-      acc.slice(0,6).forEach(i => {
-        partes.push(i.mundo + ". " + i.titulo + (i.cuando ? ", para " + i.cuando : "") +
+
+    const sinDecidir = (resumenActual.items || [])
+      .filter(i => i.tipo !== "informativo" &&
+                   !estaDescartado(i) &&
+                   !items.some(x => x.texto === i.titulo))
+      .sort((a,b) => (a.prioridad||3) - (b.prioridad||3));
+
+    if(sinDecidir.length){
+      partes.push(sinDecidir.length === 1
+        ? "Una cosa del correo espera que decidas."
+        : sinDecidir.length + " cosas del correo esperan que decidas.");
+      sinDecidir.slice(0,5).forEach(i => {
+        partes.push(i.mundo + ". " + i.titulo +
+                    (i.cuando ? ", para " + i.cuando : "") +
                     (i.accion ? ". " + i.accion : ""));
       });
     }
-    const inf = (resumenActual.items||[]).filter(i => i.tipo === "informativo").length;
-    if(inf) partes.push(inf === 1 ? "Y una cosa informativa." : "Y " + inf + " cosas informativas.");
   }
 
-  // Después tus propias capturas.
-  const pendientes = (mundoDelDia
-    ? items.filter(i => !i.hecho && !i.esFuente && i.ctx === mundoDelDia)
-    : items.filter(i => !i.hecho && !i.esFuente));
-  if(pendientes.length){
-    const vencidas = pendientes.filter(i => !i.esperandoA && cajonDe(i) === 0);
-    const dehoy    = pendientes.filter(i => !i.esperandoA && cajonDe(i) === 1);
-    const espera   = pendientes.filter(i => i.esperandoA);
+  // ---- Tus tareas, del mundo que estés mirando ----
+  const pendientes = items.filter(i => !i.hecho && !i.esFuente &&
+    (!mundoDelDia || i.ctx === mundoDelDia));
 
-    if(vencidas.length){
-      partes.push(vencidas.length === 1 ? "Tienes una cosa vencida."
-                                        : "Tienes " + vencidas.length + " cosas vencidas.");
-      vencidas.slice(0,4).forEach(it => partes.push(paraLeer(it) + ", " + comoSuena(it.vence)));
-    }
-    if(dehoy.length){
-      partes.push("Para hoy:");
-      dehoy.slice(0,5).forEach(it => partes.push(paraLeer(it)));
-    }
-    const sinFecha = pendientes.filter(i => !i.esperandoA && cajonDe(i) === 6);
-    if(sinFecha.length){
-      partes.push("Sin fecha:");
-      sinFecha.slice(0,4).forEach(it => partes.push(paraLeer(it)));
-    }
-    const luego = pendientes.filter(i => !i.esperandoA &&
-      [0,1,6].indexOf(cajonDe(i)) === -1).length;
-    if(luego) partes.push("Y " + luego + " cosas para los próximos días.");
-    if(espera.length){
-      partes.push(espera.length === 1 ? "Además esperas a una persona:"
-                                      : "Además esperas a " + espera.length + " personas:");
-      espera.slice(0,4).forEach(it => {
-        const d = diasDesde(it.esperandoDesde);
-        partes.push(it.esperandoA + ", por " + paraLeer(it) +
-                    (d > 2 ? ". Hace ya " + d + " días." : "."));
-      });
-    }
+  const vencidas = pendientes.filter(i => !i.esperandoA && cajonDe(i) === 0);
+  const dehoy    = pendientes.filter(i => !i.esperandoA && cajonDe(i) === 1);
+  const sinFecha = pendientes.filter(i => !i.esperandoA && cajonDe(i) === 6);
+  const espera   = pendientes.filter(i => i.esperandoA);
+  const luego    = pendientes.filter(i => !i.esperandoA &&
+    [0,1,6].indexOf(cajonDe(i)) === -1).length;
+
+  if(vencidas.length){
+    partes.push(vencidas.length === 1 ? "Tienes una cosa vencida."
+                                      : "Tienes " + vencidas.length + " cosas vencidas.");
+    vencidas.slice(0,4).forEach(it => partes.push(paraLeer(it) + ", " + comoSuena(it.vence)));
+  }
+  if(dehoy.length){
+    partes.push("Para hoy:");
+    dehoy.slice(0,5).forEach(it => partes.push(paraLeer(it)));
+  }
+  if(sinFecha.length){
+    partes.push("Sin fecha:");
+    sinFecha.slice(0,4).forEach(it => partes.push(paraLeer(it)));
+  }
+  if(luego) partes.push("Y " + luego + " cosas para los próximos días.");
+
+  if(espera.length){
+    partes.push(espera.length === 1 ? "Esperas a una persona:"
+                                    : "Esperas a " + espera.length + " personas:");
+    espera.slice(0,4).forEach(it => {
+      const d = diasDesde(it.esperandoDesde);
+      partes.push(it.esperandoA + ", por " + paraLeer(it) +
+                  (d > 2 ? ". Hace ya " + d + " días." : "."));
+    });
   }
 
-  if(!partes.length) partes.push("No tienes nada pendiente.");
+  // ---- Si de verdad no hay nada, decirlo y ya ----
+  if(!pendientes.length && partes.length <= (cFil ? 1 : (resumenActual && resumenActual.titular ? 1 : 0))){
+    partes.push(cFil ? "No tienes nada pendiente en " + cFil.nombre + "."
+                     : "No tienes nada pendiente.");
+  }
 
   hablar(partes, null, null);
 }
@@ -3880,7 +3973,6 @@ enlazar("tokenInput","token");
 
 function pintarNombres(){
   document.getElementById("brandName").childNodes[0].nodeValue = ajustes.nombre+" ";
-  document.getElementById("brandSub").textContent = ajustes.firma;
   document.querySelectorAll(".firma").forEach(f=>f.textContent="— "+ajustes.firma);
   document.title = ajustes.nombre;
 }
