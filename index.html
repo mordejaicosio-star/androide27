@@ -276,16 +276,26 @@ html[data-theme="robot"] .titular{
 @keyframes brilloTitular{ from{background-position:120% 0} to{background-position:-120% 0} }
 
 /* anillo girando alrededor del avatar */
-html[data-theme="robot"] .brand{position:relative}
 html[data-theme="robot"] .avatar{border-radius:4px}
-html[data-theme="robot"] .brand::before{
-  content:""; position:absolute; inset-block-start:-4px; inset-inline-start:-4px;
-  inline-size:54px; block-size:54px; border-radius:50%;
-  border:1px solid transparent; border-block-start-color:var(--accent);
-  border-inline-end-color:rgba(53,214,232,.35);
-  animation:gira 3.2s linear infinite; pointer-events:none;
+
+/* Bajo el nombre del aparato, una línea de lectura: encaja con el
+   texto en vez de girar por girar. */
+html[data-theme="robot"] .brand-name{position:relative; padding-block-end:5px}
+html[data-theme="robot"] .brand-name::after{
+  content:""; position:absolute; inset-block-end:0; inset-inline-start:0;
+  block-size:1px; inline-size:100%;
+  background:linear-gradient(90deg, var(--accent), transparent 60%);
+  transform-origin:left; animation:lee 3.6s ease-in-out infinite;
 }
-@keyframes gira{ to{transform:rotate(360deg)} }
+@keyframes lee{
+  0%{transform:scaleX(0); opacity:0}
+  18%{opacity:.9}
+  60%{transform:scaleX(1); opacity:.9}
+  100%{transform:scaleX(1); opacity:0}
+}
+@media (prefers-reduced-motion:reduce){
+  html[data-theme="robot"] .brand-name::after{animation:none; opacity:.4}
+}
 
 /* etiquetas como lecturas de instrumento */
 html[data-theme="robot"] .etq{
@@ -726,11 +736,20 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 .dia .pts i.hecho{background:var(--muted); opacity:.6}
 .cal-modo{border:1px solid var(--line); border-radius:9px; padding:6px 12px;
   font-size:12.5px; color:var(--muted); flex:none}
-.cal-salto{display:flex; gap:8px; align-items:center; margin-block-end:14px}
-.cal-salto input{flex:1; background:var(--surface); color:var(--text);
-  border:1px solid var(--line); border-radius:10px; padding:9px 12px;
-  font-family:inherit; font-size:14px}
-.cal-salto .ghost{inline-size:auto; padding-inline:16px}
+.cal-sel{flex:1; display:flex; gap:6px; min-width:0}
+.cal-sel select{background:var(--surface); color:var(--text); border:1px solid var(--line);
+  border-radius:9px; padding:7px 8px; font-family:inherit; font-size:14px;
+  text-transform:capitalize; min-width:0}
+.cal-sel select:first-child{flex:1}
+.shabbat{border:1px solid var(--line); border-inline-start:3px solid var(--accent);
+  border-radius:12px; padding:12px 14px; margin-block-end:12px; background:var(--surface)}
+.shabbat .parasha{margin:0 0 4px; font-family:"Frank Ruhl Libre",serif; font-size:16px}
+.shabbat .horas{display:flex; gap:16px; margin-block-start:8px}
+.shabbat .horas span{font-size:12.5px; color:var(--muted)}
+.shabbat .horas span::before{content:"◗ "; color:var(--accent)}
+.dia.fiesta .dn{color:var(--accent)}
+.cal-hoy{inline-size:100%; border:1px dashed var(--line); border-radius:10px;
+  padding:9px; font-size:13px; color:var(--accent); margin-block-end:12px}
 .dia{aspect-ratio:1/1.15; border:1px solid var(--line); border-radius:11px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:3px; background:var(--surface); padding:2px}
@@ -985,7 +1004,7 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
     <div class="brand">
       <img class="avatar" src="icon-192.png" alt="">
       <span class="brand-name" id="brandName">Androide 27</span>
-      <button class="icon-btn" id="buscarBtn" aria-label="Buscar">⌕</button>
+      <button class="icon-btn" id="buscarBtn" aria-label="Buscar"></button>
     </div>
     <p class="date" id="dateLine"></p>
   </header>
@@ -1850,6 +1869,61 @@ function dibujarCabecera(){
 
 /* Tira compacta de mundos: un vistazo y un toque para filtrar. */
 /* ====================================================================
+   El calendario judío
+   Consultamos Hebcal para Jerusalén: parashá de la semana, encendido
+   de velas, salida de Shabbat y festividades. Se guarda por meses en
+   el teléfono, así que solo se pide una vez por mes.
+   Si el servicio no responde, el calendario funciona igual sin ello.
+==================================================================== */
+let judio = leer("judio", {});      // { "2026-09": { "2026-09-11": {...} } }
+
+async function traerMesJudio(año, mes){
+  const clave = año + "-" + String(mes + 1).padStart(2, "0");
+  if(judio[clave]) return judio[clave];
+  try{
+    const url = "https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=on" +
+                "&s=on&c=on&geonameid=281184&M=on&lg=es&b=40" +
+                "&year=" + año + "&month=" + (mes + 1);
+    const r = await fetch(url);
+    if(!r.ok) return null;
+    const d = await r.json();
+    const dias = {};
+    (d.items || []).forEach(i => {
+      const f = String(i.date || "").slice(0, 10);
+      if(!f) return;
+      const x = dias[f] = dias[f] || {};
+      if(i.category === "candles")  x.velas = String(i.date).slice(11, 16);
+      else if(i.category === "havdalah") x.salida = String(i.date).slice(11, 16);
+      else if(i.category === "parashat") x.parasha = i.hebrew || i.title;
+      else if(i.category === "holiday" || i.category === "roshchodesh"){
+        x.fiestas = x.fiestas || []; x.fiestas.push(i.title);
+      }
+    });
+    judio[clave] = dias;
+    guardar("judio", judio);
+    return dias;
+  }catch(e){ return null; }
+}
+
+/* Lo que hay que contar de un día concreto. */
+function infoJudia(iso){
+  const clave = iso.slice(0, 7);
+  const mes = judio[clave];
+  if(!mes) return null;
+
+  const d = new Date(iso + "T00:00:00");
+  const info = { ...(mes[iso] || {}) };
+
+  // El sábado necesita las velas del viernes y su parashá
+  if(d.getDay() === 6){
+    const v = new Date(d); v.setDate(v.getDate() - 1);
+    const dv = mes[aISO(v)] || {};
+    if(dv.velas) info.velas = dv.velas;
+  }
+  return Object.keys(info).length ? info : null;
+}
+
+/* ====================================================================
    Calendario
    La misma información de Hoy, pero repartida por días. Sirve para
    mirar la semana de un vistazo y para saber qué cae cada día.
@@ -1884,9 +1958,38 @@ function dibujarCalendario(){
   atras.style.transform = "scaleX(-1)";
   atras.onclick = () => { mover(-1); };
 
-  const h = document.createElement("h3");
-  h.textContent = (calMes ? mesBase : semanaBase)
-    .toLocaleDateString("es", {month:"long", year:"numeric"});
+  // Mes y año elegibles: así saltas a cualquier fecha sin salir de aquí.
+  const ref = calMes ? mesBase : semanaBase;
+  const h = document.createElement("div"); h.className = "cal-sel";
+
+  const selM = document.createElement("select");
+  ["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
+   "septiembre","octubre","noviembre","diciembre"].forEach((m, i) => {
+    const o = document.createElement("option"); o.value = i; o.textContent = m;
+    if(i === ref.getMonth()) o.selected = true;
+    selM.appendChild(o);
+  });
+
+  const selA = document.createElement("select");
+  const añoAhora = hoy.getFullYear();
+  for(let a = añoAhora - 3; a <= añoAhora + 3; a++){
+    const o = document.createElement("option"); o.value = a; o.textContent = a;
+    if(a === ref.getFullYear()) o.selected = true;
+    selA.appendChild(o);
+  }
+
+  const saltar = () => {
+    const d = new Date(Number(selA.value), Number(selM.value), 1);
+    mesBase = new Date(d);
+    semanaBase = domingoDe(d);
+    // si el día elegido cae fuera del mes nuevo, nos ponemos en el día 1
+    const e = new Date(diaElegido + "T00:00:00");
+    if(e.getMonth() !== d.getMonth() || e.getFullYear() !== d.getFullYear())
+      diaElegido = aISO(d);
+    son("toque"); dibujarPanel();
+  };
+  selM.onchange = saltar; selA.onchange = saltar;
+  h.append(selM, selA);
 
   const alante = document.createElement("button"); alante.className = "cal-nav";
   alante.appendChild(icono("flecha", 15));
@@ -1908,6 +2011,13 @@ function dibujarCalendario(){
     if(calMes){ mesBase.setMonth(mesBase.getMonth() + n); }
     else { semanaBase.setDate(semanaBase.getDate() + n * 7); }
     son("toque"); dibujarPanel();
+  }
+
+  // Si aún no tenemos el mes judío, lo pedimos y volvemos a dibujar.
+  const refJ = calMes ? mesBase : semanaBase;
+  const claveJ = refJ.getFullYear() + "-" + String(refJ.getMonth() + 1).padStart(2, "0");
+  if(!judio[claveJ]){
+    traerMesJudio(refJ.getFullYear(), refJ.getMonth()).then(x => { if(x) dibujarPanel(); });
   }
 
   // ---- qué hay cada día: pendientes y también lo ya hecho ----
@@ -1944,6 +2054,9 @@ function dibujarCalendario(){
       pts.appendChild(p);
     }
 
+    const ij = infoJudia(iso);
+    if(ij && (ij.fiestas || ij.parasha)) b.classList.add("fiesta");
+
     b.onclick = () => { diaElegido = iso; son("toque"); dibujarPanel(); };
     return b;
   };
@@ -1969,25 +2082,14 @@ function dibujarCalendario(){
   }
   c.appendChild(rejilla);
 
-  // ---- saltar a una fecha cualquiera ----
-  const salto = document.createElement("div"); salto.className = "cal-salto";
-  const inp = document.createElement("input");
-  inp.type = "date"; inp.value = diaElegido;
-  inp.onchange = () => {
-    if(!inp.value) return;
-    diaElegido = inp.value;
-    const d = new Date(inp.value + "T00:00:00");
-    semanaBase = domingoDe(d); mesBase = new Date(d);
-    son("toque"); dibujarPanel();
-  };
-  const btnHoy = document.createElement("button"); btnHoy.className = "ghost";
-  btnHoy.style.margin = "0"; btnHoy.textContent = "Hoy";
-  btnHoy.onclick = () => {
+  // Volver a hoy, en un toque
+  const volver = document.createElement("button"); volver.className = "cal-hoy";
+  volver.textContent = "Ir a hoy";
+  volver.onclick = () => {
     diaElegido = aISO(hoy); semanaBase = domingoDe(hoy); mesBase = new Date(hoy);
     son("toque"); dibujarPanel();
   };
-  salto.append(inp, btnHoy);
-  c.appendChild(salto);
+  if(diaElegido !== aISO(hoy)) c.appendChild(volver);
 
   // ---- lo que cae en el día elegido ----
   const elegido = new Date(diaElegido + "T00:00:00");
@@ -1995,6 +2097,31 @@ function dibujarCalendario(){
   t.textContent = elegido.toLocaleDateString("es",
     {weekday:"long", day:"numeric", month:"long", year:"numeric"});
   c.appendChild(t);
+
+  // Parashá, velas y salida de Shabbat
+  const ij = infoJudia(diaElegido);
+  if(ij && (ij.parasha || ij.velas || ij.salida || ij.fiestas)){
+    const caja = document.createElement("div"); caja.className = "shabbat";
+    if(ij.parasha){
+      const p = document.createElement("p"); p.className = "parasha";
+      p.textContent = ij.parasha; caja.appendChild(p);
+    }
+    if(ij.fiestas) ij.fiestas.forEach(f => {
+      const p = document.createElement("p"); p.className = "parasha";
+      p.textContent = f; caja.appendChild(p);
+    });
+    const linea = document.createElement("div"); linea.className = "horas";
+    if(ij.velas){
+      const x = document.createElement("span");
+      x.textContent = "Velas  " + ij.velas; linea.appendChild(x);
+    }
+    if(ij.salida){
+      const x = document.createElement("span");
+      x.textContent = "Salida  " + ij.salida; linea.appendChild(x);
+    }
+    if(linea.children.length) caja.appendChild(linea);
+    c.appendChild(caja);
+  }
 
   const delDia = porDia[diaElegido] || [];
   const abiertas = delDia.filter(x => !x.hecho);
