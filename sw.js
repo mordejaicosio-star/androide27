@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   ANDROIDE 27 — sw.js  (versión 49)
+   ANDROIDE 27 — sw.js  (versión 50)
 
    Trabaja en segundo plano y hace tres cosas:
      1. Permite que Android trate esto como una app instalable, para
@@ -10,10 +10,10 @@
 
    ⚠ El número de abajo es lo que le avisa a tu teléfono que hay una
    versión nueva. Cada vez que te entregue archivos nuevos, sube el
-   número: androide27-v49 → androide27-v50, y así.
+   número: androide27-v50 → androide27-v51, y así.
 ------------------------------------------------------------------- */
 
-const CACHE = "androide27-v49";
+const CACHE = "androide27-v50";
 const ARCHIVOS = ["./", "./index.html", "./manifest.webmanifest",
                   "./icon-192.png", "./icon-512.png"];
 
