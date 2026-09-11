@@ -386,7 +386,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{outline:2px so
 /* ---------- ENCABEZADO --------------------------------------------- */
 header{padding-block:22px 6px}
 .brand{display:flex; align-items:center; gap:11px; margin-block-end:14px}
-.avatar{inline-size:46px; block-size:46px; border-radius:12px; flex:none; object-fit:cover; border:1px solid var(--line)}
+.avatar{inline-size:46px; block-size:46px; border-radius:12px; flex:none; object-fit:cover; border:1px solid var(--line); transition:inline-size .22s ease, opacity .22s ease}
+.avatar.fuera{inline-size:0; opacity:0; border-width:0; margin:0}
 .brand-name{font-family:"Frank Ruhl Libre",serif; font-size:19px; flex:1; line-height:1.25}
 .brand-sub{display:block; font-family:"Assistant",sans-serif; font-size:12.5px; color:var(--muted)}
 .icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px;
@@ -2844,19 +2845,7 @@ function leerPendientes(){
 
   if(!partes.length) partes.push("No tienes nada pendiente.");
 
-  window.speechSynthesis.cancel();
-  hablando = true; androide("hablando"); dibujarCabecera();
-  const voz = vozElegida();
-  partes.forEach((t, i) => {
-    const frase = new SpeechSynthesisUtterance(t);
-    frase.lang = "es-ES";
-    if(voz) frase.voice = voz;
-    frase.rate = Number(ajustes.velocidad || 1);
-    if(i === partes.length - 1) frase.onend = () => {
-      hablando = false; androide("reposo"); dibujarCabecera();
-    };
-    window.speechSynthesis.speak(frase);
-  });
+  hablar(partes, null, null);
 }
 
 function paraLeer(it){
@@ -2876,26 +2865,75 @@ function pararLectura(){
    Se parte en frases porque los mensajes largos se cortan solos en
    algunos teléfonos. */
 function leerEnVoz(texto){
-  if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
-  window.speechSynthesis.cancel();
-  leyendoMensaje = texto; hablando = true; androide("hablando"); dibujarChat();
+  hablar(String(texto).split(/(?<=[.!?:\n])\s+/), () => dibujarChat(), texto);
+}
 
-  const voz = vozElegida();
-  const trozos = String(texto)
-    .replace(/[✓•▸]/g, "")
-    .split(/(?<=[.!?:\n])\s+/)
-    .map(t => t.trim()).filter(Boolean);
+/* El único sitio donde se habla.
+   Android tiene dos manías: a veces el motor se queda "pausado" y hay
+   que despertarlo, y a veces las voces tardan en cargar. Aquí se
+   controlan las dos, y si aun así no suena, te lo decimos en vez de
+   dejarte esperando. */
+function hablar(trozos, alRedibujar, marcaMensaje){
+  if(!("speechSynthesis" in window)){
+    aviso("Este teléfono no puede leer en voz alta"); return;
+  }
+  const limpios = trozos.map(t => String(t).replace(/[✓•▸📎]/g, "").trim()).filter(Boolean);
+  if(!limpios.length){ aviso("No hay nada que leer"); return; }
 
-  trozos.forEach((t, i) => {
-    const f = new SpeechSynthesisUtterance(t);
-    f.lang = "es-ES";
-    if(voz) f.voice = voz;
-    f.rate = Number(ajustes.velocidad || 1);
-    if(i === trozos.length - 1) f.onend = () => {
-      hablando = false; leyendoMensaje = null; androide("reposo"); dibujarChat();
-    };
-    window.speechSynthesis.speak(f);
-  });
+  const ss = window.speechSynthesis;
+  ss.cancel();
+
+  leyendoMensaje = marcaMensaje || null;
+  hablando = true; androide("hablando");
+  if(alRedibujar) alRedibujar();
+  dibujarCabecera();
+
+  const arrancar = () => {
+    const voz = vozElegida();
+    let sono = false;
+
+    limpios.forEach((t, i) => {
+      const f = new SpeechSynthesisUtterance(t);
+      f.lang = "es-ES";
+      if(voz) f.voice = voz;
+      f.rate = Number(ajustes.velocidad || 1);
+      f.onstart = () => { sono = true; };
+      f.onerror = () => {
+        hablando = false; leyendoMensaje = null; androide("reposo");
+        if(alRedibujar) alRedibujar();
+        dibujarCabecera();
+        aviso("El teléfono no pudo leer en alto");
+      };
+      if(i === limpios.length - 1) f.onend = () => {
+        hablando = false; leyendoMensaje = null; androide("reposo");
+        if(alRedibujar) alRedibujar();
+        dibujarCabecera();
+      };
+      ss.speak(f);
+    });
+
+    // Android a veces deja la cola en pausa: esto la despierta.
+    setTimeout(() => { try{ ss.resume(); }catch(e){} }, 120);
+
+    // Y si a los dos segundos no ha empezado, avisamos.
+    setTimeout(() => {
+      if(!sono && hablando){
+        ss.cancel();
+        hablando = false; leyendoMensaje = null; androide("reposo");
+        if(alRedibujar) alRedibujar();
+        dibujarCabecera();
+        aviso("No hay ninguna voz en español instalada. Mira Ajustes → Voz.");
+      }
+    }, 2200);
+  };
+
+  // Si las voces aún no han cargado, esperamos a que lleguen.
+  if(!(ss.getVoices() || []).length){
+    let hecho = false;
+    const cuando = () => { if(hecho) return; hecho = true; arrancar(); };
+    ss.onvoiceschanged = cuando;
+    setTimeout(cuando, 450);
+  } else arrancar();
 }
 document.addEventListener("visibilitychange", () => { if(document.hidden) pararLectura(); });
 
@@ -3583,21 +3621,37 @@ function moverGuia(v){
   g.style.transform = "translateX(" + (b.offsetLeft + b.offsetWidth * 0.25) + "px)";
 }
 function ir(v){
-  ["hoy","entrada","bandeja","chat","ajustes"].forEach(n=>document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
-  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.v===v?"page":"false"));
+  // De dónde venimos decide por qué lado entra la pantalla nueva.
+  const desde = ORDEN.indexOf(pantallaActual), hasta = ORDEN.indexOf(v);
+  const dir = hasta > desde ? "entrando-der" : (hasta < desde ? "entrando-izq" : "entrando");
+  pantallaActual = v;
+
+  ORDEN.forEach(n => document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
+  const vista = document.getElementById("view-"+v);
+  vista.classList.remove("entrando","entrando-izq","entrando-der");
+  void vista.offsetWidth;                       // reinicia la animación
+  vista.classList.add(dir);
+
+  document.querySelectorAll("nav button").forEach(b =>
+    b.setAttribute("aria-current", b.dataset.v===v ? "page" : "false"));
+  moverGuia(v);
+  son("pestana");
+
+  // En Hoy manda el retrato grande: el pequeño de arriba se retira.
+  const av = document.querySelector(".avatar");
+  if(av) av.classList.toggle("fuera", v === "hoy");
+
   const oculta = (v==="ajustes" || v==="chat");
   document.getElementById("fab").style.display = oculta ? "none" : "grid";
-  document.getElementById("chatCaja").classList.toggle("hidden", v!=="chat");
-  if(v==="chat"){ dibujarChat(); setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),60); }
   document.getElementById("menuFab").style.display = oculta ? "none" : "flex";
-  if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); }
-
-  if(v==="ajustes") medirEspacio();
+  document.getElementById("chatCaja").classList.toggle("hidden", v!=="chat");
+  if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); medirEspacio(); }
+  if(v==="chat"){ dibujarChat(); setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),60); }
   if(v==="hoy") dibujarPanel();
   if(v==="entrada" && ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
-  if(v==="hoy") dibujarPanel();
   window.scrollTo(0,0);
 }
+
 document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
 document.getElementById("recargarBtn").onclick = () => traerResumen(false);
 
@@ -3771,14 +3825,8 @@ velSel.value = ajustes.velocidad || "1";
 velSel.onchange = () => { ajustes.velocidad = velSel.value; guardar("ajustes", ajustes); probar(); };
 
 function probar(){
-  if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
-  window.speechSynthesis.cancel();
-  const f = new SpeechSynthesisUtterance(
-    "Soy " + (ajustes.firma || "Mordejai Clonsio") + ". Así te voy a leer tus pendientes.");
-  f.lang = "es-ES";
-  const v = vozElegida(); if(v) f.voice = v;
-  f.rate = Number(ajustes.velocidad || 1);
-  window.speechSynthesis.speak(f);
+  hablar(["Soy " + (ajustes.firma || "Mordejai Clonsio") +
+          ". Así te voy a leer tus pendientes."], null, null);
 }
 document.getElementById("probarVoz").onclick = probar;
 document.getElementById("refrescarVoces").onclick = () => {
