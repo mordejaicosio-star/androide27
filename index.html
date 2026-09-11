@@ -623,8 +623,51 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 #intro small{color:var(--muted); font-size:13px; margin-block-start:-12px}
 
 /* ---------- CABECERA DE HOY ---------------------------------------- */
-.saludo{font-size:13px; color:var(--muted); margin:0 0 5px;
-  text-transform:uppercase; letter-spacing:.06em}
+/* ---------- EL ANDROIDE ------------------------------------------- */
+.hero{display:flex; gap:16px; align-items:center; margin-block:6px 4px}
+.retrato{position:relative; inline-size:112px; block-size:112px; flex:none}
+.retrato img{inline-size:100%; block-size:100%; border-radius:22px; object-fit:cover;
+  display:block; border:1px solid var(--line)}
+.retrato .aro{position:absolute; inset:-7px; border-radius:28px;
+  border:1.5px solid transparent; border-block-start-color:var(--accent);
+  border-inline-end-color:var(--accent); opacity:.55;
+  animation:giroAro 5s linear infinite}
+@keyframes giroAro{to{transform:rotate(360deg)}}
+.retrato .halo{position:absolute; inset:-3px; border-radius:25px; pointer-events:none;
+  box-shadow:0 0 0 0 var(--accent); animation:respiraHalo 4s ease-in-out infinite}
+@keyframes respiraHalo{50%{box-shadow:0 0 26px -4px var(--accent)}}
+.retrato .barrido{position:absolute; inset:0; border-radius:22px; overflow:hidden;
+  pointer-events:none}
+.retrato .barrido::after{content:""; position:absolute; inset-inline:0; block-size:34%;
+  background:linear-gradient(180deg, transparent, rgba(255,255,255,.14), transparent);
+  animation:barreRetrato 4.5s ease-in-out infinite}
+@keyframes barreRetrato{0%{transform:translateY(-120%)} 55%{transform:translateY(320%)} 100%{transform:translateY(320%)}}
+
+/* estados */
+.retrato.escuchando .aro{animation-duration:1.1s; opacity:1;
+  border-block-start-color:var(--danger); border-inline-end-color:var(--danger)}
+.retrato.escuchando .halo{animation-duration:.9s}
+.retrato.pensando .aro{animation-duration:.7s; opacity:1}
+.retrato.pensando .barrido::after{animation-duration:1.1s}
+.retrato.hablando .halo{animation-duration:1.3s}
+.retrato.hablando .aro{opacity:.9}
+
+.estado-and{display:flex; align-items:center; gap:7px; font-size:11.5px;
+  color:var(--muted); text-transform:uppercase; letter-spacing:.06em;
+  margin-block-start:8px}
+.estado-and .luz{inline-size:7px; block-size:7px; border-radius:50%;
+  background:var(--muted); flex:none}
+.estado-and.activo .luz{background:var(--accent); box-shadow:0 0 8px var(--accent);
+  animation:parpadeo 1.1s steps(1) infinite}
+.estado-and.oyendo .luz{background:var(--danger); box-shadow:0 0 8px var(--danger)}
+
+@media (prefers-reduced-motion:reduce){
+  .retrato .aro, .retrato .halo, .retrato .barrido::after, .estado-and .luz{animation:none}
+}
+
+.saludo{font-size:11.5px; color:var(--muted); margin:0 0 3px;
+  text-transform:uppercase; letter-spacing:.07em}
+.hero-n{font-family:"Frank Ruhl Libre",serif; font-size:20px; margin:0; line-height:1.2}
 .marcadores{display:flex; gap:8px; margin-block:16px 2px}
 .marcador{flex:1; border:1px solid var(--line); border-radius:13px;
   padding:11px 6px 9px; text-align:center; background:var(--surface)}
@@ -635,7 +678,7 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 .marcador.cero{opacity:.4}
 .cab-hoy{display:flex; align-items:flex-start; gap:14px; margin-block:2px 4px}
 .cab-hoy .izq{flex:1; min-width:0}
-.titular{font-family:"Frank Ruhl Libre",serif; font-size:23px; line-height:1.3;
+.titular{font-family:"Frank Ruhl Libre",serif; font-size:20px; line-height:1.3;
   margin:0 0 6px; letter-spacing:-.01em}
 .bajo-titular{color:var(--muted); font-size:13.5px; margin:0}
 .leer{inline-size:48px; block-size:48px; border-radius:50%; flex:none;
@@ -1649,6 +1692,7 @@ function dibujarChapa(){
 function trabajando(si){
   const h = document.getElementById("hudLoad");
   if(h) h.classList.toggle("activa", !!si);
+  androide(si ? "pensando" : "listo");
 }
 
 /* En el tema Androide, el titular no aparece: se descodifica, como si
@@ -1705,10 +1749,6 @@ function dibujarCabecera(){
   const h = document.createElement("h2"); h.className = "titular";
   ponerTitular(h, cFilTitular());
   izq.appendChild(h);
-
-  const saludo = document.createElement("p"); saludo.className = "saludo";
-  saludo.textContent = momentoDelDia() + ", " + (ajustes.nombreTuyo || "Mordejai");
-  izq.insertBefore(saludo, izq.firstChild);
 
   const sub = document.createElement("p"); sub.className = "bajo-titular";
   const cFil = mundoDelDia ? ctxDe(mundoDelDia) : null;
@@ -2593,6 +2633,38 @@ function buscar(q){
 }
 
 /* ====================================================================
+   Los estados del androide
+   No son decoración: reflejan lo que está pasando de verdad. Si dice
+   que escucha, es que el micrófono está abierto. Si dice que piensa,
+   es que hay una consulta en marcha.
+==================================================================== */
+let estadoAndroide = "reposo";
+const TEXTO_ESTADO = {
+  reposo:     "En espera",
+  escuchando: "Escuchando…",
+  pensando:   "Procesando…",
+  hablando:   "Hablando",
+  listo:      "Listo"
+};
+
+function androide(estado){
+  if(estadoAndroide === estado) return;
+  estadoAndroide = estado;
+  const r = document.getElementById("retrato");
+  if(r){
+    r.className = "retrato " + estado;
+    const e = r.parentElement.querySelector(".estado-and");
+    if(e){
+      e.className = "estado-and " + (estado === "escuchando" ? "oyendo" :
+                                     estado === "reposo" ? "" : "activo");
+      e.querySelector("span:last-child").textContent = TEXTO_ESTADO[estado];
+    }
+  }
+  // "Listo" es un destello, no un estado permanente
+  if(estado === "listo") setTimeout(() => androide("reposo"), 1800);
+}
+
+/* ====================================================================
    Sonido
    No usamos archivos: los tonos se generan en el momento. Son cortos,
    suaves y con sentido: uno para confirmar, otro para deshacer, otro
@@ -2711,14 +2783,16 @@ function leerPendientes(){
   if(!partes.length) partes.push("No tienes nada pendiente.");
 
   window.speechSynthesis.cancel();
-  hablando = true; dibujarCabecera();
+  hablando = true; androide("hablando"); dibujarCabecera();
   const voz = vozElegida();
   partes.forEach((t, i) => {
     const frase = new SpeechSynthesisUtterance(t);
     frase.lang = "es-ES";
     if(voz) frase.voice = voz;
     frase.rate = Number(ajustes.velocidad || 1);
-    if(i === partes.length - 1) frase.onend = () => { hablando = false; dibujarCabecera(); };
+    if(i === partes.length - 1) frase.onend = () => {
+      hablando = false; androide("reposo"); dibujarCabecera();
+    };
     window.speechSynthesis.speak(frase);
   });
 }
@@ -2730,7 +2804,7 @@ function paraLeer(it){
 
 function pararLectura(){
   window.speechSynthesis.cancel();
-  hablando = false; leyendoMensaje = null;
+  hablando = false; leyendoMensaje = null; androide("reposo");
   dibujarCabecera();
   if(document.getElementById("view-chat") &&
      !document.getElementById("view-chat").classList.contains("hidden")) dibujarChat();
@@ -2742,7 +2816,7 @@ function pararLectura(){
 function leerEnVoz(texto){
   if(!("speechSynthesis" in window)){ aviso("Este teléfono no puede leer en voz alta"); return; }
   window.speechSynthesis.cancel();
-  leyendoMensaje = texto; hablando = true; dibujarChat();
+  leyendoMensaje = texto; hablando = true; androide("hablando"); dibujarChat();
 
   const voz = vozElegida();
   const trozos = String(texto)
@@ -2756,7 +2830,7 @@ function leerEnVoz(texto){
     if(voz) f.voice = voz;
     f.rate = Number(ajustes.velocidad || 1);
     if(i === trozos.length - 1) f.onend = () => {
-      hablando = false; leyendoMensaje = null; dibujarChat();
+      hablando = false; leyendoMensaje = null; androide("reposo"); dibujarChat();
     };
     window.speechSynthesis.speak(f);
   });
@@ -3079,7 +3153,7 @@ async function empezarAGrabar(){
 
     grabadora.ondataavailable = e => trozos.push(e.data);
     grabadora.onstop = async () => {
-      son("fin"); pararOnda();
+      son("fin"); pararOnda(); androide("pensando");
       señal.getTracks().forEach(t => t.stop());
       clearInterval(relojInt); modoGrabando(false);
       if(cancelado){ cerrarCaptura(); aviso("Descartado"); return; }
@@ -3111,7 +3185,7 @@ async function empezarAGrabar(){
       if(grabadora && grabadora.state === "recording") grabadora.stop();
     };
 
-    son("grabar");
+    son("grabar"); androide("escuchando");
     grabadora.start();
     modoGrabando(true);
     inicioGrab = Date.now(); pintarReloj();
@@ -3134,6 +3208,7 @@ document.getElementById("micBtn").onclick = empezarAGrabar;
 async function transcribir(it){
   const fallo = motivo => {
     trabajando(false);
+    androide("reposo");
     it.estadoAudio="falló"; it.motivoFallo=motivo;
     guardar("items",items); dibujar();
   };
