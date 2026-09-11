@@ -1163,6 +1163,17 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
         </label>
       </div>
       <div class="campo">
+        <label for="tonoSel">Tono</label>
+        <select id="tonoSel">
+          <option value="0.55">Muy grave</option>
+          <option value="0.7">Grave</option>
+          <option value="0.85">Algo grave</option>
+          <option value="1" selected>Normal</option>
+          <option value="1.2">Agudo</option>
+        </select>
+        <p class="hint">Bajar el tono es lo que más masculina hace una voz, incluso si la que tienes instalada no lo es.</p>
+      </div>
+      <div class="campo">
         <label for="velSel">Velocidad</label>
         <select id="velSel">
           <option value="0.8">Pausada</option>
@@ -1174,6 +1185,9 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <div class="fila-btn">
         <button class="ghost" id="probarVoz">Probar</button>
         <button class="ghost" id="refrescarVoces">Buscar voces</button>
+      </div>
+      <div class="fila-btn">
+        <button class="ghost" id="vozSistema">Usar la de Android</button>
       </div>
       <p class="hint">Las voces vienen de Android. Si no ves ninguna de hombre, descárgalas en Ajustes de Android → Texto a voz → Instalar datos de voz → Español.</p>
       </div>
@@ -3265,13 +3279,32 @@ let leyendoMensaje = null;   // qué respuesta se está leyendo ahora
 function vocesDisponibles(){
   return (window.speechSynthesis.getVoices() || []).filter(v => /^es(-|_)/i.test(v.lang));
 }
+/* Android nombra las voces de maneras muy distintas. Estas pistas
+   cubren las más comunes: "male", "masculino", y los códigos de Google
+   donde la B y la D suelen ser masculinas. */
+function pareceHombre(v){
+  const n = (v.name + " " + v.voiceURI).toLowerCase();
+  if(/female|femenin|mujer/.test(n)) return false;
+  return /male|masculin|hombre|-b$|-d$|#male|_m$|\bm\b/.test(n);
+}
+
 function vozElegida(){
   const todas = window.speechSynthesis.getVoices() || [];
+
+  // 1. Si elegiste una a mano, manda la tuya.
   if(ajustes.voz){
     const v = todas.find(x => x.voiceURI === ajustes.voz || x.name === ajustes.voz);
     if(v) return v;
   }
-  return vocesDisponibles()[0] || null;
+
+  const es = vocesDisponibles();
+
+  // 2. Si no, la que tengas puesta por defecto en Android.
+  const delSistema = es.find(v => v.default);
+  if(delSistema) return delSistema;
+
+  // 3. Y si tampoco, la que más masculina parezca.
+  return es.find(pareceHombre) || es[0] || null;
 }
 
 function leerPendientes(){
@@ -3398,6 +3431,7 @@ function hablar(trozos, alRedibujar, marcaMensaje){
       f.lang = "es-ES";
       if(voz) f.voice = voz;
       f.rate = Number(ajustes.velocidad || 1);
+      f.pitch = Number(ajustes.tono || 1);
       f.onstart = () => { sono = true; };
       f.onerror = () => {
         hablando = false; leyendoMensaje = null; androide("reposo");
@@ -4146,7 +4180,7 @@ function ir(v){
   document.getElementById("fab").style.display = oculta ? "none" : "grid";
   document.getElementById("menuFab").style.display = oculta ? "none" : "flex";
   document.getElementById("chatCaja").classList.toggle("hidden", v!=="chat");
-  if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); medirEspacio(); }
+  if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); medirEspacio(); pintarVoces(); }
   if(v==="chat"){ dibujarChat(); setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),60); }
   if(v==="hoy") dibujarPanel();
   if(v==="entrada" && ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
@@ -4298,20 +4332,21 @@ const vozSel = document.getElementById("vozSel");
 const velSel = document.getElementById("velSel");
 
 function nombreVoz(v){
-  // Android suele nombrarlas "Spanish Spain male 2" o "es-es-x-eef-network".
-  // Le damos una pista al usuario cuando el nombre delata el género.
-  let n = v.name || v.voiceURI;
-  if(/male/i.test(n) && !/female/i.test(n)) n += "  · hombre";
-  else if(/female/i.test(n))               n += "  · mujer";
-  return n + "  (" + v.lang + ")";
+  const n = v.name || v.voiceURI;
+  const g = /female|femenin|mujer/i.test(n + v.voiceURI) ? "  · mujer"
+          : pareceHombre(v) ? "  · hombre" : "";
+  return n + g + "  (" + v.lang + ")";
 }
 
 function pintarVoces(){
-  const voces = vocesDisponibles();
+  const voces = vocesDisponibles()
+    .sort((a,b) => (pareceHombre(b) ? 1 : 0) - (pareceHombre(a) ? 1 : 0));
   vozSel.innerHTML = "";
+  const actual = vozElegida();
   const nada = document.createElement("option");
   nada.value = ""; nada.textContent = voces.length
-    ? "La que traiga el teléfono" : "No hay voces en español instaladas";
+    ? "La de Android" + (actual && !ajustes.voz ? ": " + (actual.name || actual.voiceURI) : "")
+    : "No hay voces en español instaladas";
   vozSel.appendChild(nada);
   voces.forEach(v => {
     const o = document.createElement("option");
@@ -4322,6 +4357,10 @@ function pintarVoces(){
 }
 
 vozSel.onchange = () => { ajustes.voz = vozSel.value; guardar("ajustes", ajustes); probar(); };
+const tonoSel = document.getElementById("tonoSel");
+tonoSel.value = ajustes.tono || "1";
+tonoSel.onchange = () => { ajustes.tono = tonoSel.value; guardar("ajustes", ajustes); probar(); };
+
 velSel.value = ajustes.velocidad || "1";
 velSel.onchange = () => { ajustes.velocidad = velSel.value; guardar("ajustes", ajustes); probar(); };
 
@@ -4330,6 +4369,13 @@ function probar(){
           ". Así te voy a leer tus pendientes."], null, null);
 }
 document.getElementById("probarVoz").onclick = probar;
+document.getElementById("vozSistema").onclick = () => {
+  ajustes.voz = ""; guardar("ajustes", ajustes);
+  pintarVoces();
+  const v = vozElegida();
+  aviso(v ? "Ahora uso: " + (v.name || v.voiceURI) : "No encuentro voces en español");
+  probar();
+};
 document.getElementById("refrescarVoces").onclick = () => {
   pintarVoces();
   const n = vocesDisponibles().length;
