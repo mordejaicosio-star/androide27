@@ -871,7 +871,47 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 .ch-btn{inline-size:36px; block-size:36px; border-radius:10px; border:1px solid var(--line);
   color:var(--muted); font-size:16px; flex:none; display:grid; place-items:center}
 .ch-adj{inline-size:44px; block-size:46px; border-radius:12px; border:1px solid var(--line);
-  color:var(--muted); font-size:16px; flex:none; background:var(--surface)}
+  color:var(--muted); flex:none; background:var(--surface); display:grid; place-items:center}
+.ch-mic{inline-size:46px; block-size:46px; border-radius:50%; flex:none;
+  background:var(--surface); border:1px solid var(--line); color:var(--muted);
+  display:grid; place-items:center; touch-action:none; transition:transform .12s}
+.ch-mic.rec{background:var(--danger); border-color:var(--danger); color:#fff;
+  transform:scale(1.18); box-shadow:0 0 0 8px rgba(196,104,94,.18)}
+@keyframes latirMic{50%{opacity:.6}}
+
+/* menú del más */
+.menu-chat{max-inline-size:560px; margin:0 auto 9px; display:flex;
+  flex-direction:column; gap:6px}
+.menu-chat button{display:flex; align-items:center; gap:11px; inline-size:100%;
+  text-align:start; background:var(--surface); border:1px solid var(--line);
+  border-radius:12px; padding:11px 13px; font-size:14px}
+.menu-chat .mi{inline-size:30px; block-size:30px; border-radius:9px; flex:none;
+  background:var(--raised); color:var(--accent); display:grid; place-items:center}
+
+/* mientras hablas */
+.grab-chat{max-inline-size:560px; margin:0 auto 9px; display:flex; align-items:center;
+  gap:11px; background:var(--surface); border:1px solid var(--danger);
+  border-radius:14px; padding:11px 14px}
+.grab-chat .pulso{inline-size:11px; block-size:11px; border-radius:50%;
+  background:var(--danger); flex:none; animation:latirMic 1s ease-in-out infinite}
+.grab-chat .crono{font-family:"Frank Ruhl Libre",serif; font-size:16px; flex:none}
+.grab-chat .dicho{flex:1; min-width:0; font-size:13px; color:var(--muted);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.grab-chat .suelta{font-size:11px; color:var(--danger); flex:none}
+
+/* al soltar: enviar o cancelar */
+.rev-chat{max-inline-size:560px; margin:0 auto 9px; display:flex; align-items:center;
+  gap:10px; background:var(--surface); border:1px solid var(--line);
+  border-radius:14px; padding:9px 10px}
+.rev-chat .rev-txt{flex:1; min-width:0; font-size:13.5px; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap}
+.rev-chat button{inline-size:42px; block-size:42px; border-radius:12px; flex:none;
+  display:grid; place-items:center; border:1px solid var(--line); color:var(--muted)}
+.rev-chat .rev-si{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.rev-chat .rev-no{color:var(--danger); border-color:var(--danger)}
+@media (prefers-reduced-motion:reduce){
+  .grab-chat .pulso{animation:none} .ch-mic.rec{transform:none}
+}
 .adjunto-chat{display:flex; align-items:center; gap:8px; background:var(--raised);
   border-radius:10px; padding:7px 10px; margin-block-end:8px; font-size:13px;
   max-inline-size:560px; margin-inline:auto}
@@ -1259,13 +1299,36 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
   <button class="op" id="opAudio"><span>Grabar nota de voz</span><b>🎙</b></button>
 </div>
 <div class="chat-caja hidden" id="chatCaja">
+  <div class="menu-chat hidden" id="chatMenu">
+    <button data-q="foto"><span class="mi"></span>Foto o imagen</button>
+    <button data-q="audio"><span class="mi"></span>Un audio guardado</button>
+    <button data-q="doc"><span class="mi"></span>Documento de texto</button>
+  </div>
+
   <div class="adjunto-chat hidden" id="adjChat">
     <span id="adjChatNombre"></span>
     <button class="icon-btn" id="adjChatQuitar" aria-label="Quitar">×</button>
   </div>
-  <div class="dentro">
-    <button class="ch-adj" id="chatAdjuntar" aria-label="Adjuntar documento o foto">🖼</button>
-    <input id="chatInput" type="text" placeholder="Pregúntame lo que quieras" autocomplete="off">
+
+  <!-- mientras hablas -->
+  <div class="grab-chat hidden" id="chatGrab">
+    <span class="pulso"></span>
+    <span class="crono" id="chatCrono">0:00</span>
+    <span class="dicho" id="chatDicho">Te escucho…</span>
+    <span class="suelta">suelta para terminar</span>
+  </div>
+
+  <!-- al soltar -->
+  <div class="rev-chat hidden" id="chatRev">
+    <button class="rev-no" id="chatRevNo" aria-label="Cancelar"></button>
+    <span class="rev-txt" id="chatRevTxt"></span>
+    <button class="rev-si" id="chatRevSi" aria-label="Enviar"></button>
+  </div>
+
+  <div class="dentro" id="chatDentro">
+    <button class="ch-adj" id="chatMas" aria-label="Adjuntar"></button>
+    <input id="chatInput" type="text" placeholder="Escribe o mantén pulsado el micrófono" autocomplete="off">
+    <button class="ch-mic" id="chatMic" aria-label="Mantén pulsado para hablar"></button>
     <button id="chatEnviar" aria-label="Enviar">↑</button>
   </div>
   <input type="file" id="chatFile" accept="image/*,text/plain,.md,.csv" class="hidden">
@@ -2620,8 +2683,173 @@ async function leerAdjuntoChat(f){
   return await f.text();
 }
 
-document.getElementById("chatAdjuntar").onclick = () => document.getElementById("chatFile").click();
+/* ====================================================================
+   Hablarle al chat
+   Mantienes pulsado el micrófono, hablas, y al soltar te preguntamos
+   si lo mandas o lo tiras. Mientras hablas ves el texto y el tiempo.
+
+   Se usa el dictado del propio teléfono, que es instantáneo y no
+   manda tu voz a ningún sitio. Si este Android no lo trae, se graba
+   y lo transcribe Gemini.
+==================================================================== */
+document.getElementById("chatMas").appendChild(icono("mas", 20));
+document.getElementById("chatMic").appendChild(icono("voz", 20));
+document.getElementById("chatRevNo").appendChild(icono("oculto", 18));
+document.getElementById("chatRevSi").appendChild(icono("flecha", 18));
+document.querySelectorAll("#chatMenu .mi").forEach((e, i) =>
+  e.appendChild(icono(["foto","voz","nota"][i], 16)));
+
+let oidorChat = null, grabChat = null, trozosChat = [];
+let dictado = "", cronoInt = null, inicioChat = 0, cancelado = false;
+
+/* ---- el más: foto, audio o documento ---- */
+const chatMenu = document.getElementById("chatMenu");
+document.getElementById("chatMas").onclick = () => {
+  chatMenu.classList.toggle("hidden"); son("toque");
+};
+chatMenu.onclick = e => {
+  const b = e.target.closest("button"); if(!b) return;
+  const f = document.getElementById("chatFile");
+  f.accept = b.dataset.q === "foto" ? "image/*"
+           : b.dataset.q === "audio" ? "audio/*"
+           : "text/plain,.md,.csv";
+  chatMenu.classList.add("hidden");
+  f.click();
+};
+
+/* ---- mantener pulsado para hablar ---- */
+function pintarCrono(){
+  const seg = Math.floor((Date.now() - inicioChat) / 1000);
+  document.getElementById("chatCrono").textContent =
+    Math.floor(seg/60) + ":" + String(seg%60).padStart(2,"0");
+}
+
+function verGrabando(si){
+  document.getElementById("chatGrab").classList.toggle("hidden", !si);
+  document.getElementById("chatDentro").classList.toggle("hidden", si);
+  document.getElementById("chatMic").classList.toggle("rec", si);
+  androide(si ? "escuchando" : "reposo");
+}
+
+function verRevision(texto){
+  document.getElementById("chatRev").classList.toggle("hidden", !texto);
+  document.getElementById("chatDentro").classList.toggle("hidden", !!texto);
+  if(texto) document.getElementById("chatRevTxt").textContent = texto;
+}
+
+const mic = document.getElementById("chatMic");
+
+function empezarDictado(){
+  if(oidorChat || (grabChat && grabChat.state === "recording")) return;
+  cancelado = false; dictado = "";
+  document.getElementById("chatDicho").textContent = "Te escucho…";
+  inicioChat = Date.now(); pintarCrono();
+  cronoInt = setInterval(pintarCrono, 500);
+  verGrabando(true); son("grabar");
+
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(R){
+    oidorChat = new R();
+    oidorChat.lang = "es-ES";
+    oidorChat.continuous = true;
+    oidorChat.interimResults = true;
+    oidorChat.onresult = e => {
+      let prov = "";
+      for(let i = e.resultIndex; i < e.results.length; i++){
+        const t = e.results[i][0].transcript;
+        if(e.results[i].isFinal) dictado += t + " "; else prov += t;
+      }
+      document.getElementById("chatDicho").textContent = (dictado + prov).trim() || "Te escucho…";
+    };
+    oidorChat.onerror = ev => {
+      if(ev.error === "not-allowed"){ aviso("Falta permiso del micrófono"); pararDictado(true); }
+    };
+    oidorChat.onend = () => { oidorChat = null; cerrarDictado(); };
+    try{ oidorChat.start(); }
+    catch(e){ oidorChat = null; grabarParaChat(); }
+  } else grabarParaChat();
+}
+
+function pararDictado(anular){
+  cancelado = !!anular;
+  if(oidorChat){ try{ oidorChat.stop(); }catch(e){} return; }
+  if(grabChat && grabChat.state === "recording"){ grabChat.stop(); return; }
+  cerrarDictado();
+}
+
+function cerrarDictado(){
+  clearInterval(cronoInt);
+  const corto = (Date.now() - inicioChat) < 700;
+  verGrabando(false); son("fin");
+  if(cancelado || corto){ dictado = ""; return; }
+  const t = dictado.trim();
+  if(t) verRevision(t);
+}
+
+// mantener pulsado
+mic.addEventListener("pointerdown", e => {
+  e.preventDefault(); mic.setPointerCapture(e.pointerId); empezarDictado();
+});
+mic.addEventListener("pointerup", () => pararDictado(false));
+mic.addEventListener("pointercancel", () => pararDictado(true));
+
+/* ---- enviar o tirar lo dictado ---- */
+document.getElementById("chatRevSi").onclick = () => {
+  const t = document.getElementById("chatRevTxt").textContent;
+  verRevision(null);
+  document.getElementById("chatInput").value = t;
+  enviarChat();
+};
+document.getElementById("chatRevNo").onclick = () => {
+  verRevision(null); dictado = ""; aviso("Descartado"); son("aplazar");
+};
+
+/* ---- plan B: grabar y que lo transcriba Gemini ---- */
+async function grabarParaChat(){
+  if(!ajustes.gemini){
+    aviso("Este teléfono no dicta y falta la clave de Gemini");
+    pararDictado(true); return;
+  }
+  try{
+    const señal = await navigator.mediaDevices.getUserMedia({audio:true});
+    grabChat = new MediaRecorder(señal); trozosChat = [];
+    grabChat.ondataavailable = e => trozosChat.push(e.data);
+    grabChat.onstop = async () => {
+      señal.getTracks().forEach(t => t.stop());
+      clearInterval(cronoInt); verGrabando(false); son("fin");
+      const blob = new Blob(trozosChat, { type: grabChat.mimeType || "audio/webm" });
+      grabChat = null;
+      if(cancelado || blob.size < 900) return;
+      trabajando(true);
+      const texto = await transcribirSuelto(blob);
+      trabajando(false);
+      if(texto) verRevision(texto); else aviso("No se entendió");
+    };
+    grabChat.start();
+  }catch(e){ aviso("No se pudo usar el micrófono"); pararDictado(true); }
+}
+
+/* Transcribir un audio suelto, sin convertirlo en tareas. */
+async function transcribirSuelto(blob){
+  try{
+    const base64 = await aBase64(blob);
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+                (ajustes.modelo || MODELO_POR_DEFECTO) +
+                ":generateContent?key=" + encodeURIComponent(ajustes.gemini);
+    const r = await fetch(url, { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ contents:[{ parts:[
+        { text:"Transcribe este audio literalmente. Devuelve solo la transcripción." },
+        { inline_data:{ mime_type: blob.type || "audio/webm", data: base64 } }
+      ]}]})});
+    if(!r.ok) return null;
+    const d = await r.json();
+    const t = (((d.candidates||[])[0]||{}).content||{}).parts
+                ?.map(p=>p.text||"").join(" ").trim();
+    return t && !/^INAUDIBLE$/i.test(t) ? t : null;
+  }catch(e){ return null; }
+}
 document.getElementById("chatFile").onchange = async e => {
+  chatMenu.classList.add("hidden");
   const f = e.target.files[0]; if(!f) return;
   e.target.value = "";
   const texto = await leerAdjuntoChat(f);
@@ -2678,6 +2906,8 @@ async function ejecutarAccionesDelChat(texto){
 
 /* ---- Enviar ---- */
 async function enviarChat(){
+  if(oidorChat){ try{ oidorChat.stop(); }catch(e){} }
+  chatMenu.classList.add("hidden");
   const inp = document.getElementById("chatInput");
   const q = inp.value.trim();
   if((!q && !adjChat) || pensando) return;
