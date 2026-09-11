@@ -332,6 +332,18 @@ html[data-theme="robot"] .marcador{border-radius:0;
   clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   box-shadow:inset 0 0 18px rgba(53,214,232,.06)}
 html[data-theme="robot"] .marcador b{text-shadow:0 0 12px var(--accent)}
+html[data-theme="robot"] .retrato img{border-radius:6px; border-color:var(--accent)}
+html[data-theme="robot"] .retrato .aro{border-radius:10px}
+html[data-theme="robot"] .retrato .halo{border-radius:8px}
+html[data-theme="robot"] .retrato .barrido{border-radius:6px}
+html[data-theme="robot"] .retrato::after{content:""; position:absolute; inset:-13px;
+  border:1px solid rgba(53,214,232,.3); pointer-events:none;
+  clip-path:polygon(0 0,18px 0,18px 1px,1px 1px,1px 18px,0 18px,
+    0 100%,18px 100%,18px calc(100% - 1px),1px calc(100% - 1px),1px calc(100% - 18px),0 calc(100% - 18px),
+    100% 100%,calc(100% - 18px) 100%,calc(100% - 18px) calc(100% - 1px),calc(100% - 1px) calc(100% - 1px),
+    calc(100% - 1px) calc(100% - 18px),100% calc(100% - 18px),
+    100% 0,calc(100% - 18px) 0,calc(100% - 18px) 1px,calc(100% - 1px) 1px,calc(100% - 1px) 18px,100% 18px)}
+html[data-theme="robot"] .hero-n{letter-spacing:.02em}
 html[data-theme="robot"] .chequeo .luz{border-radius:0; box-shadow:0 0 8px currentColor}
 
 /* deslizar: los fondos también en clave de máquina */
@@ -1743,6 +1755,37 @@ function cFilTitular(){
 function dibujarCabecera(){
   const c = document.getElementById("cabHoy"); if(!c) return;
   c.innerHTML = "";
+
+  // ---- El androide, con su estado a la vista ----
+  const hero = document.createElement("div"); hero.className = "hero";
+
+  const ret = document.createElement("div");
+  ret.className = "retrato " + estadoAndroide;
+  ret.id = "retrato";
+  ret.innerHTML = '<img src="icon-512.png" alt=""><span class="aro"></span>' +
+                  '<span class="halo"></span><span class="barrido"></span>';
+  ret.onclick = () => { son("toque"); hablando ? pararLectura() : leerPendientes(); };
+
+  const lado = document.createElement("div");
+  lado.style.flex = "1"; lado.style.minWidth = "0";
+
+  const sal = document.createElement("p"); sal.className = "saludo";
+  sal.textContent = momentoDelDia() + ", " + (ajustes.nombreTuyo || "Mordejai");
+
+  const nm = document.createElement("p"); nm.className = "hero-n";
+  nm.textContent = ajustes.firma || "Mordejai Clonsio";
+
+  const est = document.createElement("p");
+  est.className = "estado-and " + (estadoAndroide === "escuchando" ? "oyendo" :
+                                   estadoAndroide === "reposo" ? "" : "activo");
+  est.innerHTML = '<span class="luz"></span><span class="txt-est"></span>';
+  est.querySelector(".txt-est").textContent = TEXTO_ESTADO[estadoAndroide] || "";
+
+  lado.append(sal, nm, est);
+  hero.append(ret, lado);
+  c.appendChild(hero);
+
+  // ---- El titular del día y el botón de escuchar ----
   const caja = document.createElement("div"); caja.className = "cab-hoy";
   const izq = document.createElement("div"); izq.className = "izq";
 
@@ -1751,11 +1794,7 @@ function dibujarCabecera(){
   izq.appendChild(h);
 
   const sub = document.createElement("p"); sub.className = "bajo-titular";
-  const cFil = mundoDelDia ? ctxDe(mundoDelDia) : null;
-
-  const acc  = resumenActual
-    ? cuantasEnEntrada()
-    : 0;
+  const acc = resumenActual ? cuantasEnEntrada() : 0;
   const base = items.filter(i => !i.hecho && !i.esFuente &&
     (!mundoDelDia || i.ctx === mundoDelDia));
   const paraHoy = base.filter(i => !i.esperandoA && [0,1,6].indexOf(cajonDe(i)) !== -1).length;
@@ -1772,12 +1811,34 @@ function dibujarCabecera(){
 
   const leer = document.createElement("button");
   leer.className = "leer" + (hablando ? " sonando" : "");
-  leer.textContent = hablando ? "■" : "▶";
+  leer.textContent = "";
+  leer.appendChild(icono(hablando ? "ajustes" : "voz", 19));
   leer.setAttribute("aria-label", hablando ? "Parar" : "Escuchar mi día");
   leer.onclick = () => hablando ? pararLectura() : leerPendientes();
 
   caja.append(izq, leer);
   c.appendChild(caja);
+
+  // ---- Los cuatro marcadores ----
+  const hoy0 = new Date(); hoy0.setHours(0,0,0,0);
+  const marcadores = [
+    { n: paraHoy, t: "para hoy", v: "hoy" },
+    { n: mundoDelDia ? 0 : acc, t: "sin decidir", v: "entrada" },
+    { n: base.filter(i => i.esperandoA).length, t: "esperando", v: "hoy" },
+    { n: items.filter(i => i.hecho && !i.esFuente && new Date(i.fecha) >= hoy0).length,
+      t: "hechas hoy", v: "bandeja" }
+  ];
+  const fila = document.createElement("div"); fila.className = "marcadores";
+  marcadores.forEach(m => {
+    const b = document.createElement("button");
+    b.className = "marcador" + (m.n ? "" : " cero");
+    b.innerHTML = "<b></b><span></span>";
+    b.querySelector("b").textContent = m.n;
+    b.querySelector("span").textContent = m.t;
+    b.onclick = () => { if(m.v !== pantallaActual) ir(m.v); };
+    fila.appendChild(b);
+  });
+  c.appendChild(fila);
 }
 
 /* Tira compacta de mundos: un vistazo y un toque para filtrar. */
@@ -2657,7 +2718,8 @@ function androide(estado){
     if(e){
       e.className = "estado-and " + (estado === "escuchando" ? "oyendo" :
                                      estado === "reposo" ? "" : "activo");
-      e.querySelector("span:last-child").textContent = TEXTO_ESTADO[estado];
+      const tx = e.querySelector(".txt-est");
+      if(tx) tx.textContent = TEXTO_ESTADO[estado];
     }
   }
   // "Listo" es un destello, no un estado permanente
