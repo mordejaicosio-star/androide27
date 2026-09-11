@@ -328,6 +328,10 @@ html[data-theme="robot"] .wrap::after{
 
 /* los grupos de Ajustes con cabecera de panel */
 html[data-theme="robot"] .grupo h4::before{content:"▸ "; color:var(--accent)}
+html[data-theme="robot"] .marcador{border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  box-shadow:inset 0 0 18px rgba(53,214,232,.06)}
+html[data-theme="robot"] .marcador b{text-shadow:0 0 12px var(--accent)}
 html[data-theme="robot"] .chequeo .luz{border-radius:0; box-shadow:0 0 8px currentColor}
 
 /* deslizar: los fondos también en clave de máquina */
@@ -373,7 +377,8 @@ header{padding-block:22px 6px}
 .avatar{inline-size:46px; block-size:46px; border-radius:12px; flex:none; object-fit:cover; border:1px solid var(--line)}
 .brand-name{font-family:"Frank Ruhl Libre",serif; font-size:19px; flex:1; line-height:1.25}
 .brand-sub{display:block; font-family:"Assistant",sans-serif; font-size:12.5px; color:var(--muted)}
-.icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px; line-height:1}
+.icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px;
+  line-height:0; display:grid; place-items:center}
 h1{font-size:31px; letter-spacing:-.01em}
 .date{color:var(--muted); font-size:13px; margin:0; text-transform:capitalize}
 
@@ -503,10 +508,7 @@ textarea::placeholder{color:var(--muted)}
 
 /* Mientras grabas, el globo se convierte en esto y nada más */
 .grabando{text-align:center; padding-block:10px 6px}
-.grabando .punto{inline-size:14px; block-size:14px; border-radius:50%;
-  background:var(--danger); margin:0 auto 14px; animation:latir 1.3s ease-in-out infinite}
-@keyframes latir{50%{opacity:.25; transform:scale(.8)}}
-@media (prefers-reduced-motion:reduce){.grabando .punto{animation:none}}
+.grabando canvas{inline-size:100%; block-size:96px; display:block; margin-block-end:6px}
 .grabando .reloj{font-family:"Frank Ruhl Libre",serif; font-size:38px; line-height:1;
   margin:0 0 6px}
 .grabando .dice{font-size:13.5px; color:var(--muted); margin:0 0 18px}
@@ -526,10 +528,20 @@ textarea::placeholder{color:var(--muted)}
 
 /* ---------- AJUSTES ------------------------------------------------ */
 .grupo{background:var(--surface); border:1px solid var(--line);
-  border-radius:16px; padding:16px 16px 6px; margin-block-end:14px}
-.grupo h4{font-family:"Assistant",sans-serif; font-size:11.5px; font-weight:600;
-  text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
-  margin:0 0 14px}
+  border-radius:16px; margin-block-end:10px; overflow:hidden}
+.grupo > h4{display:flex; align-items:center; gap:13px; margin:0;
+  padding:15px 16px; font-family:"Assistant",sans-serif; font-size:15px;
+  font-weight:500; color:var(--text); cursor:pointer; text-transform:none;
+  letter-spacing:0}
+.grupo > h4 .gi{inline-size:38px; block-size:38px; border-radius:11px; flex:none;
+  background:var(--raised); color:var(--accent); display:grid; place-items:center}
+.grupo > h4 .gt{flex:1; min-width:0}
+.grupo > h4 .gt small{display:block; font-size:12px; color:var(--muted);
+  margin-block-start:2px; font-weight:400}
+.grupo > h4 .gf{color:var(--muted); flex:none; transition:transform .22s}
+.grupo.abierto > h4 .gf{transform:rotate(90deg)}
+.grupo .dentro-g{display:none; padding:2px 16px 10px}
+.grupo.abierto .dentro-g{display:block; animation:entra .2s ease both}
 .campo{margin-block-end:15px}
 .campo label{display:block; font-size:13.5px; color:var(--muted); margin-block-end:6px}
 .campo input, .campo select{inline-size:100%; background:var(--bg); color:var(--text);
@@ -577,12 +589,27 @@ nav{position:fixed; inset-block-end:0; inset-inline:0; z-index:30; background:va
   border-block-start:1px solid var(--line); display:flex; padding-block-end:env(safe-area-inset-bottom)}
 nav button{flex:1; padding:11px 0 13px; font-size:11px; color:var(--muted); text-align:center}
 nav button{position:relative}
-nav button b{display:block; font-size:17px; font-weight:400; margin-block-end:2px}
+nav button b{display:block; margin-block-end:3px; line-height:0}
 .chapa{position:absolute; inset-block-start:6px; inset-inline-start:50%;
   margin-inline-start:6px; background:var(--accent); color:var(--accent-ink);
   font-style:normal; font-size:10.5px; font-weight:700; min-inline-size:17px;
   block-size:17px; border-radius:99px; display:grid; place-items:center; padding-inline:4px}
 nav button[aria-current="page"]{color:var(--accent)}
+nav .guia{position:absolute; inset-block-start:0; block-size:2px; background:var(--accent);
+  border-radius:2px; transition:transform .28s cubic-bezier(.2,.8,.2,1), inline-size .28s;
+  box-shadow:0 0 10px var(--accent)}
+
+/* el contenido entra, no aparece de golpe */
+main.entrando{animation:entra .24s cubic-bezier(.2,.8,.2,1) both}
+@keyframes entra{ from{opacity:0; transform:translateY(10px)} }
+main.entrando-izq{animation:entraIzq .24s cubic-bezier(.2,.8,.2,1) both}
+@keyframes entraIzq{ from{opacity:0; transform:translateX(-16px)} }
+main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
+@keyframes entraDer{ from{opacity:0; transform:translateX(16px)} }
+@media (prefers-reduced-motion:reduce){
+  main.entrando, main.entrando-izq, main.entrando-der{animation:none}
+  nav .guia{transition:none}
+}
 
 
 /* ---------- PANTALLA DE ENTRADA ------------------------------------ */
@@ -596,6 +623,16 @@ nav button[aria-current="page"]{color:var(--accent)}
 #intro small{color:var(--muted); font-size:13px; margin-block-start:-12px}
 
 /* ---------- CABECERA DE HOY ---------------------------------------- */
+.saludo{font-size:13px; color:var(--muted); margin:0 0 5px;
+  text-transform:uppercase; letter-spacing:.06em}
+.marcadores{display:flex; gap:8px; margin-block:16px 2px}
+.marcador{flex:1; border:1px solid var(--line); border-radius:13px;
+  padding:11px 6px 9px; text-align:center; background:var(--surface)}
+.marcador b{display:block; font-family:"Frank Ruhl Libre",serif; font-weight:500;
+  font-size:23px; line-height:1}
+.marcador span{display:block; font-size:10.5px; color:var(--muted);
+  margin-block-start:4px; letter-spacing:.02em}
+.marcador.cero{opacity:.4}
 .cab-hoy{display:flex; align-items:flex-start; gap:14px; margin-block:2px 4px}
 .cab-hoy .izq{flex:1; min-width:0}
 .titular{font-family:"Frank Ruhl Libre",serif; font-size:23px; line-height:1.3;
@@ -607,7 +644,33 @@ nav button[aria-current="page"]{color:var(--accent)}
 .leer.sonando{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
 
 /* tira compacta de mundos */
-.tira{display:flex; gap:7px; overflow-x:auto; margin-block:18px 4px;
+.modo-vista{display:flex; gap:6px; margin-block:18px 0}
+.mv{inline-size:42px; block-size:34px; border:1px solid var(--line); border-radius:10px;
+  color:var(--muted); display:grid; place-items:center}
+.mv.activo{background:var(--raised); color:var(--accent); border-color:var(--accent)}
+
+/* ---------- CALENDARIO --------------------------------------------- */
+.cal-cab{display:flex; align-items:center; gap:10px; margin-block:14px 10px}
+.cal-cab h3{flex:1; font-size:17px; text-transform:capitalize}
+.cal-nav{inline-size:32px; block-size:32px; border:1px solid var(--line);
+  border-radius:9px; color:var(--muted); display:grid; place-items:center}
+.semana{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-block-end:16px}
+.dia{aspect-ratio:1/1.15; border:1px solid var(--line); border-radius:11px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:3px; background:var(--surface); padding:2px}
+.dia .dl{font-size:9.5px; color:var(--muted); text-transform:uppercase}
+.dia .dn{font-size:15px; font-family:"Frank Ruhl Libre",serif}
+.dia .pts{display:flex; gap:2px; block-size:5px}
+.dia .pts i{inline-size:4px; block-size:4px; border-radius:50%; background:var(--m)}
+.dia.hoy{border-color:var(--accent)}
+.dia.hoy .dn{color:var(--accent)}
+.dia.elegido{background:var(--accent); border-color:var(--accent)}
+.dia.elegido .dn, .dia.elegido .dl{color:var(--accent-ink)}
+.dia.finde{opacity:.5}
+.cal-dia-t{font-size:13px; color:var(--muted); margin-block:4px 10px;
+  text-transform:capitalize}
+
+.tira{display:flex; gap:7px; overflow-x:auto; margin-block:14px 4px;
   padding-block-end:3px; scrollbar-width:none}
 .tira::-webkit-scrollbar{display:none}
 .pill{border:1px solid var(--line); border-radius:999px; padding:6px 13px;
@@ -628,11 +691,20 @@ nav button[aria-current="page"]{color:var(--accent)}
   margin-block-end:10px; border-inline-start:3px solid var(--m,var(--sin));
   animation:in .25s ease both}
 .tarjeta.p1{box-shadow:0 1px 0 var(--line), 0 6px 22px rgba(0,0,0,.10)}
-.tarjeta .arriba{display:flex; align-items:center; gap:8px; margin-block-end:8px}
-.tarjeta .etq{font-size:11px; padding:2px 9px; border-radius:999px;
-  background:var(--m); color:#fff; font-weight:600; letter-spacing:.02em}
+.tarjeta .arriba{display:flex; align-items:center; gap:11px; margin-block-end:11px}
+.tarjeta .remitente{inline-size:38px; block-size:38px; border-radius:50%; flex:none;
+  background:var(--m); color:#fff; display:grid; place-items:center;
+  font-size:16px; font-weight:600}
+.tarjeta .quien{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
+.tarjeta .quien b{font-size:14px; font-weight:600; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap}
+.tarjeta .quien small{font-size:12px; color:var(--muted); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap}
+.tarjeta .etq{font-size:10.5px; padding:2px 8px; border-radius:999px;
+  background:var(--m); color:#fff; font-weight:600; letter-spacing:.02em;
+  margin-inline-end:8px; vertical-align:2px}
 .tarjeta .plazo{font-size:12px; color:var(--accent); font-weight:600}
-.tarjeta .tit{font-size:16px; line-height:1.35; margin:0}
+.tarjeta .tit{font-size:15.5px; line-height:1.45; margin:0}
 .tarjeta .porque{font-size:13.5px; color:var(--muted); margin:7px 0 0; line-height:1.45}
 .tarjeta .accion{font-size:13.5px; margin:9px 0 0; padding-inline-start:11px;
   border-inline-start:2px solid var(--line)}
@@ -756,26 +828,33 @@ nav button[aria-current="page"]{color:var(--accent)}
   background:var(--accent); color:var(--accent-ink); font-size:17px}
 .chat-caja button:disabled{opacity:.4}
 
-/* filas del plan del día */
-.swipe{position:relative; overflow:hidden; border-block-end:1px solid var(--line)}
-.swipe:last-child{border-block-end:none}
+/* ---------- TARJETA DE TAREA --------------------------------------- */
+.swipe{position:relative; overflow:hidden; margin-block-end:8px; border-radius:14px}
 .swipe .tras{position:absolute; inset:0; display:flex; align-items:center;
   padding-inline:20px; font-size:14px; font-weight:600; opacity:0; pointer-events:none}
 .swipe .tras.hecho{background:var(--familia); color:#fff; justify-content:flex-start}
 .swipe .tras.aplaza{background:var(--grand); color:#fff; justify-content:flex-end}
-.swipe .plan-fila{position:relative; background:var(--bg); touch-action:pan-y}
-.seccion.urgente h3{color:var(--danger)}
-.meta.tarde{color:var(--danger)}
-.plan-fila{inline-size:100%; text-align:start; display:flex; gap:12px;
-  align-items:flex-start; padding:15px 4px}
-.plan-fila .bolita{inline-size:19px; block-size:19px; border:1.5px solid var(--line);
-  border-radius:6px; flex:none; margin-block-start:1px}
-.plan-fila .cont{flex:1; min-width:0}
-.plan-fila .t{display:block; font-size:15.5px; line-height:1.4}
-.plan-fila .meta{display:block; font-size:12.5px; color:var(--muted);
-  margin-block-start:4px}
-.plan-fila .meta::before{content:""; display:inline-block; inline-size:7px;
-  block-size:7px; border-radius:50%; background:var(--m); margin-inline-end:7px}
+
+.tarea{position:relative; inline-size:100%; text-align:start; display:flex;
+  align-items:center; gap:12px; padding:13px 14px; background:var(--surface);
+  border:1px solid var(--line); border-inline-start:3px solid var(--m);
+  border-radius:14px; touch-action:pan-y}
+.tarea .marca{inline-size:22px; block-size:22px; border:1.5px solid var(--line);
+  border-radius:50%; flex:none; display:grid; place-items:center; color:transparent}
+.tarea .ico{inline-size:38px; block-size:38px; border-radius:11px; flex:none;
+  display:grid; place-items:center; color:var(--m); background:var(--raised)}
+.tarea .cuerpo{flex:1; min-width:0}
+.tarea .t{display:block; font-size:15px; line-height:1.35; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap}
+.tarea .meta{display:flex; align-items:center; gap:6px; font-size:12px;
+  color:var(--muted); margin-block-start:4px}
+.tarea .meta .pt{inline-size:6px; block-size:6px; border-radius:50%;
+  background:var(--m); flex:none}
+.tarea .meta .de{opacity:.75}
+.tarea .der{font-size:12.5px; color:var(--muted); flex:none; text-align:end;
+  min-inline-size:42px}
+.tarea .der.tarde{color:var(--danger); font-weight:600}
+.tarea .der.ahora{color:var(--accent); font-weight:600}
 
 /* lista de mundos con sus capturas */
 .mundo{border-block-end:1px solid var(--line)}
@@ -841,7 +920,12 @@ nav button[aria-current="page"]{color:var(--accent)}
   <!-- HOY: el plan del día. Lo que tienes que hacer. -->
   <main id="view-hoy">
     <div id="cabHoy"></div>
+    <div class="modo-vista">
+      <button id="modoLista" class="mv activo"></button>
+      <button id="modoCal" class="mv"></button>
+    </div>
     <div id="tira" class="tira"></div>
+    <div id="calendario" class="hidden"></div>
     <div id="plan"></div>
   </main>
 
@@ -892,6 +976,7 @@ nav button[aria-current="page"]{color:var(--accent)}
 
     <section class="grupo">
       <h4>Identidad</h4>
+      <div class="dentro-g">
       <div class="campo">
         <label for="nameInput">Nombre de la app</label>
         <input id="nameInput" type="text" placeholder="Androide 27">
@@ -901,10 +986,12 @@ nav button[aria-current="page"]{color:var(--accent)}
         <input id="firmaInput" type="text" placeholder="Mordejai Clonsio">
         <p class="hint">Con este nombre firma tus repasos y te habla.</p>
       </div>
+      </div>
     </section>
 
     <section class="grupo">
       <h4>Apariencia</h4>
+      <div class="dentro-g">
       <div class="campo">
         <div class="seg" id="themeSeg">
           <button data-t="auto" aria-pressed="true">Auto</button>
@@ -914,13 +1001,21 @@ nav button[aria-current="page"]{color:var(--accent)}
         </div>
         <p class="hint">El modo Androide es el de la máquina: rejilla, luces y tipografía de terminal.</p>
       </div>
+      </div>
     </section>
 
     <section class="grupo">
       <h4>Voz</h4>
+      <div class="dentro-g">
       <div class="campo">
         <label for="vozSel">Voz que te lee el día</label>
         <select id="vozSel"><option value="">La que traiga el teléfono</option></select>
+      </div>
+      <div class="campo">
+        <label class="linea-op">
+          <input type="checkbox" id="sonidoOp">
+          <span>Sonidos al confirmar, grabar y recibir</span>
+        </label>
       </div>
       <div class="campo">
         <label class="linea-op">
@@ -942,10 +1037,12 @@ nav button[aria-current="page"]{color:var(--accent)}
         <button class="ghost" id="refrescarVoces">Buscar voces</button>
       </div>
       <p class="hint">Las voces vienen de Android. Si no ves ninguna de hombre, descárgalas en Ajustes de Android → Texto a voz → Instalar datos de voz → Español.</p>
+      </div>
     </section>
 
     <section class="grupo">
       <h4>Conexión con el motor</h4>
+      <div class="dentro-g">
       <div class="campo">
         <label for="endpointInput">Dirección</label>
         <input id="endpointInput" type="url" placeholder="La que termina en /exec">
@@ -955,10 +1052,12 @@ nav button[aria-current="page"]{color:var(--accent)}
         <input id="tokenInput" type="password" placeholder="La misma que pusiste en TOKEN">
         <p class="hint">Sin estas dos, la app no puede hablar con el motor: ni repaso, ni chat, ni capturas.</p>
       </div>
+      </div>
     </section>
 
     <section class="grupo">
       <h4>Transcripción de audios</h4>
+      <div class="dentro-g">
       <div class="campo">
         <label for="geminiInput">Clave de Google AI Studio</label>
         <input id="geminiInput" type="password" placeholder="Pega aquí tu clave">
@@ -971,16 +1070,20 @@ nav button[aria-current="page"]{color:var(--accent)}
         <button class="ghost" id="buscarModelos">Buscar modelos</button>
       </div>
       <p class="hint">Google apaga modelos cada cierto tiempo. Si la transcripción falla diciendo que el modelo no existe, vuelve aquí y elige otro con "flash" en el nombre.</p>
+      </div>
     </section>
 
     <section class="grupo">
       <h4>Revisión del sistema</h4>
+      <div class="dentro-g">
       <div id="revision"><p class="hint">Toca revisar para comprobar que cada pieza está viva.</p></div>
       <div class="fila-btn"><button class="ghost" id="revisarBtn">Revisar ahora</button></div>
+      </div>
     </section>
 
     <section class="grupo">
       <h4>Lo que he ocultado</h4>
+      <div class="dentro-g">
       <p class="hint">Aquí está todo lo que has quitado de tu vista, y puedes devolverlo cuando quieras. Nada de esto borra correos.</p>
 
       <p class="sub-t">Quitado con "Hoy no"</p>
@@ -990,10 +1093,12 @@ nav button[aria-current="page"]{color:var(--accent)}
       <p class="sub-t">Bloqueado con "Nunca más"</p>
       <div id="listaBloqueos"><p class="hint">Toca revisar para verlos.</p></div>
       <div class="fila-btn"><button class="ghost" id="verBloqueos">Ver bloqueados</button></div>
+      </div>
     </section>
 
     <section class="grupo">
       <h4>Espacio y copias</h4>
+      <div class="dentro-g">
       <div class="campo">
         <p class="hint" id="espacio">Calculando…</p>
         <div class="bar"><i id="espacioBar"></i></div>
@@ -1003,6 +1108,7 @@ nav button[aria-current="page"]{color:var(--accent)}
         <button class="ghost" id="copyBtn">Copiar como texto</button>
       </div>
       <p class="hint">Las fotos y audios no entran en la copia. Lo que importa —su transcripción y lo que salió de ellos— sí.</p>
+      </div>
     </section>
 
   </main>
@@ -1026,7 +1132,7 @@ nav button[aria-current="page"]{color:var(--accent)}
     <div class="asa"></div>
 
     <div class="grabando hidden" id="grabando">
-      <div class="punto"></div>
+      <canvas id="onda" width="600" height="130"></canvas>
       <p class="reloj" id="reloj">0:00</p>
       <p class="dice">Te escucho. La papelera lo descarta sin guardar nada.</p>
       <div class="grab-botones">
@@ -1076,11 +1182,12 @@ nav button[aria-current="page"]{color:var(--accent)}
 <button class="fab" id="fab" aria-label="Capturar algo">+</button>
 
 <nav>
-  <button data-v="hoy" aria-current="page"><b>◈</b>Hoy</button>
-  <button data-v="entrada"><b>✉</b>Entrada<i class="chapa hidden" id="chapa"></i></button>
-  <button data-v="chat"><b>✦</b>Chat</button>
-  <button data-v="bandeja"><b>≡</b>Historia</button>
-  <button data-v="ajustes"><b>⚙</b>Ajustes</button>
+  <i class="guia" id="guia"></i>
+  <button data-v="hoy" aria-current="page" data-i="hoy"><b></b>Hoy</button>
+  <button data-v="entrada" data-i="entrada"><b></b>Entrada<i class="chapa hidden" id="chapa"></i></button>
+  <button data-v="chat" data-i="chat"><b></b>Chat</button>
+  <button data-v="bandeja" data-i="historia"><b></b>Historia</button>
+  <button data-v="ajustes" data-i="ajustes"><b></b>Ajustes</button>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -1228,8 +1335,11 @@ function dibujarPanel(){
   dibujarTira();
   dibujarChapa();
 
+  dibujarCalendario();
+
   const p = document.getElementById("plan"); if(!p) return;
   p.innerHTML = "";
+  if(verCalendario) return;   // en modo calendario, la lista no se muestra
 
   // Si hay cosas del correo sin decidir, lo primero es avisarte.
   const porDecidir = mundoDelDia ? 0 : cuantasEnEntrada();
@@ -1401,52 +1511,66 @@ function filaPlan(it, esEspera){
   const fondoDer = document.createElement("div"); fondoDer.className = "tras aplaza";
   fondoDer.innerHTML = "<span>Mañana ↻</span>";
 
-  const b = document.createElement("button"); b.className = "plan-fila";
+  const b = document.createElement("button"); b.className = "tarea";
   b.style.setProperty("--m", c ? c.color : "var(--sin)");
 
-  const bol = document.createElement("span"); bol.className = "bolita";
-  const cont = document.createElement("span"); cont.className = "cont";
+  // la casilla, a la izquierda del todo
+  const marca = document.createElement("span"); marca.className = "marca";
+  marca.appendChild(icono("hoy", 13));
 
-  const partes = (it.texto || it.transcripcion || "Sin texto").split(" — ");
+  // el icono que dice de qué va esto
+  const ico = document.createElement("span"); ico.className = "ico";
+  ico.appendChild(icono(iconoDe(it), 19));
+
+  const cuerpo = document.createElement("span"); cuerpo.className = "cuerpo";
   const t = document.createElement("span"); t.className = "t";
-  t.textContent = partes[0];
-  cont.appendChild(t);
+  t.textContent = (it.texto || it.transcripcion || "Sin texto").split(" — ")[0];
+  cuerpo.appendChild(t);
 
   const meta = document.createElement("span"); meta.className = "meta";
-  const trozos = [c ? c.nombre : "Sin mundo"];
+  const punto = document.createElement("i"); punto.className = "pt";
+  meta.appendChild(punto);
+  const quien = document.createElement("span");
+  quien.textContent = esEspera
+    ? "Esperas a " + it.esperandoA
+    : (c ? c.nombre : "Sin mundo");
+  meta.appendChild(quien);
+  if(it.origen && it.origen !== "escrito"){
+    const o = document.createElement("span"); o.className = "de";
+    o.textContent = "·  " + it.origen; meta.appendChild(o);
+  }
+  cuerpo.appendChild(meta);
+
+  // a la derecha, cuándo
+  const der = document.createElement("span"); der.className = "der";
   if(esEspera){
     const d = diasDesde(it.esperandoDesde);
-    trozos.push("esperas a " + it.esperandoA + (d > 0 ? " · hace " + d + (d === 1 ? " día" : " días") : ""));
+    der.textContent = d > 0 ? "hace " + d + "d" : "hoy";
+    if(d >= 4) der.classList.add("tarde");
   } else if(it.vence){
-    trozos.push(comoSuena(it.vence));
-  } else if(it.cuandoTexto || partes[1]){
-    trozos.push(it.cuandoTexto || partes[1]);
+    der.textContent = textoCorto(it.vence);
+    if(cajonDe(it) === 0) der.classList.add("tarde");
+    else if(cajonDe(it) === 1) der.classList.add("ahora");
+  } else if(it.cuandoTexto){
+    der.textContent = it.cuandoTexto;
   }
-  meta.textContent = trozos.join("  ·  ");
-  if(it.vence && cajonDe(it) === 0) meta.classList.add("tarde");
-  if(esEspera && diasDesde(it.esperandoDesde) >= 4) meta.classList.add("tarde");
-  cont.appendChild(meta);
 
-  b.append(bol, cont);
+  b.append(marca, ico, cuerpo, der);
   env.append(fondoIzq, fondoDer, b);
 
-  // ---- tocar para tachar ----
   b.onclick = () => {
     if(env.dataset.deslizando === "si"){ env.dataset.deslizando = ""; return; }
     completar(it);
   };
 
-  // ---- deslizar ----
   let x0 = null, dx = 0;
   const LIMITE = 96;
-
   b.addEventListener("pointerdown", e => {
     if(e.pointerType === "mouse" && e.button !== 0) return;
     x0 = e.clientX; dx = 0;
     b.style.transition = "none";
     b.setPointerCapture(e.pointerId);
   });
-
   b.addEventListener("pointermove", e => {
     if(x0 === null) return;
     dx = e.clientX - x0;
@@ -1455,31 +1579,36 @@ function filaPlan(it, esEspera){
     fondoIzq.style.opacity = dx > 0 ? Math.min(1, dx / LIMITE) : 0;
     fondoDer.style.opacity = dx < 0 ? Math.min(1, -dx / LIMITE) : 0;
   });
-
   const soltar = () => {
     if(x0 === null) return;
     b.style.transition = "transform .22s ease";
     const paso = Math.abs(dx) >= LIMITE;
-    if(paso && dx > 0){
-      b.style.transform = "translateX(110%)";
-      setTimeout(() => completar(it), 160);
-    } else if(paso && dx < 0){
-      b.style.transform = "translateX(-110%)";
-      setTimeout(() => aplazar(it), 160);
-    } else {
-      b.style.transform = "translateX(0)";
-      fondoIzq.style.opacity = 0; fondoDer.style.opacity = 0;
-    }
+    if(paso && dx > 0){ b.style.transform = "translateX(110%)"; setTimeout(() => completar(it), 160); }
+    else if(paso && dx < 0){ b.style.transform = "translateX(-110%)"; setTimeout(() => aplazar(it), 160); }
+    else { b.style.transform = "translateX(0)"; fondoIzq.style.opacity = 0; fondoDer.style.opacity = 0; }
     x0 = null;
     setTimeout(() => { env.dataset.deslizando = ""; }, 250);
   };
   b.addEventListener("pointerup", soltar);
   b.addEventListener("pointercancel", soltar);
-
   return env;
 }
 
+/* Versión corta de la fecha para la esquina derecha. */
+function textoCorto(iso){
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const d = new Date(iso + "T00:00:00");
+  const dias = Math.round((d - hoy) / 86400000);
+  if(dias === 0) return "hoy";
+  if(dias === 1) return "mañana";
+  if(dias === -1) return "ayer";
+  if(dias < 0) return "-" + Math.abs(dias) + "d";
+  if(dias < 7) return d.toLocaleDateString("es",{weekday:"short"}).replace(".","");
+  return d.getDate() + " " + d.toLocaleDateString("es",{month:"short"}).replace(".","");
+}
+
 function completar(it){
+  son("hecho");
   it.hecho = true; guardar("items", items); dibujar();
   avisarEstado(it, "hecho");
   avisoConDeshacer("Hecho", () => {
@@ -1489,6 +1618,7 @@ function completar(it){
 }
 
 function aplazar(it){
+  son("aplazar");
   const antes = it.vence;
   const base = it.vence ? new Date(it.vence + "T00:00:00") : new Date();
   base.setDate(base.getDate() + 1);
@@ -1548,6 +1678,14 @@ function ponerTitular(el, texto){
   }, 28);
 }
 
+function momentoDelDia(){
+  const h = new Date().getHours();
+  if(h < 6)  return "Buenas noches";
+  if(h < 13) return "Buenos días";
+  if(h < 20) return "Buenas tardes";
+  return "Buenas noches";
+}
+
 function cFilTitular(){
   if(mundoDelDia){
     const c = ctxDe(mundoDelDia);
@@ -1567,6 +1705,10 @@ function dibujarCabecera(){
   const h = document.createElement("h2"); h.className = "titular";
   ponerTitular(h, cFilTitular());
   izq.appendChild(h);
+
+  const saludo = document.createElement("p"); saludo.className = "saludo";
+  saludo.textContent = momentoDelDia() + ", " + (ajustes.nombreTuyo || "Mordejai");
+  izq.insertBefore(saludo, izq.firstChild);
 
   const sub = document.createElement("p"); sub.className = "bajo-titular";
   const cFil = mundoDelDia ? ctxDe(mundoDelDia) : null;
@@ -1599,6 +1741,100 @@ function dibujarCabecera(){
 }
 
 /* Tira compacta de mundos: un vistazo y un toque para filtrar. */
+/* ====================================================================
+   Calendario
+   La misma información de Hoy, pero repartida por días. Sirve para
+   mirar la semana de un vistazo y para saber qué cae cada día.
+==================================================================== */
+let verCalendario = false;
+let semanaBase = null;      // domingo de la semana que estás mirando
+let diaElegido = null;      // día concreto que estás mirando
+
+function domingoDe(d){
+  const x = new Date(d); x.setHours(0,0,0,0);
+  x.setDate(x.getDate() - x.getDay());
+  return x;
+}
+
+function dibujarCalendario(){
+  const c = document.getElementById("calendario"); if(!c) return;
+  c.innerHTML = "";
+  if(!verCalendario){ c.classList.add("hidden"); return; }
+  c.classList.remove("hidden");
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  if(!semanaBase) semanaBase = domingoDe(hoy);
+  if(!diaElegido) diaElegido = aISO(hoy);
+
+  // cabecera con el mes y las flechas
+  const cab = document.createElement("div"); cab.className = "cal-cab";
+  const atras = document.createElement("button"); atras.className = "cal-nav";
+  atras.appendChild(icono("flecha", 15));
+  atras.style.transform = "scaleX(-1)";
+  atras.onclick = () => { semanaBase.setDate(semanaBase.getDate() - 7); dibujarPanel(); };
+
+  const h = document.createElement("h3");
+  h.textContent = semanaBase.toLocaleDateString("es", {month:"long", year:"numeric"});
+
+  const alante = document.createElement("button"); alante.className = "cal-nav";
+  alante.appendChild(icono("flecha", 15));
+  alante.onclick = () => { semanaBase.setDate(semanaBase.getDate() + 7); dibujarPanel(); };
+
+  cab.append(atras, h, alante);
+  c.appendChild(cab);
+
+  // los siete días
+  const pendientes = items.filter(i => !i.hecho && !i.esFuente &&
+    (!mundoDelDia || i.ctx === mundoDelDia));
+  const letras = ["D","L","M","X","J","V","S"];
+  const rejilla = document.createElement("div"); rejilla.className = "semana";
+
+  for(let i = 0; i < 7; i++){
+    const d = new Date(semanaBase); d.setDate(d.getDate() + i);
+    const iso = aISO(d);
+    const delDia = pendientes.filter(x => x.vence === iso);
+
+    const b = document.createElement("button");
+    b.className = "dia" + (iso === aISO(hoy) ? " hoy" : "") +
+                  (iso === diaElegido ? " elegido" : "") +
+                  (i === 6 ? " finde" : "");
+    b.innerHTML = '<span class="dl"></span><span class="dn"></span><span class="pts"></span>';
+    b.querySelector(".dl").textContent = letras[i];
+    b.querySelector(".dn").textContent = d.getDate();
+
+    const pts = b.querySelector(".pts");
+    const mundos = [...new Set(delDia.map(x => x.ctx))].slice(0, 3);
+    mundos.forEach(m => {
+      const cc = ctxDe(m);
+      const p = document.createElement("i");
+      p.style.setProperty("--m", cc ? cc.color : "var(--sin)");
+      pts.appendChild(p);
+    });
+
+    b.onclick = () => { diaElegido = iso; son("toque"); dibujarPanel(); };
+    rejilla.appendChild(b);
+  }
+  c.appendChild(rejilla);
+
+  // lo que cae en el día elegido
+  const elegido = new Date(diaElegido + "T00:00:00");
+  const t = document.createElement("p"); t.className = "cal-dia-t";
+  t.textContent = elegido.toLocaleDateString("es",
+    {weekday:"long", day:"numeric", month:"long"});
+  c.appendChild(t);
+
+  const delDia = pendientes.filter(x => x.vence === diaElegido);
+  if(!delDia.length){
+    const v = document.createElement("p"); v.className = "vacio-hoy";
+    v.textContent = elegido.getDay() === 6
+      ? "Shabbat. Nada agendado, como debe ser."
+      : "Nada agendado para este día.";
+    c.appendChild(v);
+  } else {
+    delDia.forEach(it => c.appendChild(filaPlan(it)));
+  }
+}
+
 /* La tira filtra el propio plan: tocas un mundo y Hoy se convierte en
    el plan de ese mundo, con sus mismos grupos por fecha. Tocas otra
    vez y vuelves a verlo todo. */
@@ -1773,18 +2009,32 @@ function tarjeta(it){
   // aportar: vive en la Bandeja. Aquí desaparece para no repetirse.
   if(items.some(i => i.texto === it.titulo)) return null;
 
+  // cabecera al estilo de una bandeja: quién, asunto y cuándo
   const arriba = document.createElement("div"); arriba.className = "arriba";
-  const etq = document.createElement("span"); etq.className = "etq";
-  etq.textContent = it.mundo || "Sin mundo";
-  arriba.appendChild(etq);
-  if(it.cuando){
+
+  const circulo = document.createElement("span"); circulo.className = "remitente";
+  circulo.textContent = (it.de || "?").trim().charAt(0).toUpperCase();
+  arriba.appendChild(circulo);
+
+  const quien = document.createElement("span"); quien.className = "quien";
+  const n1 = document.createElement("b"); n1.textContent = it.de || "Sin remitente";
+  const n2 = document.createElement("small"); n2.textContent = it.asunto || "";
+  quien.append(n1, n2);
+  arriba.appendChild(quien);
+
+  if(it.cuando || it.vence){
     const pl = document.createElement("span"); pl.className = "plazo";
-    pl.textContent = it.cuando; arriba.appendChild(pl);
+    pl.textContent = it.vence ? textoCorto(it.vence) : it.cuando;
+    arriba.appendChild(pl);
   }
   d.appendChild(arriba);
 
   const tit = document.createElement("p"); tit.className = "tit";
-  tit.textContent = it.titulo || ""; d.appendChild(tit);
+  const et = document.createElement("span"); et.className = "etq";
+  et.textContent = it.mundo || "Sin mundo";
+  tit.appendChild(et);
+  tit.appendChild(document.createTextNode(it.titulo || ""));
+  d.appendChild(tit);
 
   if(it.porQue){
     const pq = document.createElement("p"); pq.className = "porque";
@@ -1795,8 +2045,10 @@ function tarjeta(it){
     ac.textContent = it.accion; d.appendChild(ac);
   }
 
-  const f = document.createElement("div"); f.className = "fuente";
-  f.textContent = fuenteDe(it); d.appendChild(f);
+  if(it.cuenta){
+    const f = document.createElement("div"); f.className = "fuente";
+    f.textContent = "llegó a " + it.cuenta; d.appendChild(f);
+  }
 
   const bs = document.createElement("div"); bs.className = "botones";
   const add = document.createElement("button");
@@ -2153,6 +2405,7 @@ async function enviarChat(){
                      : "No pude responder: " + (d.error || "error del motor");
 
     // Si además de responder pidió hacer algo, lo hacemos y se lo confirmamos.
+    son("llega");
     const hechas = await ejecutarAccionesDelChat(texto);
     texto = texto.replace(/<<<ACCIONES[\s\S]*?ACCIONES>>>/g, "").trim();
     if(hechas.length) texto += "\n\n" + hechas.map(h => "✓ " + h).join("\n");
@@ -2170,6 +2423,71 @@ async function enviarChat(){
   guardar("chats", chats);
   dibujarChat();
   window.scrollTo(0, document.body.scrollHeight);
+}
+
+/* ====================================================================
+   Iconos
+   Dibujados a trazo, heredan el color de donde estén. Un icono por
+   tipo de cosa, para que la lista se lea de un vistazo sin leer.
+==================================================================== */
+const ICONOS = {
+  correo:   '<path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/>',
+  voz:      '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+  foto:     '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m3 17 5-4 4 3 3-2 6 5"/>',
+  nota:     '<path d="M5 3h11l3 3v15H5z"/><path d="M8 9h8M8 13h8M8 17h5"/>',
+  chat:     '<path d="M4 5h16v11H9l-5 4z"/>',
+  familia:  '<path d="m3 11 9-7 9 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/>',
+  trabajo:  '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>',
+  obra:     '<path d="M3 21h18"/><path d="M6 21V8l6-4 6 4v13"/><path d="M10 21v-6h4v6"/>',
+  dinero:   '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4"/>',
+  persona:  '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.6 3-6 7-6s7 2.4 7 6"/>',
+  reloj:    '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2.5"/>',
+  espera:   '<path d="M7 3h10M7 21h10"/><path d="M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/>',
+  calendario:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  lista:    '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+  ajustes:  '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.6 1.6 0 0 0 .32 1.77l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.6 1.6 0 0 0 15 19.4a1.6 1.6 0 0 0-1 1.47V21a2 2 0 1 1-4 0v-.09A1.6 1.6 0 0 0 9 19.4a1.6 1.6 0 0 0-1.77.32l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.6 1.6 0 0 0 4.6 15a1.6 1.6 0 0 0-1.47-1H3a2 2 0 1 1 0-4h.09A1.6 1.6 0 0 0 4.6 9a1.6 1.6 0 0 0-.32-1.77l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.6 1.6 0 0 0 9 4.6a1.6 1.6 0 0 0 1-1.47V3a2 2 0 1 1 4 0v.09A1.6 1.6 0 0 0 15 4.6a1.6 1.6 0 0 0 1.77-.32l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.6 1.6 0 0 0 19.4 9v0a1.6 1.6 0 0 0 1.47 1H21a2 2 0 1 1 0 4h-.09a1.6 1.6 0 0 0-1.47 1z"/>',
+  hoy:      '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 2"/>',
+  entrada:  '<path d="M4 13h4l2 3h4l2-3h4"/><path d="M6 4h12l3 9v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z"/>',
+  historia: '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/>',
+  buscar:   '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>',
+  mas:      '<path d="M12 5v14M5 12h14"/>',
+  flecha:   '<path d="m9 5 7 7-7 7"/>',
+  identidad:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.4"/><path d="M5.5 17c.6-1.8 2-2.6 3.5-2.6s2.9.8 3.5 2.6M15 10h4M15 14h3"/>',
+  paleta:   '<path d="M12 3a9 9 0 1 0 0 18c1 0 1.6-.7 1.6-1.5 0-.5-.2-.8-.5-1.2-.3-.3-.4-.6-.4-1 0-.8.7-1.4 1.5-1.4H16a5 5 0 0 0 5-5c0-4-4-8-9-8z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/>',
+  enchufe:  '<path d="M9 3v6M15 3v6"/><path d="M6 9h12v3a6 6 0 0 1-12 0z"/><path d="M12 18v3"/>',
+  escudo:   '<path d="M12 3 5 6v6c0 4 3 7.5 7 9 4-1.5 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/>',
+  caja:     '<path d="M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M3 8 5 4h14l2 4M12 8v13"/>',
+  oculto:   '<path d="M3 3l18 18"/><path d="M10.6 6.3A9 9 0 0 1 12 6c5 0 9 6 9 6a15 15 0 0 1-3 3.4M6.6 8.6A15 15 0 0 0 3 12s4 6 9 6c1.3 0 2.4-.3 3.4-.8"/>',
+  bloqueo:  '<rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>'
+};
+
+function icono(nombre, tam){
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "1.6");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("width", tam || 20);
+  svg.setAttribute("height", tam || 20);
+  svg.innerHTML = ICONOS[nombre] || ICONOS.nota;
+  return svg;
+}
+
+/* Qué icono le toca a cada cosa según de dónde vino y a qué mundo es. */
+function iconoDe(it){
+  if(it.adjunto && (it.adjunto.tipo||"").startsWith("audio/")) return "voz";
+  if(it.adjunto && (it.adjunto.tipo||"").startsWith("image/")) return "foto";
+  if(it.esperandoA) return "espera";
+  if(it.origen === "del resumen" || it.origen === "compartido") return "correo";
+  if(it.origen === "del audio") return "voz";
+  if(it.origen === "del chat") return "chat";
+  if(it.ctx === "familia") return "familia";
+  if(it.ctx === "proserco") return "obra";
+  if(it.ctx === "isracap") return "dinero";
+  if(it.ctx === "grand") return "trabajo";
+  return "nota";
 }
 
 /* ====================================================================
@@ -2272,6 +2590,45 @@ function buscar(q){
     v.textContent = "Nada con esas palabras.";
     caja.appendChild(v);
   }
+}
+
+/* ====================================================================
+   Sonido
+   No usamos archivos: los tonos se generan en el momento. Son cortos,
+   suaves y con sentido: uno para confirmar, otro para deshacer, otro
+   para avisar. Se apagan enteros desde Ajustes.
+==================================================================== */
+let audioCtx = null;
+const TONOS = {
+  pestana:  [[520, .05, .045]],
+  toque:    [[680, .05, .05]],
+  hecho:    [[660, .07, .07], [990, .09, .10]],
+  aplazar:  [[520, .07, .07], [390, .09, .09]],
+  guardado: [[520, .06, .06], [780, .07, .08], [1040, .09, .10]],
+  grabar:   [[880, .08, .09]],
+  fin:      [[660, .07, .08], [440, .09, .11]],
+  llega:    [[740, .06, .07], [880, .08, .10]],
+  error:    [[300, .10, .12], [220, .12, .16]]
+};
+
+function son(tipo){
+  if(!ajustes.sonido) return;
+  const receta = TONOS[tipo]; if(!receta) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    receta.forEach(([hz, vol, dur], i) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine"; o.frequency.value = hz;
+      const inicio = t0 + i * 0.055;
+      g.gain.setValueAtTime(0.0001, inicio);
+      g.gain.exponentialRampToValueAtTime(vol * 0.5, inicio + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, inicio + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(inicio); o.stop(inicio + dur + 0.02);
+    });
+  }catch(e){}
 }
 
 /* ====================================================================
@@ -2613,7 +2970,7 @@ saveBtn.onclick=async()=>{
   limpiarPendiente(); revisarBoton();
   await agregar({ texto, blob:adj?adj.blob:null, nombre:adj?adj.nombre:"",
                   tipo:adj?adj.tipo:"" });
-  cerrarMenu(); cerrarCaptura(); ir("bandeja"); aviso("Guardado");
+  son("guardado"); cerrarMenu(); cerrarCaptura(); ir("bandeja"); aviso("Guardado");
 };
 
 /* ====================================================================
@@ -2659,15 +3016,70 @@ function modoGrabando(si){
   document.getElementById("normal").classList.toggle("hidden", si);
 }
 
+/* La onda no es decorativa: dibuja lo que está entrando por el
+   micrófono. Si no se mueve, es que no te está oyendo. */
+let analizador = null, ondaAnim = null;
+
+function dibujarOnda(){
+  const c = document.getElementById("onda"); if(!c || !analizador) return;
+  const ctx = c.getContext("2d");
+  const n = analizador.frequencyBinCount;
+  const datos = new Uint8Array(n);
+  const estilo = getComputedStyle(document.documentElement);
+  const color = estilo.getPropertyValue("--accent").trim() || "#C79A5B";
+  const rojo = estilo.getPropertyValue("--danger").trim() || "#C4685E";
+
+  const pintar = () => {
+    ondaAnim = requestAnimationFrame(pintar);
+    analizador.getByteTimeDomainData(datos);
+    ctx.clearRect(0, 0, c.width, c.height);
+
+    const barras = 46, paso = Math.floor(n / barras);
+    const ancho = c.width / barras;
+    for(let i = 0; i < barras; i++){
+      let pico = 0;
+      for(let j = 0; j < paso; j++){
+        const v = Math.abs(datos[i*paso + j] - 128) / 128;
+        if(v > pico) pico = v;
+      }
+      const alto = Math.max(3, pico * c.height * 1.7);
+      const x = i * ancho, y = (c.height - alto) / 2;
+      ctx.fillStyle = pico > 0.35 ? rojo : color;
+      ctx.globalAlpha = 0.35 + pico * 0.65;
+      ctx.beginPath();
+      ctx.roundRect(x + ancho*0.22, y, ancho*0.56, alto, ancho*0.28);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  };
+  pintar();
+}
+
+function pararOnda(){
+  if(ondaAnim) cancelAnimationFrame(ondaAnim);
+  ondaAnim = null; analizador = null;
+}
+
 async function empezarAGrabar(){
   if(grabadora && grabadora.state === "recording") return;
   try{
     const señal = await navigator.mediaDevices.getUserMedia({audio:true});
     grabadora = new MediaRecorder(señal); trozos = [];
+
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === "suspended") await audioCtx.resume();
+      const fuente = audioCtx.createMediaStreamSource(señal);
+      analizador = audioCtx.createAnalyser();
+      analizador.fftSize = 1024;
+      fuente.connect(analizador);
+      setTimeout(dibujarOnda, 60);
+    }catch(e){ analizador = null; }
     let cancelado = false;
 
     grabadora.ondataavailable = e => trozos.push(e.data);
     grabadora.onstop = async () => {
+      son("fin"); pararOnda();
       señal.getTracks().forEach(t => t.stop());
       clearInterval(relojInt); modoGrabando(false);
       if(cancelado){ cerrarCaptura(); aviso("Descartado"); return; }
@@ -2699,6 +3111,7 @@ async function empezarAGrabar(){
       if(grabadora && grabadora.state === "recording") grabadora.stop();
     };
 
+    son("grabar");
     grabadora.start();
     modoGrabando(true);
     inicioGrab = Date.now(); pintarReloj();
@@ -3022,6 +3435,16 @@ async function enviarAlMotor(it){
    PASO 11 — Pantallas
 ==================================================================== */
 const TITULOS={hoy:"Hoy",entrada:"Entrada",chat:"Chat",bandeja:"Historia",ajustes:"Ajustes"};
+const ORDEN = ["hoy","entrada","chat","bandeja","ajustes"];
+let pantallaActual = "hoy";
+
+/* La barrita de luz se desliza hasta la pestaña elegida. */
+function moverGuia(v){
+  const g = document.getElementById("guia"); if(!g) return;
+  const b = document.querySelector('nav button[data-v="' + v + '"]'); if(!b) return;
+  g.style.inlineSize = b.offsetWidth * 0.5 + "px";
+  g.style.transform = "translateX(" + (b.offsetLeft + b.offsetWidth * 0.25) + "px)";
+}
 function ir(v){
   ["hoy","entrada","bandeja","chat","ajustes"].forEach(n=>document.getElementById("view-"+n).classList.toggle("hidden", n!==v));
   document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.v===v?"page":"false"));
@@ -3040,6 +3463,21 @@ function ir(v){
 }
 document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
 document.getElementById("recargarBtn").onclick = () => traerResumen(false);
+
+document.getElementById("modoLista").appendChild(icono("lista", 17));
+document.getElementById("modoCal").appendChild(icono("calendario", 17));
+document.getElementById("modoLista").onclick = () => {
+  verCalendario = false; son("toque");
+  document.getElementById("modoLista").classList.add("activo");
+  document.getElementById("modoCal").classList.remove("activo");
+  dibujarPanel();
+};
+document.getElementById("modoCal").onclick = () => {
+  verCalendario = true; son("toque");
+  document.getElementById("modoCal").classList.add("activo");
+  document.getElementById("modoLista").classList.remove("activo");
+  dibujarPanel();
+};
 document.getElementById("chatEnviar").onclick = enviarChat;
 document.getElementById("verChats").onclick = abrirHojaChats;
 document.getElementById("buscarBtn").onclick = abrirBuscador;
@@ -3365,6 +3803,42 @@ async function revisarSistema(){
 
 document.getElementById("revisarBtn").onclick = revisarSistema;
 
+/* ---- Ajustes como lista de filas que se abren ---- */
+const SUB_AJUSTES = {
+  "Identidad":              ["identidad", "Nombre y firma de tu androide"],
+  "Apariencia":             ["paleta",    "Claro, oscuro o modo Androide"],
+  "Voz":                    ["voz",       "Qué voz te habla y cuándo"],
+  "Conexión con el motor":  ["enchufe",   "Dirección y palabra secreta"],
+  "Transcripción de audios":["voz",       "Clave y modelo que escucha"],
+  "Revisión del sistema":   ["escudo",    "Comprobar que todo está vivo"],
+  "Lo que he ocultado":     ["oculto",    "Ver y devolver lo descartado"],
+  "Espacio y copias":       ["caja",      "Cuánto ocupa y copia de seguridad"]
+};
+
+document.querySelectorAll("#view-ajustes .grupo").forEach(g => {
+  const h = g.querySelector("h4");
+  const titulo = h.textContent.trim();
+  const info = SUB_AJUSTES[titulo] || ["ajustes", ""];
+  h.textContent = "";
+
+  const ico = document.createElement("span"); ico.className = "gi";
+  ico.appendChild(icono(info[0], 19));
+
+  const t = document.createElement("span"); t.className = "gt";
+  t.appendChild(document.createTextNode(titulo));
+  if(info[1]){ const sm = document.createElement("small"); sm.textContent = info[1]; t.appendChild(sm); }
+
+  const fl = document.createElement("span"); fl.className = "gf";
+  fl.appendChild(icono("flecha", 15));
+
+  h.append(ico, t, fl);
+  h.onclick = () => {
+    const abierto = g.classList.contains("abierto");
+    document.querySelectorAll("#view-ajustes .grupo").forEach(x => x.classList.remove("abierto"));
+    if(!abierto){ g.classList.add("abierto"); son("toque"); }
+  };
+});
+
 /* Si un día Entrada aparece vacía sin motivo, casi seguro es que algo
    quedó descartado de más. Esto lo borra todo y vuelve a mostrarlo. */
 function pintarCuantosDescartes(){
@@ -3425,6 +3899,15 @@ async function verBloqueos(){
   }catch(e){ c.innerHTML = '<p class="hint">No pude preguntarle al motor.</p>'; }
 }
 document.getElementById("verBloqueos").onclick = verBloqueos;
+
+const sonOp = document.getElementById("sonidoOp");
+if(ajustes.sonido === undefined){ ajustes.sonido = true; guardar("ajustes", ajustes); }
+sonOp.checked = !!ajustes.sonido;
+sonOp.onchange = () => {
+  ajustes.sonido = sonOp.checked; guardar("ajustes", ajustes);
+  if(sonOp.checked) son("guardado");
+  aviso(sonOp.checked ? "Sonidos activados" : "En silencio");
+};
 
 const leerResp = document.getElementById("leerRespuestas");
 leerResp.checked = !!ajustes.leerRespuestas;
@@ -3510,6 +3993,14 @@ function aviso(msg){
 document.getElementById("dateLine").textContent =
   new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
 pintarNombres(); aplicarTema(); dibujar();
+document.querySelectorAll("nav button[data-i]").forEach(b => {
+  b.querySelector("b").appendChild(icono(b.dataset.i, 21));
+});
+document.getElementById("buscarBtn").appendChild(icono("buscar", 18));
+document.getElementById("fab").textContent = "";
+document.getElementById("fab").appendChild(icono("mas", 26));
+setTimeout(() => moverGuia("hoy"), 120);
+window.addEventListener("resize", () => moverGuia(pantallaActual));
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 recogerEntrantes();
 if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
