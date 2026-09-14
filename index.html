@@ -963,6 +963,27 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
   box-shadow:0 -8px 40px rgba(0,0,0,.3)}
 .hoja-chats.abierta{transform:translateY(0)}
 .hoja-chats{position:fixed}
+.det-cab{display:flex; align-items:center; gap:10px; margin-block-end:12px}
+.det-ico{inline-size:40px; block-size:40px; border-radius:12px; flex:none;
+  display:grid; place-items:center; color:var(--m); background:var(--raised)}
+.det-etq{font-size:11px; padding:3px 10px; border-radius:999px; background:var(--m);
+  color:#fff; font-weight:600}
+.det-plazo{font-size:12.5px; color:var(--accent); font-weight:600}
+.det-plazo.tarde{color:var(--danger)}
+.det-t{font-size:19px; line-height:1.35; margin:0 0 14px}
+.det-b{margin-block-end:13px}
+.det-b small{display:block; font-size:11px; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--muted); margin-block-end:4px}
+.det-b p{margin:0; font-size:14.5px; line-height:1.5}
+.det-b.accion p{padding-inline-start:12px; border-inline-start:2px solid var(--accent)}
+.det-acc{display:flex; flex-wrap:wrap; gap:7px; margin-block:18px 14px}
+.det-acc button{display:flex; align-items:center; gap:7px; border:1px solid var(--line);
+  border-radius:11px; padding:9px 13px; font-size:13.5px; color:var(--muted)}
+.det-acc button.principal{background:var(--accent); border-color:var(--accent);
+  color:var(--accent-ink); font-weight:600}
+.det-acc button.peligro{color:var(--danger); border-color:var(--danger)}
+.det-mundos small{display:block; font-size:11px; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--muted); margin-block-end:7px}
 .cerrar-hoja{position:absolute; inset-block-start:10px; inset-inline-end:14px;
   inline-size:34px; block-size:34px; border-radius:10px; border:1px solid var(--line);
   color:var(--muted); font-size:19px; line-height:1; display:grid; place-items:center}
@@ -1015,8 +1036,10 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
   align-items:center; gap:12px; padding:13px 14px; background:var(--surface);
   border:1px solid var(--line); border-inline-start:3px solid var(--m);
   border-radius:14px; touch-action:pan-y}
-.tarea .marca{inline-size:22px; block-size:22px; border:1.5px solid var(--line);
-  border-radius:50%; flex:none; display:grid; place-items:center; color:transparent}
+.tarea .marca{inline-size:26px; block-size:26px; border:1.5px solid var(--line);
+  border-radius:50%; flex:none; display:grid; place-items:center; color:transparent;
+  background:transparent}
+.tarea .marca:active{background:var(--familia); border-color:var(--familia); color:#fff}
 .tarea .ico{inline-size:38px; block-size:38px; border-radius:11px; flex:none;
   display:grid; place-items:center; color:var(--m); background:var(--raised)}
 .tarea .cuerpo{flex:1; min-width:0}
@@ -1140,6 +1163,12 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
     <div class="sugerencias" id="sugerencias"></div>
     <div class="chat-lista" id="chatLista"></div>
   </main>
+
+  <div class="hoja-chats" id="hojaDet">
+    <div class="asa"></div>
+    <button class="cerrar-hoja" id="cerrarDet" aria-label="Cerrar">×</button>
+    <div id="detalle"></div>
+  </div>
 
   <div class="hoja-chats" id="hojaDesc">
     <div class="asa"></div>
@@ -1845,9 +1874,11 @@ function filaPlan(it, esEspera){
   const b = document.createElement("button"); b.className = "tarea";
   b.style.setProperty("--m", c ? c.color : "var(--sin)");
 
-  // la casilla, a la izquierda del todo
-  const marca = document.createElement("span"); marca.className = "marca";
+  // la casilla tacha; el resto de la fila abre el detalle
+  const marca = document.createElement("button"); marca.className = "marca";
+  marca.setAttribute("aria-label", "Marcar como hecha");
   marca.appendChild(icono("hoy", 13));
+  marca.onclick = ev => { ev.stopPropagation(); completar(it); };
 
   // el icono que dice de qué va esto
   const ico = document.createElement("span"); ico.className = "ico";
@@ -1891,7 +1922,7 @@ function filaPlan(it, esEspera){
 
   b.onclick = () => {
     if(env.dataset.deslizando === "si"){ env.dataset.deslizando = ""; return; }
-    completar(it);
+    abrirDetalle(it);
   };
 
   let x0 = null, dx = 0;
@@ -2640,7 +2671,10 @@ function tarjeta(it){
     const nuevo = await agregar({ texto: it.titulo, ctx: ctx ? ctx.id : null,
                                   origen: "del resumen", sugerido: ctx ? ctx.id : "",
                                   vence: fechaDe(it), cuandoTexto: it.cuando || "",
-                                  esperandoA: it.esperandoA || "" });
+                                  esperandoA: it.esperandoA || "",
+                                  porQue: it.porQue || "", accion: it.accion || "",
+                                  de: it.de || "", asunto: it.asunto || "",
+                                  cuenta: it.cuenta || "" });
     refrescarTodo();
     avisoConDeshacer("Pasado a " + (ctx ? ctx.nombre : "pendientes"), () => {
       items = items.filter(x => x.id !== nuevo.id);
@@ -2906,6 +2940,131 @@ function cuantosDescartados(){
   if(Array.isArray(lista) && lista.length)
     return lista.filter(d => !fueRescatado(d)).length;
   return Math.max(0, (resumenActual.descartados || 0) - rescatados.length);
+}
+
+/* ====================================================================
+   El detalle de una tarea
+   Aquí vive lo que el motor pensó cuando la leyó: por qué te importa,
+   qué propone hacer y de dónde salió. Antes se perdía al pasarla a
+   tu día, y sin eso la lista es solo una lista.
+==================================================================== */
+let tareaAbierta = null;
+
+function abrirDetalle(it){
+  tareaAbierta = it;
+  const c = document.getElementById("detalle"); c.innerHTML = "";
+  const ctx = ctxDe(it.ctx);
+
+  const cab = document.createElement("div"); cab.className = "det-cab";
+  const ico = document.createElement("span"); ico.className = "det-ico";
+  ico.style.setProperty("--m", ctx ? ctx.color : "var(--sin)");
+  ico.appendChild(icono(iconoDe(it), 20));
+  const et = document.createElement("span"); et.className = "det-etq";
+  et.style.setProperty("--m", ctx ? ctx.color : "var(--sin)");
+  et.textContent = ctx ? ctx.nombre : "Sin mundo";
+  cab.append(ico, et);
+  if(it.vence){
+    const p = document.createElement("span"); p.className = "det-plazo";
+    p.textContent = comoSuena(it.vence);
+    if(cajonDe(it) === 0) p.classList.add("tarde");
+    cab.appendChild(p);
+  }
+  c.appendChild(cab);
+
+  const t = document.createElement("h3"); t.className = "det-t";
+  t.textContent = (it.texto || it.transcripcion || "Sin texto").split(" — ")[0];
+  c.appendChild(t);
+
+  const bloque = (titulo, texto, clase) => {
+    if(!texto) return;
+    const d = document.createElement("div"); d.className = "det-b " + (clase||"");
+    const h = document.createElement("small"); h.textContent = titulo;
+    const p = document.createElement("p"); p.textContent = texto;
+    d.append(h, p); c.appendChild(d);
+  };
+
+  bloque("Por qué te importa", it.porQue);
+  bloque("Lo que propongo", it.accion, "accion");
+  if(it.esperandoA){
+    const d = diasDesde(it.esperandoDesde);
+    bloque("A la espera", "Depende de " + it.esperandoA +
+      (d > 0 ? ". Llevas " + d + (d === 1 ? " día" : " días") + " esperando." : "."));
+  }
+  bloque("De dónde salió", [it.de, it.asunto, it.cuenta].filter(Boolean).join("  ·  ") ||
+    ({ "del audio":"De una nota de voz tuya", "del chat":"Lo pediste en el chat",
+       "del resumen":"De tu correo", "compartido":"Lo compartiste desde otra app",
+       "escrito":"Lo escribiste tú" }[it.origen] || ""));
+  if(it.transcripcion) bloque("Lo que decía el audio", it.transcripcion);
+
+  // ---- qué puedes hacer con ella ----
+  const acc = document.createElement("div"); acc.className = "det-acc";
+
+  const bt = (texto, icono_, fn, clase) => {
+    const b = document.createElement("button"); b.className = clase || "";
+    b.appendChild(icono(icono_, 17));
+    b.append(document.createTextNode(texto));
+    b.onclick = fn; acc.appendChild(b);
+  };
+
+  bt("Hecha", "hoy", () => { cerrarDetalle(); completar(it); }, "principal");
+  bt("Mañana", "calendario", () => { cerrarDetalle(); aplazar(it); });
+  bt("Otro día", "calendario", () => {
+    const f = prompt("¿Para qué día? (AAAA-MM-DD)", it.vence || hoyISO());
+    if(!f) return;
+    it.vence = f; guardar("items", items); refrescarTodo(); abrirDetalle(it);
+    aviso("Movida al " + comoSuena(f));
+  });
+  bt("Espero a alguien", "espera", () => {
+    const q = prompt("¿A quién estás esperando?", it.esperandoA || "");
+    if(q === null) return;
+    it.esperandoA = q.trim();
+    it.esperandoDesde = it.esperandoA ? (it.esperandoDesde || new Date().toISOString()) : "";
+    guardar("items", items); refrescarTodo(); abrirDetalle(it);
+    aviso(it.esperandoA ? "En seguimiento" : "Vuelve a ser tuya");
+  });
+  bt("Hablar de esto", "chat", () => {
+    cerrarDetalle();
+    const c2 = chatDe(chatActivo) || nuevoChatVacio();
+    document.getElementById("chatInput").value =
+      "Sobre \"" + (it.texto || "").split(" — ")[0] + "\": ";
+    ir("chat");
+    setTimeout(() => document.getElementById("chatInput").focus(), 300);
+  });
+  bt("Borrar", "oculto", () => {
+    if(!confirm("¿Borrar esto del todo?")) return;
+    avisarEstado(it, "borrado");
+    if(it.adjunto) idbBorrar("adjuntos", it.adjunto.id);
+    items = items.filter(x => x.id !== it.id);
+    guardar("items", items); cerrarDetalle(); refrescarTodo(); aviso("Borrado");
+  }, "peligro");
+
+  c.appendChild(acc);
+
+  // ---- cambiar de mundo ----
+  const m = document.createElement("div"); m.className = "det-mundos";
+  const h = document.createElement("small"); h.textContent = "Mundo";
+  m.appendChild(h);
+  const fila = document.createElement("div"); fila.className = "assign";
+  CONTEXTOS.forEach(x => {
+    const b = document.createElement("button");
+    b.textContent = x.nombre;
+    if(x.id === it.ctx){ b.style.borderColor = x.color; b.style.color = x.color; }
+    b.onclick = () => {
+      if(it.sugerido && it.sugerido !== x.id) aprender(it.texto, x.id);
+      it.ctx = x.id; guardar("items", items); refrescarTodo(); abrirDetalle(it);
+    };
+    fila.appendChild(b);
+  });
+  m.appendChild(fila); c.appendChild(m);
+
+  document.getElementById("hojaDet").classList.add("abierta");
+  document.getElementById("fondo").classList.add("visible");
+}
+
+function cerrarDetalle(){
+  tareaAbierta = null;
+  document.getElementById("hojaDet").classList.remove("abierta");
+  document.getElementById("fondo").classList.remove("visible");
 }
 
 function abrirDescartes(){
@@ -3865,7 +4024,7 @@ function revisarBoton(){ saveBtn.disabled = !input.value.trim() && !adjuntoPendi
 input.oninput=()=>{ revisarBoton(); input.style.height="auto";
   input.style.height=Math.min(input.scrollHeight,100)+"px"; };
 
-async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion="", sugerido="", vence="", cuandoTexto="", esperandoA=""}){
+async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion="", sugerido="", vence="", cuandoTexto="", esperandoA="", porQue="", accion="", de="", asunto="", cuenta=""}){
   const id=Date.now()+"-"+Math.random().toString(36).slice(2,7);
   let adjunto=null;
   if(blob){
@@ -3878,7 +4037,8 @@ async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre=
   const it={ id, texto:(texto||"").trim(), ctx, fecha:new Date().toISOString(),
              hecho:false, origen, adjunto, enviado:false,
              transcripcion: transcripcion||"", descripcion:"", sugerido: sugerido||"",
-             vence: vence||"", cuandoTexto: cuandoTexto||"", esperandoA: esperandoA||"", esperandoDesde: esperandoA ? new Date().toISOString() : "",
+             vence: vence||"", cuandoTexto: cuandoTexto||"", esperandoA: esperandoA||"",
+             porQue: porQue||"", accion: accion||"", de: de||"", asunto: asunto||"", cuenta: cuenta||"", esperandoDesde: esperandoA ? new Date().toISOString() : "",
              estadoAudio: esAudio && !transcripcion ? "trabajando" : "" };
   items.unshift(it); guardar("items",items); refrescarTodo(); medirEspacio();
   if(it.estadoAudio==="trabajando") transcribir(it);
@@ -4472,7 +4632,7 @@ function cerrarMenu(){
 }
 
 document.getElementById("fab").onclick = () => menuAbierto() ? cerrarMenu() : abrirMenu();
-document.getElementById("fondo").onclick = () => { cerrarMenu(); cerrarCaptura(); cerrarHojaChats(); cerrarDescartes(); };
+document.getElementById("fondo").onclick = () => { cerrarMenu(); cerrarCaptura(); cerrarHojaChats(); cerrarDescartes(); cerrarDetalle(); };
 
 /* Contarle algo de ti: no es una tarea, es algo que quieres que
    sepa de forma permanente y tenga en cuenta al aconsejarte. */
@@ -4937,6 +5097,7 @@ async function verSugerencias(){
 }
 document.getElementById("verSug").onclick = verSugerencias;
 document.getElementById("cerrarDesc").onclick = cerrarDescartes;
+document.getElementById("cerrarDet").onclick = cerrarDetalle;
 document.getElementById("cerrarChats").onclick = cerrarHojaChats;
 
 async function verAcuerdos(){
