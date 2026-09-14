@@ -588,6 +588,13 @@ textarea::placeholder{color:var(--muted)}
 .linea-op input{inline-size:20px; block-size:20px; flex:none; accent-color:var(--accent)}
 .sub-t{font-size:12px; text-transform:uppercase; letter-spacing:.05em;
   color:var(--muted); margin:18px 0 8px}
+.bit{display:flex; gap:11px; padding:10px 0; border-block-end:1px solid var(--line)}
+.bit:last-child{border-block-end:none}
+.bit .bh{font-size:11px; color:var(--muted); flex:none; inline-size:74px;
+  font-family:ui-monospace,monospace}
+.bit .bt{flex:1; min-width:0}
+.bit .bt b{display:block; font-size:13px; font-weight:600}
+.bit .bt small{display:block; font-size:12px; color:var(--muted); margin-block-start:2px}
 .prop-item{display:flex; align-items:center; gap:9px; padding:12px 0;
   border-block-end:1px solid var(--line)}
 .prop-item:last-child{border-block-end:none}
@@ -867,6 +874,30 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
   color:var(--accent-ink); font-weight:600; flex:1}
 html[data-theme="robot"] .siguiente{border-radius:0;
   clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))}
+.asunto{background:var(--surface); border:1px solid var(--line);
+  border-inline-start:3px solid var(--m); border-radius:15px;
+  padding:14px 15px; margin-block-end:9px}
+.a-cab{display:flex; align-items:center; gap:9px; margin-block-end:8px}
+.a-id{font-size:10.5px; font-family:ui-monospace,monospace; color:var(--muted);
+  border:1px solid var(--line); border-radius:6px; padding:2px 7px}
+.a-est{font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--familia)}
+.a-est.esp{color:var(--grand); text-transform:none; letter-spacing:0; font-size:12px}
+.a-t{margin:0; font-size:16px; line-height:1.35; font-family:"Frank Ruhl Libre",serif}
+.a-o{margin:7px 0 0; font-size:13.5px; color:var(--muted); line-height:1.45}
+.a-e{margin:7px 0 0; font-size:12.5px; padding-inline-start:10px;
+  border-inline-start:2px solid var(--line); color:var(--muted)}
+.a-next{margin:10px 0 0; font-size:13.5px; padding:8px 11px; border-radius:9px;
+  background:var(--raised); border-inline-start:2px solid var(--accent)}
+.a-pie{display:flex; gap:12px; flex-wrap:wrap; margin-block-start:10px}
+.a-pie span{font-size:11.5px; color:var(--muted)}
+.a-tareas{margin-block-start:11px; display:flex; flex-direction:column; gap:4px}
+.a-tareas button{text-align:start; font-size:13px; color:var(--accent); padding:3px 0}
+.a-acc{display:flex; gap:7px; margin-block-start:12px}
+.a-acc button{border:1px solid var(--line); border-radius:10px; padding:7px 13px;
+  font-size:12.5px; color:var(--muted)}
+html[data-theme="robot"] .asunto{border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))}
 .agenda-tog{inline-size:100%; text-align:start; font-size:13.5px; color:var(--muted);
   border:1px dashed var(--line); border-radius:12px; padding:13px 15px;
   margin-block-start:18px}
@@ -993,9 +1024,23 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
   letter-spacing:.05em; color:var(--muted); margin-block-end:4px}
 .det-b p{margin:0; font-size:14.5px; line-height:1.5}
 .det-b.accion p{padding-inline-start:12px; border-inline-start:2px solid var(--accent)}
+.elige-asunto{margin-block:14px 4px; border:1px dashed var(--line);
+  border-radius:12px; padding:12px}
+.elige-asunto small{display:block; font-size:11px; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--muted); margin-block-end:9px}
+.ea{display:block; inline-size:100%; text-align:start; border:1px solid var(--line);
+  border-radius:10px; padding:9px 12px; font-size:13.5px; margin-block-end:6px}
+.ea.puesto{border-color:var(--accent); color:var(--accent)}
+.ea.nuevo{color:var(--accent); border-style:dashed}
+.ea.quitar{color:var(--danger); border-color:var(--danger)}
+.det-b.asunto-b p{display:inline-block; border:1px solid var(--accent);
+  border-radius:999px; padding:4px 12px; font-size:13px; color:var(--accent)}
 .det-b.consejo{background:var(--raised); border-radius:12px; padding:12px 14px;
   margin-block:14px 4px}
 .det-b.consejo p{white-space:pre-wrap}
+.det-coste{display:flex; gap:8px; margin-block-end:12px}
+.det-coste span{font-size:11.5px; color:var(--muted); border:1px solid var(--line);
+  border-radius:999px; padding:3px 11px}
 .det-acc{display:flex; flex-wrap:wrap; gap:7px; margin-block:18px 14px}
 .det-acc button{display:flex; align-items:center; gap:7px; border:1px solid var(--line);
   border-radius:11px; padding:9px 13px; font-size:13.5px; color:var(--muted)}
@@ -1070,6 +1115,7 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
 .tarea .meta .pt{inline-size:6px; block-size:6px; border-radius:50%;
   background:var(--m); flex:none}
 .tarea .meta .de{opacity:.75}
+.tarea .meta .asu{color:var(--accent); opacity:1}
 .tarea .der{font-size:12.5px; color:var(--muted); flex:none; text-align:end;
   min-inline-size:42px}
 .tarea .der.tarde{color:var(--danger); font-weight:600}
@@ -1139,9 +1185,11 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
     <div class="modo-vista">
       <button id="modoLista" class="mv activo"></button>
       <button id="modoCal" class="mv"></button>
+      <button id="modoAsu" class="mv"></button>
     </div>
     <div id="tira" class="tira"></div>
     <div id="calendario" class="hidden"></div>
+    <div id="asuntos" class="hidden"></div>
     <div id="plan"></div>
   </main>
 
@@ -1342,6 +1390,13 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <p class="hint">Lo que se prometió, a quién y para cuándo. Lo detecto leyendo tu correo. Ciérralos cuando se cumplan.</p>
       <div id="listaAcu"><p class="hint">Toca buscar para verlos.</p></div>
       <div class="fila-btn"><button class="ghost" id="verAcu">Buscar acuerdos</button></div>
+    </section>
+
+    <section class="grupo">
+      <h4>Bitácora</h4>
+      <p class="hint">Todo lo que fui decidiendo y cuándo. Sirve para entender por qué hice algo, o para pillarme en un error.</p>
+      <div id="listaBit"><p class="hint">Toca ver para abrirla.</p></div>
+      <div class="fila-btn"><button class="ghost" id="verBit">Ver bitácora</button></div>
     </section>
 
     <section class="grupo">
@@ -1716,10 +1771,11 @@ function dibujarPanel(){
   dibujarChapa();
 
   dibujarCalendario();
+  document.getElementById("asuntos").classList.toggle("hidden", vista !== "asuntos");
 
   const p = document.getElementById("plan"); if(!p) return;
   p.innerHTML = "";
-  if(verCalendario) return;   // en modo calendario, la lista no se muestra
+  if(vista !== "lista") return;   // en los otros modos, el plan no se muestra
 
   // Lo primero: por dónde empezar. Es lo único que el motor se moja
   // a recomendar, y por eso va antes que ninguna lista.
@@ -1953,9 +2009,13 @@ function filaPlan(it, esEspera){
     ? "Esperas a " + it.esperandoA
     : (c ? c.nombre : "Sin mundo");
   meta.appendChild(quien);
-  if(it.origen && it.origen !== "escrito"){
+  if(it.minutos){
     const o = document.createElement("span"); o.className = "de";
-    o.textContent = "·  " + it.origen; meta.appendChild(o);
+    o.textContent = "·  " + it.minutos + " min"; meta.appendChild(o);
+  }
+  if(it.asuntoTitulo){
+    const o = document.createElement("span"); o.className = "de asu";
+    o.textContent = "·  " + recortar(it.asuntoTitulo, 22); meta.appendChild(o);
   }
   cuerpo.appendChild(meta);
 
@@ -2279,7 +2339,7 @@ function infoJudia(iso){
    La misma información de Hoy, pero repartida por días. Sirve para
    mirar la semana de un vistazo y para saber qué cae cada día.
 ==================================================================== */
-let verCalendario = false;
+let vista = "lista";   // lista · calendario · asuntos
 let semanaBase = null;      // domingo de la semana que estás mirando
 let mesBase = null;         // mes que estás mirando en vista mensual
 let calMes = false;         // false = semana, true = mes
@@ -2294,7 +2354,7 @@ function domingoDe(d){
 function dibujarCalendario(){
   const c = document.getElementById("calendario"); if(!c) return;
   c.innerHTML = "";
-  if(!verCalendario){ c.classList.add("hidden"); return; }
+  if(vista !== "calendario"){ c.classList.add("hidden"); return; }
   c.classList.remove("hidden");
 
   const hoy = new Date(); hoy.setHours(0,0,0,0);
@@ -2494,6 +2554,175 @@ function dibujarCalendario(){
       });
     }
   }
+}
+
+/* ====================================================================
+   Los asuntos
+   Un asunto es algo que quieres conseguir: dura hasta lograrlo, y
+   puede contener correos, audios y tareas sueltas. Tener 20 asuntos
+   abiertos no significa tener 20 cosas que hacer hoy.
+==================================================================== */
+let asuntosCache = leer("asuntosCache", []);
+
+/* Traemos la lista de asuntos de vez en cuando y la guardamos, porque
+   hace falta para que el análisis de tus audios pueda reconocerlos. */
+async function refrescarAsuntos(){
+  const d = await pedirAlMotor("asuntos");
+  if(d && d.ok){
+    asuntosCache = d.lista || [];
+    guardar("asuntosCache", asuntosCache);
+  }
+  return asuntosCache;
+}
+
+/* Los abiertos, en el formato que entiende el modelo. */
+function asuntosParaElModelo(){
+  const vivos = asuntosCache.filter(a => a.estado !== "RESUELTO" && a.estado !== "ARCHIVADO");
+  if(!vivos.length) return "";
+  return "\n\nASUNTOS ABIERTOS DE MORDEJAI (relaciona con ellos antes de crear nada):\n" +
+    vivos.slice(0, 40).map(a =>
+      "- [" + a.id + "] " + a.titulo +
+      (a.objetivo ? " · objetivo: " + a.objetivo : "") +
+      (a.personas ? " · personas: " + a.personas : "")).join("\n") +
+    "\nSi lo que oyes pertenece a uno de ellos, pon su id en asuntoId. " +
+    "Mira personas y tema, no solo las palabras: 'vuelve a llamar a Meuhedet' " +
+    "es el mismo asunto que un correo de Meuhedet sobre el mismo tema. " +
+    "Si no encaja con ninguno, deja asuntoId vacío.";
+}
+
+async function verAsuntos(){
+  const c = document.getElementById("asuntos"); if(!c) return;
+  c.classList.remove("hidden");
+  c.innerHTML = '<p class="hint">Preguntando al motor…</p>';
+
+  const d = await pedirAlMotor("asuntos");
+  c.innerHTML = "";
+  if(!d || !d.ok){
+    c.innerHTML = '<p class="vacio-hoy">No pude preguntarle al motor.</p>'; return;
+  }
+  asuntosCache = d.lista || [];
+
+  const vivos = asuntosCache.filter(a => a.estado !== "RESUELTO");
+  if(!vivos.length){
+    const v = document.createElement("p"); v.className = "vacio-hoy";
+    v.textContent = "Todavía no hay asuntos. Los voy creando conforme leo tus correos: " +
+                    "cada vez que algo tiene un objetivo y dura más de un día, se convierte en uno.";
+    c.appendChild(v); return;
+  }
+
+  const activos  = vivos.filter(a => a.estado === "ACTIVO");
+  const esperando = vivos.filter(a => a.estado === "ESPERANDO");
+  const otros    = vivos.filter(a => ["ACTIVO","ESPERANDO"].indexOf(a.estado) === -1);
+
+  const nuevo = document.createElement("button"); nuevo.className = "agenda-tog";
+  nuevo.style.marginBlock = "0 14px";
+  nuevo.textContent = "+  Abrir un asunto nuevo";
+  nuevo.onclick = async () => {
+    const t = prompt("¿Cómo se llama el asunto?"); if(!t) return;
+    const o = prompt("¿Qué hay que conseguir? (objetivo)", "");
+    const e = prompt("¿Cuándo lo darías por cerrado?", "");
+    const d = await crearAsunto({ titulo:t, objetivo:o||"", exito:e||"" });
+    if(d && d.ok){ son("guardado"); aviso("Asunto creado"); verAsuntos(); }
+    else aviso("No se pudo crear");
+  };
+  c.appendChild(nuevo);
+
+  const resumen = document.createElement("p"); resumen.className = "total-sub";
+  resumen.style.marginBlockEnd = "14px";
+  resumen.textContent = vivos.length + (vivos.length === 1 ? " asunto abierto" : " asuntos abiertos") +
+    ", de los que " + activos.length + (activos.length === 1 ? " pide algo tuyo" : " piden algo tuyo") +
+    (esperando.length ? " y " + esperando.length + " dependen de otros" : "");
+  c.appendChild(resumen);
+
+  const bloque = (titulo, lista) => {
+    if(!lista.length) return;
+    c.appendChild(seccion(titulo + "  ·  " + lista.length));
+    lista.forEach(a => c.appendChild(fichaAsunto(a)));
+  };
+  bloque("Piden algo tuyo", activos);
+  bloque("Esperando a otros", esperando);
+  bloque("Otros", otros);
+}
+
+function fichaAsunto(a){
+  const ctx = CONTEXTOS.find(x => x.nombre.toLowerCase() === String(a.mundo||"").toLowerCase());
+  const d = document.createElement("div"); d.className = "asunto";
+  d.style.setProperty("--m", ctx ? ctx.color : "var(--sin)");
+
+  const cab = document.createElement("div"); cab.className = "a-cab";
+  const id = document.createElement("span"); id.className = "a-id"; id.textContent = a.id;
+  cab.appendChild(id);
+  const est = document.createElement("span");
+  est.className = "a-est " + (a.estado === "ESPERANDO" ? "esp" : "");
+  est.textContent = a.estado === "ESPERANDO"
+    ? "Esperando a " + (a.esperando || "alguien") + (a.desde ? " desde " + a.desde : "")
+    : a.estado.toLowerCase();
+  cab.appendChild(est);
+  d.appendChild(cab);
+
+  const t = document.createElement("p"); t.className = "a-t"; t.textContent = a.titulo;
+  d.appendChild(t);
+
+  if(a.objetivo){
+    const o = document.createElement("p"); o.className = "a-o";
+    o.textContent = a.objetivo; d.appendChild(o);
+  }
+  if(a.exito){
+    const e = document.createElement("p"); e.className = "a-e";
+    e.textContent = "Cerrado cuando: " + a.exito; d.appendChild(e);
+  }
+
+  if(a.proxima){
+    const n = document.createElement("p"); n.className = "a-next";
+    n.textContent = a.proxima +
+      (a.minutos ? "  ·  " + a.minutos + " min" : "") +
+      (a.energia ? "  ·  energía " + a.energia : "");
+    d.appendChild(n);
+  }
+
+  const pie = document.createElement("div"); pie.className = "a-pie";
+  if(a.personas){
+    const p = document.createElement("span"); p.textContent = a.personas; pie.appendChild(p);
+  }
+  if(a.actualizado){
+    const p = document.createElement("span"); p.textContent = "movido el " + a.actualizado;
+    pie.appendChild(p);
+  }
+  d.appendChild(pie);
+
+  // lo que tienes en tu día que pertenece a este asunto
+  const mias = items.filter(i => !i.hecho && i.asuntoId === a.id);
+  if(mias.length){
+    const l = document.createElement("div"); l.className = "a-tareas";
+    mias.slice(0,4).forEach(i => {
+      const b = document.createElement("button");
+      b.textContent = "› " + (i.texto||"").split(" — ")[0];
+      b.onclick = () => abrirDetalle(i);
+      l.appendChild(b);
+    });
+    d.appendChild(l);
+  }
+
+  const acc = document.createElement("div"); acc.className = "a-acc";
+  const cerrar = document.createElement("button"); cerrar.textContent = "Resuelto";
+  cerrar.onclick = async () => {
+    if(!confirm("¿Dar por resuelto \"" + a.titulo + "\"?\n\n" +
+                (a.exito ? "Se daba por cerrado cuando: " + a.exito : ""))) return;
+    cerrar.textContent = "…";
+    const r = await pedirAlMotor("cerrarAsunto", "&fila=" + a.fila + "&estado=RESUELTO");
+    if(r && r.ok){ son("hecho"); aviso("Asunto cerrado"); verAsuntos(); }
+    else { aviso("No se pudo"); cerrar.textContent = "Resuelto"; }
+  };
+  const hablar = document.createElement("button"); hablar.textContent = "Hablar de esto";
+  hablar.onclick = () => {
+    const c2 = chatDe(chatActivo) || nuevoChatVacio();
+    document.getElementById("chatInput").value = "Sobre el asunto \"" + a.titulo + "\": ";
+    ir("chat");
+    setTimeout(() => document.getElementById("chatInput").focus(), 300);
+  };
+  acc.append(hablar, cerrar);
+  d.appendChild(acc);
+  return d;
 }
 
 /* La tira filtra el propio plan: tocas un mundo y Hoy se convierte en
@@ -2730,7 +2959,10 @@ function tarjeta(it){
                                   esperandoA: it.esperandoA || "",
                                   porQue: it.porQue || "", accion: it.accion || "",
                                   de: it.de || "", asunto: it.asunto || "",
-                                  cuenta: it.cuenta || "" });
+                                  cuenta: it.cuenta || "",
+                                  asuntoId: (it.asunto && it.asunto.id) || "",
+                                  asuntoTitulo: (it.asunto && (it.asunto.titulo || "")) || "",
+                                  minutos: it.minutos || 0, energia: it.energia || "" });
     refrescarTodo();
     avisoConDeshacer("Pasado a " + (ctx ? ctx.nombre : "pendientes"), () => {
       items = items.filter(x => x.id !== nuevo.id);
@@ -3039,6 +3271,27 @@ function abrirDetalle(it){
     d.append(h, p); c.appendChild(d);
   };
 
+  if(it.asuntoId || it.asuntoTitulo){
+    const d = document.createElement("div"); d.className = "det-b asunto-b";
+    const h = document.createElement("small"); h.textContent = "Forma parte de";
+    const p = document.createElement("p");
+    p.textContent = (it.asuntoTitulo || "") + (it.asuntoId ? "  ·  " + it.asuntoId : "");
+    d.append(h, p); c.appendChild(d);
+  }
+
+  if(it.minutos || it.energia){
+    const d = document.createElement("div"); d.className = "det-coste";
+    if(it.minutos){
+      const x = document.createElement("span");
+      x.textContent = it.minutos + " min"; d.appendChild(x);
+    }
+    if(it.energia){
+      const x = document.createElement("span");
+      x.textContent = "energía " + it.energia; d.appendChild(x);
+    }
+    c.appendChild(d);
+  }
+
   bloque("Por qué te importa", it.porQue);
   bloque("Lo que propongo", it.accion, "accion");
   if(it.esperandoA){
@@ -3096,6 +3349,9 @@ function abrirDetalle(it){
       : "No pude consultarlo ahora.";
   });
 
+  bt(it.asuntoId ? "Cambiar de asunto" : "Ponerlo en un asunto", "obra",
+     () => elegirAsunto(it));
+
   bt("Hablar de esto", "chat", () => {
     cerrarDetalle();
     const c2 = chatDe(chatActivo) || nuevoChatVacio();
@@ -3133,6 +3389,88 @@ function abrirDetalle(it){
 
   document.getElementById("hojaDet").classList.add("abierta");
   document.getElementById("fondo").classList.add("visible");
+}
+
+/* Elegir a qué asunto pertenece algo, o crear uno nuevo para ello. */
+async function elegirAsunto(it){
+  const c = document.getElementById("detalle");
+  const caja = document.createElement("div"); caja.className = "elige-asunto";
+  caja.innerHTML = "<small>¿De qué asunto forma parte?</small><p class='hint'>Buscando…</p>";
+  c.appendChild(caja);
+  caja.scrollIntoView({ behavior:"smooth", block:"center" });
+
+  await refrescarAsuntos();
+  caja.innerHTML = "<small>¿De qué asunto forma parte?</small>";
+
+  const vivos = asuntosCache.filter(a => a.estado !== "RESUELTO" && a.estado !== "ARCHIVADO");
+  vivos.slice(0, 25).forEach(a => {
+    const b = document.createElement("button");
+    b.className = "ea" + (a.id === it.asuntoId ? " puesto" : "");
+    b.textContent = a.titulo;
+    b.onclick = () => {
+      it.asuntoId = a.id; it.asuntoTitulo = a.titulo;
+      guardar("items", items);
+      enviarAlMotor(it); tocarAsunto(a.id);
+      son("guardado"); aviso("Metido en " + a.titulo);
+      refrescarTodo(); abrirDetalle(it);
+    };
+    caja.appendChild(b);
+  });
+
+  const nuevo = document.createElement("button");
+  nuevo.className = "ea nuevo"; nuevo.textContent = "+  Crear un asunto nuevo";
+  nuevo.onclick = async () => {
+    const t = prompt("¿Cómo se llama el asunto?\n\nEs algo que quieres conseguir, " +
+                     "no una tarea suelta.", (it.texto||"").split(" — ")[0]);
+    if(!t) return;
+    const o = prompt("¿Qué hay que conseguir? (objetivo)", "");
+    const e = prompt("¿Cuándo lo darías por cerrado de verdad?", "");
+    const ctx = ctxDe(it.ctx);
+    const d = await crearAsunto({ titulo:t, objetivo:o||"", exito:e||"",
+                                  mundo: ctx ? ctx.nombre : "" });
+    if(d && d.ok){
+      it.asuntoId = d.id || ""; it.asuntoTitulo = t;
+      guardar("items", items); enviarAlMotor(it);
+      son("guardado"); aviso("Asunto creado");
+      await refrescarAsuntos();
+      refrescarTodo(); abrirDetalle(it);
+    } else aviso("No se pudo crear");
+  };
+  caja.appendChild(nuevo);
+
+  if(it.asuntoId){
+    const fuera = document.createElement("button");
+    fuera.className = "ea quitar"; fuera.textContent = "Sacarlo de su asunto";
+    fuera.onclick = () => {
+      it.asuntoId = ""; it.asuntoTitulo = "";
+      guardar("items", items); refrescarTodo(); abrirDetalle(it);
+    };
+    caja.appendChild(fuera);
+  }
+}
+
+async function crearAsunto(datos){
+  if(!ajustes.endpoint || !ajustes.token) return null;
+  try{
+    // Hace falta leer la respuesta para saber el identificador nuevo,
+    // así que va por la vía que sí devuelve datos.
+    await fetch(ajustes.endpoint, { method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({ token: ajustes.token, tipo:"nuevoAsunto", ...datos }) });
+    // lo recuperamos de la lista, que es donde ya estará
+    await new Promise(r => setTimeout(r, 900));
+    await refrescarAsuntos();
+    const a = asuntosCache.find(x => x.titulo === datos.titulo);
+    return { ok:true, id: a ? a.id : "" };
+  }catch(e){ return null; }
+}
+
+function tocarAsunto(id, estado){
+  if(!ajustes.endpoint || !ajustes.token || !id) return;
+  fetch(ajustes.endpoint, { method:"POST", mode:"no-cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({ token: ajustes.token, tipo:"tocarAsunto", id, estado }) })
+    .catch(() => {});
 }
 
 function cerrarDetalle(){
@@ -4098,7 +4436,7 @@ function revisarBoton(){ saveBtn.disabled = !input.value.trim() && !adjuntoPendi
 input.oninput=()=>{ revisarBoton(); input.style.height="auto";
   input.style.height=Math.min(input.scrollHeight,100)+"px"; };
 
-async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion="", sugerido="", vence="", cuandoTexto="", esperandoA="", porQue="", accion="", de="", asunto="", cuenta=""}){
+async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre="", tipo="", transcripcion="", sugerido="", vence="", cuandoTexto="", esperandoA="", porQue="", accion="", de="", asunto="", cuenta="", asuntoId="", asuntoTitulo="", minutos=0, energia=""}){
   const id=Date.now()+"-"+Math.random().toString(36).slice(2,7);
   let adjunto=null;
   if(blob){
@@ -4112,7 +4450,9 @@ async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre=
              hecho:false, origen, adjunto, enviado:false,
              transcripcion: transcripcion||"", descripcion:"", sugerido: sugerido||"",
              vence: vence||"", cuandoTexto: cuandoTexto||"", esperandoA: esperandoA||"",
-             porQue: porQue||"", accion: accion||"", de: de||"", asunto: asunto||"", cuenta: cuenta||"", esperandoDesde: esperandoA ? new Date().toISOString() : "",
+             porQue: porQue||"", accion: accion||"", de: de||"", asunto: asunto||"", cuenta: cuenta||"",
+             asuntoId: asuntoId||"", asuntoTitulo: asuntoTitulo||"",
+             minutos: minutos||0, energia: energia||"", esperandoDesde: esperandoA ? new Date().toISOString() : "",
              estadoAudio: esAudio && !transcripcion ? "trabajando" : "" };
   items.unshift(it); guardar("items",items); refrescarTodo(); medirEspacio();
   if(it.estadoAudio==="trabajando") transcribir(it);
@@ -4359,7 +4699,9 @@ async function transcribir(it){
                         origen: "del audio",
                         sugerido: mundoValido(t.mundo) ? t.mundo : "",
                         vence: fechaDe(t), cuandoTexto: t.cuando || "",
-                        esperandoA: t.esperandoA || "" });
+                        esperandoA: t.esperandoA || "",
+                        asuntoId: t.asuntoId || "",
+                        asuntoTitulo: tituloAsunto(t.asuntoId) });
       }
       dibujar();
       aviso(tareas.length===1 ? "1 pendiente sacado del audio"
@@ -4384,7 +4726,7 @@ function instruccionAnalisis(apertura){
     '(Proserco, Isracap e Isracap Grand) y tiene esposa y cuatro hijos.\n\n' +
     'Devuelve SOLO un JSON válido, sin ``` y sin ninguna palabra fuera del JSON:\n' +
     '{"titulo":"...","transcripcion":"...","tareas":[{"texto":"...","mundo":"",' +
-    '"cuando":"","vence":"","esperandoA":""}]}\n\n' +
+    '"cuando":"","vence":"","esperandoA":"","asuntoId":""}]}\n\n' +
     'titulo: de qué va esta nota, en 3 a 6 palabras, como el nombre de un archivo. ' +
     'Ejemplos: "Pendientes del proyecto Hadassa", "Compras y turno del dentista".\n' +
     'transcripcion: lo que se dice, literal, en el idioma original. Si te doy texto ' +
@@ -4405,8 +4747,11 @@ function instruccionAnalisis(apertura){
     'En Israel la semana empieza en domingo y el sábado no se trabaja: si una fecha cae ' +
     'en sábado, pásala al domingo siguiente. Si no hay plazo, deja "".\n' +
     'esperandoA: si lo dicho no depende de que Mordejai actúe sino de que otra persona ' +
-    'responda o entregue, pon el nombre de esa persona. Si depende de él, deja "".\n\n' +
-    'Si no se entiende nada, devuelve {"transcripcion":"INAUDIBLE","tareas":[]}';
+    'responda o entregue, pon el nombre de esa persona. Si depende de él, deja "".\n' +
+    'asuntoId: el identificador del asunto al que pertenece, si encaja con alguno de ' +
+    'los que te doy abajo. Vacío si no encaja con ninguno.\n\n' +
+    'Si no se entiende nada, devuelve {"transcripcion":"INAUDIBLE","tareas":[]}' +
+    asuntosParaElModelo();
 }
 
 /* ---- Analizar algo escrito a mano -------------------------------- */
@@ -4436,6 +4781,7 @@ async function analizarTexto(it){
     it.texto = textoTarea(p);
     it.vence = fechaDe(p); it.cuandoTexto = p.cuando || "";
     it.esperandoA = p.esperandoA || "";
+    it.asuntoId = p.asuntoId || ""; it.asuntoTitulo = tituloAsunto(p.asuntoId);
     if(mundoValido(p.mundo)){ it.ctx = p.mundo; it.sugerido = p.mundo; }
     guardar("items",items); dibujar(); enviarAlMotor(it);
 
@@ -4445,13 +4791,21 @@ async function analizarTexto(it){
                       ctx: mundoValido(t.mundo) ? t.mundo : null,
                       origen: "escrito", sugerido: mundoValido(t.mundo) ? t.mundo : "",
                       vence: fechaDe(t), cuandoTexto: t.cuando || "",
-                      esperandoA: t.esperandoA || "" });
+                      esperandoA: t.esperandoA || "",
+                      asuntoId: t.asuntoId || "",
+                      asuntoTitulo: tituloAsunto(t.asuntoId) });
     }
     aviso(tareas.length===1 ? "Clasificado" : tareas.length + " pendientes separados");
   }catch(e){ /* si falla, la captura se queda sin clasificar y la asignas tú */ }
 }
 
 function hoyISO(){ return new Date().toISOString().slice(0,10); }
+
+function tituloAsunto(id){
+  if(!id) return "";
+  const a = asuntosCache.find(x => x.id === id);
+  return a ? a.titulo : "";
+}
 function diaDeHoy(){
   return new Date().toLocaleDateString("es",{weekday:"long"});
 }
@@ -4650,18 +5004,18 @@ document.getElementById("recargarBtn").onclick = () => { traerResumen(false); pi
 
 document.getElementById("modoLista").appendChild(icono("lista", 17));
 document.getElementById("modoCal").appendChild(icono("calendario", 17));
-document.getElementById("modoLista").onclick = () => {
-  verCalendario = false; son("toque");
-  document.getElementById("modoLista").classList.add("activo");
-  document.getElementById("modoCal").classList.remove("activo");
+document.getElementById("modoAsu").appendChild(icono("obra", 17));
+function modo(cual){
+  vista = cual; son("toque");
+  ["Lista","Cal","Asu"].forEach(x =>
+    document.getElementById("modo"+x).classList.toggle("activo",
+      x.toLowerCase() === cual.slice(0,3)));
   dibujarPanel();
-};
-document.getElementById("modoCal").onclick = () => {
-  verCalendario = true; son("toque");
-  document.getElementById("modoCal").classList.add("activo");
-  document.getElementById("modoLista").classList.remove("activo");
-  dibujarPanel();
-};
+  if(cual === "asuntos") verAsuntos();
+}
+document.getElementById("modoLista").onclick = () => modo("lista");
+document.getElementById("modoCal").onclick   = () => modo("calendario");
+document.getElementById("modoAsu").onclick   = () => modo("asuntos");
 document.getElementById("chatEnviar").onclick = enviarChat;
 document.getElementById("verChats").onclick = abrirHojaChats;
 document.getElementById("buscarBtn").onclick = abrirBuscador;
@@ -4980,6 +5334,8 @@ async function revisarSistema(){
       chequeo(e.sugerenciasPendientes ? "duda" : "bien", "Propuestas para tu contexto",
         e.sugerenciasPendientes ? e.sugerenciasPendientes + " esperando tu visto bueno"
                                 : "Ninguna pendiente");
+      chequeo("bien", "Asuntos abiertos",
+        (e.asuntosAbiertos || 0) + " en marcha");
       chequeo("bien", "Acuerdos abiertos",
         (e.acuerdosAbiertos || 0) + " en seguimiento");
       chequeo("bien", "Guardado en la hoja",
@@ -5031,6 +5387,7 @@ const SUB_AJUSTES = {
   "Revisión del sistema":   ["escudo",    "Comprobar que todo está vivo"],
   "Lo que he aprendido":    ["identidad", "Propuestas para tu contexto"],
   "Acuerdos abiertos":      ["escudo",    "Lo prometido, y a quién"],
+  "Bitácora":               ["historia",  "Qué decidí y cuándo"],
   "Lo que he ocultado":     ["oculto",    "Ver y devolver lo descartado"],
   "Espacio y copias":       ["caja",      "Cuánto ocupa y copia de seguridad"]
 };
@@ -5202,6 +5559,28 @@ async function verAcuerdos(){
 }
 document.getElementById("verAcu").onclick = verAcuerdos;
 
+async function verBitacora(){
+  const c = document.getElementById("listaBit");
+  c.innerHTML = '<p class="hint">Abriendo…</p>';
+  const d = await pedirAlMotor("bitacora");
+  c.innerHTML = "";
+  if(!d || !d.ok){ c.innerHTML = '<p class="hint">No pude abrirla.</p>'; return; }
+  if(!d.lista.length){ c.innerHTML = '<p class="hint">Todavía no hay nada anotado.</p>'; return; }
+  d.lista.forEach(x => {
+    const f = document.createElement("div"); f.className = "bit";
+    const h = document.createElement("span"); h.className = "bh"; h.textContent = x.cuando;
+    const t = document.createElement("div"); t.className = "bt";
+    const q = document.createElement("b"); q.textContent = x.que + (x.sobre ? "  " + x.sobre : "");
+    t.appendChild(q);
+    if(x.detalle){
+      const s2 = document.createElement("small"); s2.textContent = x.detalle;
+      t.appendChild(s2);
+    }
+    f.append(h, t); c.appendChild(f);
+  });
+}
+document.getElementById("verBit").onclick = verBitacora;
+
 const sonOp = document.getElementById("sonidoOp");
 if(ajustes.sonido === undefined){ ajustes.sonido = true; guardar("ajustes", ajustes); }
 sonOp.checked = !!ajustes.sonido;
@@ -5266,7 +5645,7 @@ function avisoConDeshacer(msg, alDeshacer){
   b.onclick = () => { t.classList.remove("show", "con-boton"); alDeshacer(); };
   t.appendChild(b);
   clearTimeout(tToast);
-  tToast = setTimeout(() => t.classList.remove("show", "con-boton"), 10000);
+  tToast = setTimeout(() => t.classList.remove("show", "con-boton"), 3000);
 }
 
 function aviso(msg){
@@ -5318,6 +5697,7 @@ if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch
 recogerEntrantes();
 if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
 traerResumen(true);
+setTimeout(refrescarAsuntos, 1500);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) recogerEntrantes(); });
 </script>
 </body>
