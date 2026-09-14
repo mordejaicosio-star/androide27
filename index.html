@@ -962,6 +962,10 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
   transition:transform .26s cubic-bezier(.2,.8,.2,1);
   box-shadow:0 -8px 40px rgba(0,0,0,.3)}
 .hoja-chats.abierta{transform:translateY(0)}
+.hoja-chats{position:fixed}
+.cerrar-hoja{position:absolute; inset-block-start:10px; inset-inline-end:14px;
+  inline-size:34px; block-size:34px; border-radius:10px; border:1px solid var(--line);
+  color:var(--muted); font-size:19px; line-height:1; display:grid; place-items:center}
 .chat-item{display:flex; align-items:center; gap:10px; inline-size:100%;
   padding:12px 4px; border-block-end:1px solid var(--line); text-align:start}
 .chat-item:last-child{border-block-end:none}
@@ -1138,6 +1142,7 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
 
   <div class="hoja-chats" id="hojaDesc">
     <div class="asa"></div>
+    <button class="cerrar-hoja" id="cerrarDesc" aria-label="Cerrar">×</button>
     <h3 style="margin-block-end:4px">Correos descartados</h3>
     <p class="hint" style="margin-block-end:12px">Esto es lo que dejé fuera del repaso. Si me equivoqué en alguno, pásalo a tu día.</p>
     <div id="listaDesc"></div>
@@ -1145,6 +1150,7 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
 
   <div class="hoja-chats" id="hojaChats">
     <div class="asa"></div>
+    <button class="cerrar-hoja" id="cerrarChats" aria-label="Cerrar">×</button>
     <h3 style="margin-block-end:12px">Conversaciones</h3>
     <div id="listaChats"></div>
   </div>
@@ -2886,10 +2892,29 @@ function abrirDescartes(){
   if(!lista.length){
     const p = document.createElement("p"); p.className = "hint";
     p.textContent = resumenActual && resumenActual.descartados
-      ? "Descarté " + resumenActual.descartados + " correos, pero este repaso no guardó el detalle. " +
-        "Genera uno nuevo desde la hoja y aquí los verás uno a uno."
+      ? "Descarté " + resumenActual.descartados + " correos en el repaso de " +
+        cuando(ajustes.ultimaFecha) + ", pero ese repaso es del formato anterior y no " +
+        "guardó el detalle."
       : "No descarté nada en el último repaso.";
     l.appendChild(p);
+
+    if(resumenActual && resumenActual.descartados){
+      const b = document.createElement("button"); b.className = "ghost";
+      b.style.marginBlockStart = "12px";
+      b.textContent = "Traer el repaso más reciente";
+      b.onclick = async () => {
+        b.textContent = "Buscando…";
+        await traerResumen(true);
+        cerrarDescartes(); setTimeout(abrirDescartes, 300);
+      };
+      l.appendChild(b);
+
+      const n = document.createElement("p"); n.className = "hint";
+      n.style.marginBlockStart = "10px";
+      n.textContent = "Si sigue sin detalle, genera un resumen nuevo desde la hoja: " +
+                      "menú Androide 27 → Generar resumen ahora.";
+      l.appendChild(n);
+    }
   } else {
     lista.forEach(d => {
       const f = document.createElement("div"); f.className = "desc-item";
@@ -4860,6 +4885,8 @@ async function verSugerencias(){
   });
 }
 document.getElementById("verSug").onclick = verSugerencias;
+document.getElementById("cerrarDesc").onclick = cerrarDescartes;
+document.getElementById("cerrarChats").onclick = cerrarHojaChats;
 
 async function verAcuerdos(){
   const c = document.getElementById("listaAcu");
