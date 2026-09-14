@@ -588,6 +588,16 @@ textarea::placeholder{color:var(--muted)}
 .linea-op input{inline-size:20px; block-size:20px; flex:none; accent-color:var(--accent)}
 .sub-t{font-size:12px; text-transform:uppercase; letter-spacing:.05em;
   color:var(--muted); margin:18px 0 8px}
+.prop-item{display:flex; align-items:center; gap:9px; padding:12px 0;
+  border-block-end:1px solid var(--line)}
+.prop-item:last-child{border-block-end:none}
+.prop-item .pt{flex:1; min-width:0}
+.prop-item .pt b{display:block; font-size:13.5px; line-height:1.35}
+.prop-item .pt small{display:block; font-size:12px; color:var(--muted);
+  margin-block-start:3px}
+.prop-item button{border:1px solid var(--line); border-radius:9px; padding:7px 12px;
+  font-size:12.5px; color:var(--muted); flex:none}
+.prop-item button.si{color:var(--accent); border-color:var(--accent)}
 .oculto-item{display:flex; align-items:center; gap:10px; padding:10px 0;
   border-block-end:1px solid var(--line); font-size:13.5px}
 .oculto-item span{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
@@ -707,6 +717,20 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 .titular{font-family:"Frank Ruhl Libre",serif; font-size:20px; line-height:1.3;
   margin:0 0 6px; letter-spacing:-.01em}
 .bajo-titular{color:var(--muted); font-size:13.5px; margin:0}
+.ver-desc{margin-block-start:7px; font-size:12.5px; color:var(--accent);
+  text-align:start; padding:0}
+.desc-item{display:flex; align-items:center; gap:12px; padding:12px 2px;
+  border-block-end:1px solid var(--line)}
+.desc-item:last-child{border-block-end:none}
+.desc-item .dt{flex:1; min-width:0}
+.desc-item .dt b{display:block; font-size:14px; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap}
+.desc-item .dt span{display:block; font-size:12.5px; color:var(--muted);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.desc-item .dt small{display:block; font-size:11.5px; color:var(--grand);
+  margin-block-start:3px}
+.desc-item button{border:1px solid var(--line); border-radius:9px; padding:7px 13px;
+  font-size:12.5px; color:var(--accent); flex:none}
 .leer{inline-size:48px; block-size:48px; border-radius:50%; flex:none;
   border:1px solid var(--line); background:var(--surface); color:var(--accent);
   font-size:17px; display:grid; place-items:center}
@@ -833,6 +857,12 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
   margin-block-start:16px; font-size:14px; inline-size:100%; text-align:start;
   border-inline-start:3px solid var(--sin)}
 .cuando-resumen{font-size:12.5px; color:var(--muted); margin:0 0 6px}
+.visitas{display:flex; flex-wrap:wrap; gap:6px; margin-block-end:14px}
+.visitas span{font-size:11.5px; color:var(--muted); border:1px solid var(--line);
+  border-radius:999px; padding:4px 10px}
+.visitas span b{font-weight:600; color:var(--text)}
+.visitas span.viejo{border-color:var(--grand); color:var(--grand)}
+.visitas span.viejo b{color:var(--grand)}
 
 /* aviso que te manda a Entrada cuando hay algo esperando */
 .llamada{inline-size:100%; text-align:start; background:var(--surface);
@@ -1080,6 +1110,7 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <p><b>Nunca más</b> — dejo de traerte cosas parecidas, también las futuras. Reversible en Ajustes.</p>
     </div>
     <p class="cuando-resumen" id="resumenFecha"></p>
+    <div class="visitas" id="visitas"></div>
     <div id="resumenTexto"></div>
   </main>
 
@@ -1104,6 +1135,13 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
     <div class="sugerencias" id="sugerencias"></div>
     <div class="chat-lista" id="chatLista"></div>
   </main>
+
+  <div class="hoja-chats" id="hojaDesc">
+    <div class="asa"></div>
+    <h3 style="margin-block-end:4px">Correos descartados</h3>
+    <p class="hint" style="margin-block-end:12px">Esto es lo que dejé fuera del repaso. Si me equivoqué en alguno, pásalo a tu día.</p>
+    <div id="listaDesc"></div>
+  </div>
 
   <div class="hoja-chats" id="hojaChats">
     <div class="asa"></div>
@@ -1231,7 +1269,23 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <div class="dentro-g">
       <div id="revision"><p class="hint">Toca revisar para comprobar que cada pieza está viva.</p></div>
       <div class="fila-btn"><button class="ghost" id="revisarBtn">Revisar ahora</button></div>
+      <div class="fila-btn"><button class="ghost" id="sincroBtn">Poner el motor al día</button></div>
+      <p class="hint">Si el resumen habla de cosas que ya resolviste, es que el motor tiene una lista vieja. Esto le manda la tuya y cierra lo demás.</p>
       </div>
+    </section>
+
+    <section class="grupo">
+      <h4>Lo que he aprendido</h4>
+      <p class="hint">Cosas que noté en tus correos y creo que debería saber de forma permanente. No aplico nada sin tu visto bueno.</p>
+      <div id="listaSug"><p class="hint">Toca buscar para verlas.</p></div>
+      <div class="fila-btn"><button class="ghost" id="verSug">Buscar propuestas</button></div>
+    </section>
+
+    <section class="grupo">
+      <h4>Acuerdos abiertos</h4>
+      <p class="hint">Lo que se prometió, a quién y para cuándo. Lo detecto leyendo tu correo. Ciérralos cuando se cumplan.</p>
+      <div id="listaAcu"><p class="hint">Toca buscar para verlos.</p></div>
+      <div class="fila-btn"><button class="ghost" id="verAcu">Buscar acuerdos</button></div>
     </section>
 
     <section class="grupo">
@@ -2019,12 +2073,18 @@ function dibujarCabecera(){
   if(!mundoDelDia && acc) partes.push(acc + (acc===1 ? " cosa del correo" : " cosas del correo"));
   if(paraHoy) partes.push(paraHoy + (paraHoy===1 ? " cosa para hoy" : " cosas para hoy"));
   if(luego) partes.push(luego + " más adelante");
-  if(!mundoDelDia && resumenActual && resumenActual.descartados)
-    partes.push(resumenActual.descartados + " descartados");
+
   if(resumenActual && !resumenDeHoy())
     partes.push("el repaso del correo es de " + cuando(ajustes.ultimaFecha));
   sub.textContent = partes.join("  ·  ") || "Sin nada pendiente";
   izq.appendChild(sub);
+
+  if(!mundoDelDia && resumenActual && resumenActual.descartados){
+    const d = document.createElement("button"); d.className = "ver-desc";
+    d.textContent = resumenActual.descartados + " correos descartados  ›";
+    d.onclick = abrirDescartes;
+    izq.appendChild(d);
+  }
 
   caja.appendChild(izq);
   c.appendChild(caja);
@@ -2771,6 +2831,91 @@ function pedirNombre(c){
   guardar("chats", chats);
   dibujarListaChats(); dibujarChat();
   aviso("Renombrada");
+}
+
+/* ====================================================================
+   Cuándo pasó por cada cuenta
+   Para saber si lo que estás viendo está al día o llevas horas a
+   ciegas en una de las cuatro.
+==================================================================== */
+async function pintarVisitas(){
+  const c = document.getElementById("visitas"); if(!c) return;
+  if(!ajustes.endpoint || !ajustes.token){ c.innerHTML = ""; return; }
+  try{
+    const url = ajustes.endpoint + (ajustes.endpoint.includes("?") ? "&" : "?") +
+                "token=" + encodeURIComponent(ajustes.token) + "&tipo=estado";
+    const r = await fetch(url);
+    const d = await r.json();
+    if(!d.ok || !d.estado) return;
+
+    c.innerHTML = "";
+    const esperadas = ["Proserco","Isracap","Isracap Grand","Personal"];
+    const ahora = new Date();
+
+    esperadas.forEach(n => {
+      const x = (d.estado.cuentas || []).find(y => y.nombre === n);
+      const s = document.createElement("span");
+      const b = document.createElement("b"); b.textContent = n;
+      s.appendChild(b);
+
+      if(!x){ s.append(document.createTextNode("  nunca")); s.classList.add("viejo"); }
+      else {
+        // el motor devuelve "dd/MM HH:mm"
+        const [dm, hm] = x.cuando.split(" ");
+        const [dd, MM] = dm.split("/");
+        const f = new Date(ahora.getFullYear(), Number(MM)-1, Number(dd),
+                           Number(hm.split(":")[0]), Number(hm.split(":")[1]));
+        const horas = (ahora - f) / 3600000;
+        s.append(document.createTextNode("  " + (horas < 24 ? hm : dm)));
+        if(horas > 26) s.classList.add("viejo");
+      }
+      c.appendChild(s);
+    });
+  }catch(e){}
+}
+
+/* ====================================================================
+   Qué se quedó fuera
+   Descartar sin poder revisar es pedirte fe ciega. Aquí está todo lo
+   que tiré, con su motivo, y puedes rescatar lo que haga falta.
+==================================================================== */
+function abrirDescartes(){
+  const l = document.getElementById("listaDesc"); l.innerHTML = "";
+  const lista = (resumenActual && resumenActual.descartadosLista) || [];
+
+  if(!lista.length){
+    const p = document.createElement("p"); p.className = "hint";
+    p.textContent = resumenActual && resumenActual.descartados
+      ? "Descarté " + resumenActual.descartados + " correos, pero este repaso no guardó el detalle. " +
+        "Genera uno nuevo desde la hoja y aquí los verás uno a uno."
+      : "No descarté nada en el último repaso.";
+    l.appendChild(p);
+  } else {
+    lista.forEach(d => {
+      const f = document.createElement("div"); f.className = "desc-item";
+      const t = document.createElement("div"); t.className = "dt";
+      const n = document.createElement("b"); n.textContent = d.de || "Sin remitente";
+      const a = document.createElement("span"); a.textContent = d.asunto || "";
+      const m = document.createElement("small"); m.textContent = d.motivo || "";
+      t.append(n, a, m);
+
+      const b = document.createElement("button");
+      b.textContent = "Rescatar";
+      b.onclick = async () => {
+        await agregar({ texto: d.asunto || d.de || "Correo rescatado",
+                        ctx: null, origen: "del resumen" });
+        son("guardado"); aviso("Pasado a tu día, sin clasificar");
+        b.textContent = "✓"; b.disabled = true;
+      };
+      f.append(t, b); l.appendChild(f);
+    });
+  }
+  document.getElementById("hojaDesc").classList.add("abierta");
+  document.getElementById("fondo").classList.add("visible");
+}
+function cerrarDescartes(){
+  document.getElementById("hojaDesc").classList.remove("abierta");
+  document.getElementById("fondo").classList.remove("visible");
 }
 
 function abrirHojaChats(){
@@ -4183,12 +4328,15 @@ function ir(v){
   if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); medirEspacio(); pintarVoces(); }
   if(v==="chat"){ dibujarChat(); setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),60); }
   if(v==="hoy") dibujarPanel();
-  if(v==="entrada" && ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
+  if(v==="entrada"){
+    if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
+    pintarVisitas();
+  }
   window.scrollTo(0,0);
 }
 
 document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
-document.getElementById("recargarBtn").onclick = () => traerResumen(false);
+document.getElementById("recargarBtn").onclick = () => { traerResumen(false); pintarVisitas(); };
 
 document.getElementById("modoLista").appendChild(icono("lista", 17));
 document.getElementById("modoCal").appendChild(icono("calendario", 17));
@@ -4248,7 +4396,7 @@ function cerrarMenu(){
 }
 
 document.getElementById("fab").onclick = () => menuAbierto() ? cerrarMenu() : abrirMenu();
-document.getElementById("fondo").onclick = () => { cerrarMenu(); cerrarCaptura(); cerrarHojaChats(); };
+document.getElementById("fondo").onclick = () => { cerrarMenu(); cerrarCaptura(); cerrarHojaChats(); cerrarDescartes(); };
 
 /* Contarle algo de ti: no es una tarea, es algo que quieres que
    sepa de forma permanente y tenga en cuenta al aconsejarte. */
@@ -4519,6 +4667,11 @@ async function revisarSistema(){
       chequeo(e.ordenesPendientes ? "duda" : "bien", "Órdenes para Gmail",
         e.ordenesPendientes ? e.ordenesPendientes + " sin cumplir · se harán en la próxima recogida"
                             : "Todas cumplidas");
+      chequeo(e.sugerenciasPendientes ? "duda" : "bien", "Propuestas para tu contexto",
+        e.sugerenciasPendientes ? e.sugerenciasPendientes + " esperando tu visto bueno"
+                                : "Ninguna pendiente");
+      chequeo("bien", "Acuerdos abiertos",
+        (e.acuerdosAbiertos || 0) + " en seguimiento");
       chequeo("bien", "Guardado en la hoja",
         e.correos + " correos  ·  " + e.capturas + " capturas  ·  " + e.ignorar + " ignorados");
       if(e.ultimoError)
@@ -4534,6 +4687,30 @@ async function revisarSistema(){
 
 document.getElementById("revisarBtn").onclick = revisarSistema;
 
+/* Mandarle al motor la lista exacta de lo que sigue abierto.
+   Todo lo que no esté en ella se da por cerrado allí. Así las dos
+   listas vuelven a decir lo mismo. */
+async function sincronizar(silencioso){
+  if(!ajustes.endpoint || !ajustes.token){
+    if(!silencioso) aviso("Falta conectar el motor");
+    return;
+  }
+  const abiertos = items.filter(i => !i.hecho && !i.esFuente).map(i => i.id);
+  try{
+    await fetch(ajustes.endpoint, { method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({ token: ajustes.token, tipo:"sincronizar", ids: abiertos }) });
+    if(!silencioso) aviso("Motor al día. Genera un resumen nuevo para verlo.");
+  }catch(e){ if(!silencioso) aviso("No se pudo avisar al motor"); }
+}
+document.getElementById("sincroBtn").onclick = () => sincronizar(false);
+
+// Y una vez al día, sola, para que no vuelva a separarse.
+if(ajustes.ultimaSincro !== hoyISO()){
+  ajustes.ultimaSincro = hoyISO(); guardar("ajustes", ajustes);
+  setTimeout(() => sincronizar(true), 3000);
+}
+
 /* ---- Ajustes como lista de filas que se abren ---- */
 const SUB_AJUSTES = {
   "Identidad":              ["identidad", "Nombre y firma de tu androide"],
@@ -4542,6 +4719,8 @@ const SUB_AJUSTES = {
   "Conexión con el motor":  ["enchufe",   "Dirección y palabra secreta"],
   "Transcripción de audios":["voz",       "Clave y modelo que escucha"],
   "Revisión del sistema":   ["escudo",    "Comprobar que todo está vivo"],
+  "Lo que he aprendido":    ["identidad", "Propuestas para tu contexto"],
+  "Acuerdos abiertos":      ["escudo",    "Lo prometido, y a quién"],
   "Lo que he ocultado":     ["oculto",    "Ver y devolver lo descartado"],
   "Espacio y copias":       ["caja",      "Cuánto ocupa y copia de seguridad"]
 };
@@ -4630,6 +4809,85 @@ async function verBloqueos(){
   }catch(e){ c.innerHTML = '<p class="hint">No pude preguntarle al motor.</p>'; }
 }
 document.getElementById("verBloqueos").onclick = verBloqueos;
+
+/* ====================================================================
+   Lo que aprendió y lo que se prometió
+   Dos listas que hasta ahora solo vivían en la hoja. Aquí las ves y
+   decides: aprobar una propuesta la mete en tu contexto; cerrar un
+   acuerdo lo saca de la memoria activa.
+==================================================================== */
+async function pedirAlMotor(tipo, extra){
+  if(!ajustes.endpoint || !ajustes.token) return null;
+  try{
+    const url = ajustes.endpoint + (ajustes.endpoint.includes("?") ? "&" : "?") +
+                "token=" + encodeURIComponent(ajustes.token) +
+                "&tipo=" + tipo + (extra || "");
+    const r = await fetch(url);
+    return await r.json();
+  }catch(e){ return null; }
+}
+
+async function verSugerencias(){
+  const c = document.getElementById("listaSug");
+  c.innerHTML = '<p class="hint">Preguntando al motor…</p>';
+  const d = await pedirAlMotor("sugerencias");
+  c.innerHTML = "";
+  if(!d || !d.ok){ c.innerHTML = '<p class="hint">No pude preguntarle al motor.</p>'; return; }
+  if(!d.lista.length){
+    c.innerHTML = '<p class="hint">Nada nuevo por ahora. Reviso tus correos los domingos.</p>';
+    return;
+  }
+  d.lista.forEach(x => {
+    const f = document.createElement("div"); f.className = "prop-item";
+    const t = document.createElement("div"); t.className = "pt";
+    const q = document.createElement("b"); q.textContent = x.que;
+    const p = document.createElement("small"); p.textContent = x.porque || "";
+    t.append(q, p);
+
+    const si = document.createElement("button"); si.className = "si"; si.textContent = "Aprobar";
+    const no = document.createElement("button"); no.textContent = "No";
+    si.onclick = async () => {
+      si.textContent = "…";
+      const r = await pedirAlMotor("aprobar", "&fila=" + x.fila + "&como=si");
+      if(r && r.ok){ son("guardado"); aviso("Añadido a tu contexto"); verSugerencias(); }
+      else { aviso("No se pudo"); si.textContent = "Aprobar"; }
+    };
+    no.onclick = async () => {
+      const r = await pedirAlMotor("aprobar", "&fila=" + x.fila + "&como=no");
+      if(r && r.ok){ aviso("Descartada"); verSugerencias(); }
+    };
+    f.append(t, si, no); c.appendChild(f);
+  });
+}
+document.getElementById("verSug").onclick = verSugerencias;
+
+async function verAcuerdos(){
+  const c = document.getElementById("listaAcu");
+  c.innerHTML = '<p class="hint">Preguntando al motor…</p>';
+  const d = await pedirAlMotor("acuerdos");
+  c.innerHTML = "";
+  if(!d || !d.ok){ c.innerHTML = '<p class="hint">No pude preguntarle al motor.</p>'; return; }
+  if(!d.lista.length){
+    c.innerHTML = '<p class="hint">Ningún acuerdo abierto. Los iré anotando conforme aparezcan en tus correos.</p>';
+    return;
+  }
+  d.lista.forEach(x => {
+    const f = document.createElement("div"); f.className = "prop-item";
+    const t = document.createElement("div"); t.className = "pt";
+    const q = document.createElement("b"); q.textContent = "Con " + x.conQuien;
+    const p = document.createElement("small"); p.textContent = x.que + "  ·  " + x.fecha;
+    t.append(q, p);
+    const si = document.createElement("button"); si.className = "si"; si.textContent = "Cumplido";
+    si.onclick = async () => {
+      si.textContent = "…";
+      const r = await pedirAlMotor("cerrarAcuerdo", "&fila=" + x.fila);
+      if(r && r.ok){ son("hecho"); aviso("Cerrado"); verAcuerdos(); }
+      else { aviso("No se pudo"); si.textContent = "Cumplido"; }
+    };
+    f.append(t, si); c.appendChild(f);
+  });
+}
+document.getElementById("verAcu").onclick = verAcuerdos;
 
 const sonOp = document.getElementById("sonidoOp");
 if(ajustes.sonido === undefined){ ajustes.sonido = true; guardar("ajustes", ajustes); }
