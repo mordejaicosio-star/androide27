@@ -1112,6 +1112,7 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <p><b>Pasar a mi día</b> — se convierte en tarea tuya y aparece en Hoy.</p>
       <p><b>Hoy no</b> — lo quito de tu vista. El correo sigue intacto y puede volver a salir si cambia algo.</p>
       <p><b>Nunca más</b> — dejo de traerte cosas parecidas, también las futuras. Reversible en Ajustes.</p>
+      <p style="margin-block-start:8px; opacity:.8">Lo que rescates de los descartados aparece aquí, no en tu día: primero decides.</p>
     </div>
     <p class="cuando-resumen" id="resumenFecha"></p>
     <div class="visitas" id="visitas"></div>
@@ -1582,6 +1583,17 @@ let aprendidos = leer("aprendidos", []);
    pero los correos ya recogidos siguen en el repaso: por eso la app
    también lo recuerda y no vuelve a mostrártelo. */
 let descartados = leer("descartados", []);
+
+/* Lo que rescataste de la papelera. Vuelve a Entrada como algo sin
+   decidir, que es donde vive todo lo del correo hasta que eliges. */
+let rescatados = leer("rescatados", []);
+function claveDesc(d){
+  return ((d.de || "") + "|" + (d.asunto || d.titulo || "")).toLowerCase();
+}
+function fueRescatado(d){
+  const k = claveDesc(d);
+  return rescatados.some(r => claveDesc(r) === k);
+}
 function estaDescartado(it){
   const c = [it.asunto, it.titulo].filter(Boolean).map(x => String(x).toLowerCase());
   // Solo cuenta si lo descartado aparece dentro del asunto o del título, y
@@ -1928,10 +1940,10 @@ function textoCorto(iso){
 
 function completar(it){
   son("hecho");
-  it.hecho = true; guardar("items", items); dibujar();
+  it.hecho = true; guardar("items", items); refrescarTodo();
   avisarEstado(it, "hecho");
   avisoConDeshacer("Hecho", () => {
-    it.hecho = false; guardar("items", items); dibujar();
+    it.hecho = false; guardar("items", items); refrescarTodo();
     avisarEstado(it, "pendiente");
   });
 }
@@ -1942,7 +1954,7 @@ function aplazar(it){
   const base = it.vence ? new Date(it.vence + "T00:00:00") : new Date();
   base.setDate(base.getDate() + 1);
   it.vence = base.toISOString().slice(0,10);
-  guardar("items", items); dibujar();
+  guardar("items", items); refrescarTodo();
   avisoConDeshacer("Aplazado a " + comoSuena(it.vence), () => {
     it.vence = antes; guardar("items", items); dibujar();
   });
@@ -1951,8 +1963,9 @@ function aplazar(it){
 /* El número que aparece sobre la pestaña Entrada. */
 function cuantasEnEntrada(){
   if(!resumenActual || !Array.isArray(resumenActual.items)) return 0;
-  return resumenActual.items.filter(i => i.tipo !== "informativo" &&
-    !estaDescartado(i) && !items.some(x => x.texto === i.titulo)).length;
+  return resumenActual.items.concat(rescatados)
+    .filter(i => i.tipo !== "informativo" && !estaDescartado(i) &&
+                 !items.some(x => x.texto === i.titulo)).length;
 }
 
 function dibujarChapa(){
@@ -2085,9 +2098,10 @@ function dibujarCabecera(){
   sub.textContent = partes.join("  ·  ") || "Sin nada pendiente";
   izq.appendChild(sub);
 
-  if(!mundoDelDia && resumenActual && resumenActual.descartados){
+  const nDesc = cuantosDescartados();
+  if(!mundoDelDia && nDesc){
     const d = document.createElement("button"); d.className = "ver-desc";
-    d.textContent = resumenActual.descartados + " correos descartados  ›";
+    d.textContent = nDesc + (nDesc === 1 ? " correo descartado  ›" : " correos descartados  ›");
     d.onclick = abrirDescartes;
     izq.appendChild(d);
   }
@@ -2505,7 +2519,9 @@ function pintarResumen(texto, mensaje){
     fecha.style.color = resumenDeHoy() ? "" : "var(--grand)";
   }
 
-  const vivos = datos.items.filter(i => !estaDescartado(i));
+  // A lo que trajo el motor le sumamos lo que rescataste de la papelera.
+  const todos = (datos.items || []).concat(rescatados);
+  const vivos = todos.filter(i => !estaDescartado(i));
   const acciones = vivos.filter(i => i.tipo !== "informativo")
                         .sort((a,b) => (a.prioridad||3) - (b.prioridad||3));
   const infos    = vivos.filter(i => i.tipo === "informativo");
@@ -2625,11 +2641,10 @@ function tarjeta(it){
                                   origen: "del resumen", sugerido: ctx ? ctx.id : "",
                                   vence: fechaDe(it), cuandoTexto: it.cuando || "",
                                   esperandoA: it.esperandoA || "" });
-    pintarResumen(ajustes.ultimoResumen, null);
+    refrescarTodo();
     avisoConDeshacer("Pasado a " + (ctx ? ctx.nombre : "pendientes"), () => {
       items = items.filter(x => x.id !== nuevo.id);
-      guardar("items", items); dibujar();
-      pintarResumen(ajustes.ultimoResumen, null);
+      guardar("items", items); refrescarTodo();
     });
   };
   // Descartar: fuera de mi día, pero el correo sigue intacto y
@@ -2640,7 +2655,7 @@ function tarjeta(it){
     descartados.unshift(String(it.asunto || it.titulo).toLowerCase().slice(0,60));
     descartados = descartados.slice(0, 200);
     guardar("descartados", descartados);
-    pintarResumen(ajustes.ultimoResumen, null);
+    refrescarTodo();
     aviso("Fuera de tu día");
   };
 
@@ -2673,8 +2688,7 @@ async function noMeInteresa(texto, fila){
     descartados.unshift(clave.toLowerCase());
     descartados = descartados.slice(0, 200);
     guardar("descartados", descartados);
-    fila.style.display = "none";
-    dibujarChapa();
+    refrescarTodo();
     aviso("Anotado: no te lo vuelvo a mostrar");
   }catch(e){ aviso("No se pudo avisar al motor"); }
 }
@@ -2885,9 +2899,29 @@ async function pintarVisitas(){
    Descartar sin poder revisar es pedirte fe ciega. Aquí está todo lo
    que tiré, con su motivo, y puedes rescatar lo que haga falta.
 ==================================================================== */
+/* Cuántos quedan en la papelera, sin contar los que ya rescataste. */
+function cuantosDescartados(){
+  if(!resumenActual) return 0;
+  const lista = resumenActual.descartadosLista;
+  if(Array.isArray(lista) && lista.length)
+    return lista.filter(d => !fueRescatado(d)).length;
+  return Math.max(0, (resumenActual.descartados || 0) - rescatados.length);
+}
+
 function abrirDescartes(){
   const l = document.getElementById("listaDesc"); l.innerHTML = "";
-  const lista = (resumenActual && resumenActual.descartadosLista) || [];
+  const lista = ((resumenActual && resumenActual.descartadosLista) || [])
+                  .filter(d => !fueRescatado(d));
+
+  if(!lista.length && cuantosDescartados() === 0 && rescatados.length){
+    const p = document.createElement("p"); p.className = "hint";
+    p.textContent = "Ya los revisaste todos. Lo que rescataste está en Entrada, " +
+                    "esperando que decidas qué hacer con ello.";
+    l.appendChild(p);
+    document.getElementById("hojaDesc").classList.add("abierta");
+    document.getElementById("fondo").classList.add("visible");
+    return;
+  }
 
   if(!lista.length){
     const p = document.createElement("p"); p.className = "hint";
@@ -2926,11 +2960,20 @@ function abrirDescartes(){
 
       const b = document.createElement("button");
       b.textContent = "Rescatar";
-      b.onclick = async () => {
-        await agregar({ texto: d.asunto || d.de || "Correo rescatado",
-                        ctx: null, origen: "del resumen" });
-        son("guardado"); aviso("Pasado a tu día, sin clasificar");
-        b.textContent = "✓"; b.disabled = true;
+      b.onclick = () => {
+        // Vuelve a Entrada como algo sin decidir, no directamente a tu día.
+        rescatados.unshift({
+          de: d.de || "", asunto: d.asunto || "",
+          titulo: d.asunto || d.de || "Correo rescatado",
+          mundo: "", tipo: "accion", prioridad: 2,
+          porQue: "Lo rescataste de los descartados",
+          accion: "", cuenta: "", cuando: "", vence: ""
+        });
+        rescatados = rescatados.slice(0, 60);
+        guardar("rescatados", rescatados);
+        son("guardado"); aviso("Está en Entrada, esperando tu decisión");
+        refrescarTodo();
+        abrirDescartes();               // se redibuja sin el que rescataste
       };
       f.append(t, b); l.appendChild(f);
     });
@@ -2941,6 +2984,14 @@ function abrirDescartes(){
 function cerrarDescartes(){
   document.getElementById("hojaDesc").classList.remove("abierta");
   document.getElementById("fondo").classList.remove("visible");
+}
+
+/* Cuando algo cambia, todo lo que lo muestra se redibuja. Antes cada
+   pantalla se enteraba por su cuenta y quedaban números viejos. */
+function refrescarTodo(){
+  if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
+  dibujar();
+  dibujarChapa();
 }
 
 function abrirHojaChats(){
@@ -3829,7 +3880,7 @@ async function agregar({texto="", ctx=null, origen="escrito", blob=null, nombre=
              transcripcion: transcripcion||"", descripcion:"", sugerido: sugerido||"",
              vence: vence||"", cuandoTexto: cuandoTexto||"", esperandoA: esperandoA||"", esperandoDesde: esperandoA ? new Date().toISOString() : "",
              estadoAudio: esAudio && !transcripcion ? "trabajando" : "" };
-  items.unshift(it); guardar("items",items); dibujar(); medirEspacio();
+  items.unshift(it); guardar("items",items); refrescarTodo(); medirEspacio();
   if(it.estadoAudio==="trabajando") transcribir(it);
   else if(!adjunto && !ctx && it.texto && origen==="escrito" && !sugerido) analizarTexto(it);
   else enviarAlMotor(it);
