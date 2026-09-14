@@ -11,9 +11,24 @@
   "lang": "es",
   "dir": "ltr",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "share_target": {
     "action": "./share",
@@ -26,9 +41,53 @@
       "files": [
         {
           "name": "archivos",
-          "accept": ["image/*", "audio/*", "video/*", "application/pdf", "text/plain"]
+          "accept": [
+            "image/*",
+            "audio/*",
+            "video/*",
+            "application/pdf",
+            "text/plain"
+          ]
         }
       ]
     }
-  }
+  },
+  "shortcuts": [
+    {
+      "name": "Grabar una nota",
+      "short_name": "Grabar",
+      "description": "Habla y yo lo convierto en pendientes",
+      "url": "./?atajo=grabar",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Preguntarle algo",
+      "short_name": "Chat",
+      "description": "Abre la conversación",
+      "url": "./?atajo=chat",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Qué tengo hoy",
+      "short_name": "Hoy",
+      "description": "Tu plan del día",
+      "url": "./?atajo=hoy",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

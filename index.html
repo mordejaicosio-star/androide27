@@ -850,6 +850,23 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 .info-item:last-child{border-block-end:none}
 .info-item .fuente{font-size:12px; color:var(--muted); margin-block-start:4px}
 
+.siguiente{background:var(--surface); border:1px solid var(--line);
+  border-inline-start:3px solid var(--accent); border-radius:16px;
+  padding:15px 16px; margin-block-end:16px}
+.siguiente small{display:block; font-size:10.5px; text-transform:uppercase;
+  letter-spacing:.07em; color:var(--accent); margin-block-end:7px}
+.siguiente .sq{margin:0; font-size:17px; line-height:1.35;
+  font-family:"Frank Ruhl Libre",serif}
+.siguiente .sp{margin:8px 0 0; font-size:13.5px; color:var(--muted); line-height:1.45}
+.siguiente .sc{margin:10px 0 0; font-size:13.5px; padding-inline-start:11px;
+  border-inline-start:2px solid var(--line)}
+.s-acc{display:flex; gap:8px; margin-block-start:14px}
+.s-acc button{border:1px solid var(--line); border-radius:11px; padding:9px 15px;
+  font-size:13.5px; color:var(--muted)}
+.s-acc .principal{background:var(--accent); border-color:var(--accent);
+  color:var(--accent-ink); font-weight:600; flex:1}
+html[data-theme="robot"] .siguiente{border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))}
 .agenda-tog{inline-size:100%; text-align:start; font-size:13.5px; color:var(--muted);
   border:1px dashed var(--line); border-radius:12px; padding:13px 15px;
   margin-block-start:18px}
@@ -976,6 +993,9 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
   letter-spacing:.05em; color:var(--muted); margin-block-end:4px}
 .det-b p{margin:0; font-size:14.5px; line-height:1.5}
 .det-b.accion p{padding-inline-start:12px; border-inline-start:2px solid var(--accent)}
+.det-b.consejo{background:var(--raised); border-radius:12px; padding:12px 14px;
+  margin-block:14px 4px}
+.det-b.consejo p{white-space:pre-wrap}
 .det-acc{display:flex; flex-wrap:wrap; gap:7px; margin-block:18px 14px}
 .det-acc button{display:flex; align-items:center; gap:7px; border:1px solid var(--line);
   border-radius:11px; padding:9px 13px; font-size:13.5px; color:var(--muted)}
@@ -1700,6 +1720,42 @@ function dibujarPanel(){
   const p = document.getElementById("plan"); if(!p) return;
   p.innerHTML = "";
   if(verCalendario) return;   // en modo calendario, la lista no se muestra
+
+  // Lo primero: por dónde empezar. Es lo único que el motor se moja
+  // a recomendar, y por eso va antes que ninguna lista.
+  const sig = resumenActual && resumenDeHoy() ? resumenActual.loSiguiente : null;
+  if(!mundoDelDia && sig && sig.que){
+    const yaHecha = items.some(i => i.hecho && i.texto === sig.que);
+    if(!yaHecha){
+      const caja = document.createElement("div"); caja.className = "siguiente";
+      const et = document.createElement("small"); et.textContent = "Empieza por aquí";
+      const q = document.createElement("p"); q.className = "sq"; q.textContent = sig.que;
+      caja.append(et, q);
+      if(sig.porQue){
+        const p = document.createElement("p"); p.className = "sp"; p.textContent = sig.porQue;
+        caja.appendChild(p);
+      }
+      if(sig.comoEmpezar){
+        const p = document.createElement("p"); p.className = "sc";
+        p.textContent = sig.comoEmpezar; caja.appendChild(p);
+      }
+      const acc = document.createElement("div"); acc.className = "s-acc";
+      const b1 = document.createElement("button"); b1.className = "principal";
+      b1.textContent = "Lo hago ahora";
+      b1.onclick = async () => {
+        const n = await agregar({ texto: sig.que, ctx: null, origen:"del resumen",
+                                  accion: sig.comoEmpezar || "", porQue: sig.porQue || "" });
+        son("guardado"); abrirDetalle(n);
+      };
+      const b2 = document.createElement("button"); b2.textContent = "Ahora no";
+      b2.onclick = () => {
+        ajustes.siguienteFuera = sig.que; guardar("ajustes", ajustes);
+        refrescarTodo(); aviso("Vale, sigo con el resto");
+      };
+      acc.append(b1, b2); caja.appendChild(acc);
+      if(ajustes.siguienteFuera !== sig.que) p.appendChild(caja);
+    }
+  }
 
   // Si hay cosas del correo sin decidir, lo primero es avisarte.
   const porDecidir = mundoDelDia ? 0 : cuantasEnEntrada();
@@ -3022,6 +3078,22 @@ function abrirDetalle(it){
     guardar("items", items); refrescarTodo(); abrirDetalle(it);
     aviso(it.esperandoA ? "En seguimiento" : "Vuelve a ser tuya");
   });
+  bt("¿Cómo lo resuelvo?", "hoy", async () => {
+    const caja = document.createElement("div"); caja.className = "det-b consejo";
+    caja.innerHTML = "<small>Cómo lo resolvería</small><p>Pensando…</p>";
+    acc.parentElement.insertBefore(caja, acc);
+    trabajando(true);
+    const extra = [it.porQue, it.accion, it.transcripcion,
+                   it.de ? "Viene de " + it.de : ""].filter(Boolean).join("\n");
+    const d = await pedirAlMotor("consejo",
+      "&q=" + encodeURIComponent((it.texto||"").slice(0,300)) +
+      "&extra=" + encodeURIComponent(extra.slice(0,800)));
+    trabajando(false);
+    caja.querySelector("p").textContent = d && d.ok
+      ? (d.texto || "No supe qué decirte")
+      : "No pude consultarlo ahora.";
+  });
+
   bt("Hablar de esto", "chat", () => {
     cerrarDetalle();
     const c2 = chatDe(chatActivo) || nuevoChatVacio();
@@ -5231,6 +5303,16 @@ document.getElementById("fab").appendChild(icono("mas", 26));
 setTimeout(() => moverGuia("hoy"), 120);
 window.addEventListener("resize", () => moverGuia(pantallaActual));
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* Atajos: al mantener pulsado el ícono en la pantalla de inicio,
+   Android ofrece estas tres entradas directas. */
+(function atajos(){
+  const a = new URLSearchParams(location.search).get("atajo");
+  if(!a) return;
+  history.replaceState(null, "", location.pathname);
+  if(a === "chat") setTimeout(() => ir("chat"), 300);
+  if(a === "grabar") setTimeout(() => { abrirCaptura(); empezarAGrabar(); }, 600);
+})();
+
 recogerEntrantes();
 if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
 traerResumen(true);
