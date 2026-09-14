@@ -3046,7 +3046,7 @@ function abrirDetalle(it){
     bloque("A la espera", "Depende de " + it.esperandoA +
       (d > 0 ? ". Llevas " + d + (d === 1 ? " día" : " días") + " esperando." : "."));
   }
-  bloque("De dónde salió", [it.de, it.asunto, it.cuenta].filter(Boolean).join("  ·  ") ||
+  bloque("De dónde salió", [it.de, it.asunto, it.cuenta].filter(Boolean).join("\n") ||
     ({ "del audio":"De una nota de voz tuya", "del chat":"Lo pediste en el chat",
        "del resumen":"De tu correo", "compartido":"Lo compartiste desde otra app",
        "escrito":"Lo escribiste tú" }[it.origen] || ""));
@@ -3087,7 +3087,9 @@ function abrirDetalle(it){
                    it.de ? "Viene de " + it.de : ""].filter(Boolean).join("\n");
     const d = await pedirAlMotor("consejo",
       "&q=" + encodeURIComponent((it.texto||"").slice(0,300)) +
-      "&extra=" + encodeURIComponent(extra.slice(0,800)));
+      "&extra=" + encodeURIComponent(extra.slice(0,800)) +
+      "&de=" + encodeURIComponent(it.de || "") +
+      "&asunto=" + encodeURIComponent(it.asunto || ""));
     trabajando(false);
     caja.querySelector("p").textContent = d && d.ok
       ? (d.texto || "No supe qué decirte")
