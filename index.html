@@ -928,31 +928,57 @@ html[data-theme="robot"] .asunto{border-radius:0;
   margin-block-start:16px; font-size:14px; inline-size:100%; text-align:start;
   border-inline-start:3px solid var(--sin)}
 .cuando-resumen{font-size:12.5px; color:var(--muted); margin:0 0 6px}
-.visitas{display:flex; flex-wrap:wrap; gap:6px; margin-block-end:14px}
+.panel-estado{border:1px solid var(--line); border-radius:12px; margin-block-end:14px;
+  overflow:hidden}
+.pe-cab{inline-size:100%; display:flex; align-items:center; gap:10px;
+  padding:10px 13px; text-align:start}
+.pe-t{flex:1; font-size:12px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.05em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pe-mas{inline-size:24px; block-size:24px; border:1px solid var(--line);
+  border-radius:7px; color:var(--muted); font-size:15px; line-height:1;
+  display:grid; place-items:center; flex:none}
+.panel-estado.plegado .visitas{display:none}
+.visitas{display:flex; flex-wrap:wrap; gap:6px; padding:0 13px 12px}
 .visitas span{font-size:11.5px; color:var(--muted); border:1px solid var(--line);
   border-radius:999px; padding:4px 10px}
 .visitas span b{font-weight:600; color:var(--text)}
 .visitas span.viejo{border-color:var(--grand); color:var(--grand)}
 .visitas span.viejo b{color:var(--grand)}
 
-.correo-f{display:flex; gap:10px; align-items:flex-start; padding:11px 2px;
+.bandeja{border:1px solid var(--line); border-radius:12px; margin-block-end:8px;
+  overflow:hidden}
+.bn-cab{inline-size:100%; display:flex; align-items:center; gap:10px;
+  padding:11px 13px; text-align:start}
+.bn-cab b{flex:1; font-size:14px; font-weight:600}
+.bn-n{font-size:11.5px; color:var(--muted)}
+.bn-fle{color:var(--muted); display:grid; place-items:center; transition:transform .2s}
+.bandeja.abierta .bn-fle{transform:rotate(90deg)}
+.bn-cuerpo{padding:0 13px 6px}
+
+.correo-f{display:flex; gap:10px; align-items:flex-start; padding:10px 0;
   border-block-end:1px solid var(--line)}
 .correo-f:last-child{border-block-end:none}
-.punto-leido{inline-size:8px; block-size:8px; border-radius:50%; flex:none;
+.punto-leido{inline-size:7px; block-size:7px; border-radius:50%; flex:none;
   margin-block-start:6px; background:var(--line)}
-.punto-leido.nuevo{background:var(--accent); box-shadow:0 0 8px var(--accent)}
+.punto-leido.nuevo{background:var(--accent); box-shadow:0 0 7px var(--accent)}
 .cf{flex:1; min-width:0}
-.cf b{display:block; font-size:13.5px; overflow:hidden; text-overflow:ellipsis;
-  white-space:nowrap}
-.cf > span{display:block; font-size:12.5px; color:var(--muted); overflow:hidden;
-  text-overflow:ellipsis; white-space:nowrap; margin-block-start:2px}
-.cf-chips{display:flex; gap:5px; flex-wrap:wrap; margin-block-start:6px}
+.cf-l1{display:flex; align-items:baseline; gap:8px}
+.cf-l1 b{flex:1; font-size:13px; font-weight:600; overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap}
+.cf-fecha{font-size:10.5px; color:var(--muted); flex:none}
+.cf-as{display:block; font-size:12.5px; color:var(--muted); margin-block-start:2px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.cf-chips{display:flex; gap:5px; flex-wrap:wrap; margin-block-start:6px;
+  align-items:center}
 .chip-e{font-size:10.5px; border:1px solid var(--line); border-radius:999px;
   padding:2px 8px; color:var(--muted)}
 .chip-e.nuevo{border-color:var(--accent); color:var(--accent)}
 .chip-e.ok{border-color:var(--familia); color:var(--familia)}
 .chip-e.activo{border-color:var(--grand); color:var(--grand)}
-.cf-fecha{font-size:11px; color:var(--muted); flex:none}
+.chip-b{font-size:10.5px; border:1px solid var(--accent); border-radius:999px;
+  padding:3px 10px; color:var(--accent)}
+html[data-theme="robot"] .bandeja, html[data-theme="robot"] .panel-estado{border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))}
 
 /* aviso que te manda a Entrada cuando hay algo esperando */
 .llamada{inline-size:100%; text-align:start; background:var(--surface);
@@ -1077,9 +1103,25 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
 .ea.quitar{color:var(--danger); border-color:var(--danger)}
 .det-b.asunto-b p{display:inline-block; border:1px solid var(--accent);
   border-radius:999px; padding:4px 12px; font-size:13px; color:var(--accent)}
-.det-b.consejo{background:var(--raised); border-radius:12px; padding:12px 14px;
-  margin-block:14px 4px}
-.det-b.consejo p{white-space:pre-wrap}
+.tarea-chat{margin-block:16px 4px; border-block-start:1px solid var(--line);
+  padding-block-start:14px}
+.tarea-chat > small{display:block; font-size:11px; text-transform:uppercase;
+  letter-spacing:.05em; color:var(--muted); margin-block-end:10px}
+.tc-sug{display:flex; gap:6px; flex-wrap:wrap; margin-block-end:10px}
+.tc-sug button{border:1px solid var(--line); border-radius:999px; padding:6px 12px;
+  font-size:12.5px; color:var(--muted)}
+.tc-b{max-inline-size:90%; padding:10px 13px; border-radius:14px; font-size:14px;
+  line-height:1.5; margin-block-end:8px; white-space:pre-wrap}
+.tc-b.yo{margin-inline-start:auto; background:var(--accent); color:var(--accent-ink);
+  border-end-end-radius:5px}
+.tc-b.el{background:var(--raised); border-end-start-radius:5px}
+.tc-b.pensando{color:var(--muted); font-style:italic}
+.tc-caja{display:flex; gap:8px; margin-block-start:10px}
+.tc-caja input{flex:1; background:var(--bg); color:var(--text);
+  border:1px solid var(--line); border-radius:999px; padding:10px 14px;
+  font-family:inherit; font-size:14px}
+.tc-caja button{inline-size:42px; block-size:42px; border-radius:50%; flex:none;
+  background:var(--accent); color:var(--accent-ink); display:grid; place-items:center}
 .det-coste{display:flex; gap:8px; margin-block-end:12px}
 .det-coste span{font-size:11.5px; color:var(--muted); border:1px solid var(--line);
   border-radius:999px; padding:3px 11px}
@@ -1253,8 +1295,13 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <p><b>Nunca más</b> — dejo de traerte cosas parecidas, también las futuras. Reversible en Ajustes.</p>
       <p style="margin-block-start:8px; opacity:.8">Lo que rescates de los descartados aparece aquí, no en tu día: primero decides.</p>
     </div>
-    <p class="cuando-resumen" id="resumenFecha"></p>
-    <div class="visitas" id="visitas"></div>
+    <div class="panel-estado" id="panelEstado">
+      <button class="pe-cab" id="pePlegar">
+        <span class="pe-t" id="resumenFecha"></span>
+        <span class="pe-mas" id="peMas">+</span>
+      </button>
+      <div class="visitas" id="visitas"></div>
+    </div>
     <div id="resumenTexto"></div>
     <div id="ultimos"></div>
   </main>
@@ -3318,76 +3365,131 @@ async function pintarVisitas(){
    cinco últimos de cada una, si ya los leíste en Gmail y si los
    pasaste a tu día o los diste por hechos aquí.
 ==================================================================== */
+let ultimosCache = null;
+let abiertasBandejas = new Set();
+
 async function verUltimos(){
   const c = document.getElementById("ultimos"); if(!c) return;
   c.innerHTML = "";
 
   const tog = document.createElement("button"); tog.className = "agenda-tog";
-  tog.textContent = ajustes.verUltimos ? "▾  Ocultar los últimos correos"
-                                       : "▸  Ver los últimos correos de cada cuenta";
+  tog.textContent = (ajustes.verUltimos ? "−  " : "+  ") + "Tus bandejas, últimos 5 de cada cuenta";
   tog.onclick = () => {
     ajustes.verUltimos = !ajustes.verUltimos; guardar("ajustes", ajustes); verUltimos();
   };
   c.appendChild(tog);
   if(!ajustes.verUltimos) return;
 
-  const cargando = document.createElement("p"); cargando.className = "hint";
-  cargando.textContent = "Mirando tus bandejas…"; c.appendChild(cargando);
-
-  const d = await pedirAlMotor("ultimos");
-  cargando.remove();
-  if(!d || !d.ok){
+  if(!ultimosCache){
     const p = document.createElement("p"); p.className = "hint";
-    p.textContent = "No pude preguntarle al motor."; c.appendChild(p); return;
+    p.textContent = "Mirando tus bandejas…"; c.appendChild(p);
+    const d = await pedirAlMotor("ultimos");
+    p.remove();
+    if(!d || !d.ok){
+      const e = document.createElement("p"); e.className = "hint";
+      e.textContent = "No pude preguntarle al motor."; c.appendChild(e); return;
+    }
+    ultimosCache = d.cuentas || {};
   }
 
   const orden = ["Proserco","Isracap","Isracap Grand","Personal"];
-  const cuentas = d.cuentas || {};
-  Object.keys(cuentas).forEach(k => { if(orden.indexOf(k) === -1) orden.push(k); });
+  Object.keys(ultimosCache).forEach(k => { if(orden.indexOf(k) === -1) orden.push(k); });
+  abiertasBandejas = abiertasBandejas || new Set();
 
   orden.forEach(nombre => {
-    const lista = cuentas[nombre];
-    c.appendChild(seccion(nombre));
-    if(!lista || !lista.length){
-      const v = document.createElement("p"); v.className = "hint";
-      v.textContent = "Sin correos recogidos."; c.appendChild(v); return;
+    const lista = ultimosCache[nombre] || [];
+    const sinTocar = lista.filter(m => !estadoCorreo(m).tocado).length;
+
+    const caja = document.createElement("div");
+    caja.className = "bandeja" + (abiertasBandejas.has(nombre) ? " abierta" : "");
+
+    const cab = document.createElement("button"); cab.className = "bn-cab";
+    const n = document.createElement("b"); n.textContent = nombre;
+    const cuenta = document.createElement("span"); cuenta.className = "bn-n";
+    cuenta.textContent = lista.length ? sinTocar + " sin tocar" : "sin datos";
+    const fle = document.createElement("span"); fle.className = "bn-fle";
+    fle.appendChild(icono("flecha", 13));
+    cab.append(n, cuenta, fle);
+    cab.onclick = () => {
+      abiertasBandejas.has(nombre) ? abiertasBandejas.delete(nombre)
+                                   : abiertasBandejas.add(nombre);
+      son("toque"); verUltimos();
+    };
+    caja.appendChild(cab);
+
+    if(abiertasBandejas.has(nombre)){
+      const cuerpo = document.createElement("div"); cuerpo.className = "bn-cuerpo";
+      if(!lista.length){
+        const v = document.createElement("p"); v.className = "hint";
+        v.textContent = "Sin correos recogidos."; cuerpo.appendChild(v);
+      } else lista.forEach(m => cuerpo.appendChild(filaCorreo(m, nombre)));
+      caja.appendChild(cuerpo);
     }
-    lista.forEach(m => c.appendChild(filaCorreo(m)));
+    c.appendChild(caja);
   });
 }
 
-function filaCorreo(m){
+/* En qué estado está un correo dentro de la app. */
+function estadoCorreo(m){
+  const suyo = items.find(i => (i.asunto && i.asunto === m.asunto) ||
+    (i.texto && m.asunto && i.texto.indexOf(m.asunto) !== -1));
+  if(suyo && suyo.hecho)  return { tocado:true, texto:"hecho", clase:"ok", it:suyo };
+  if(suyo)                return { tocado:true, texto:"en tu día", clase:"activo", it:suyo };
+  if(estaDescartado({ asunto:m.asunto })) return { tocado:true, texto:"descartado", clase:"" };
+  return { tocado:false, texto:"", clase:"" };
+}
+
+function filaCorreo(m, cuenta){
+  const e = estadoCorreo(m);
   const f = document.createElement("div"); f.className = "correo-f";
 
-  const est = document.createElement("span");
-  est.className = "punto-leido" + (m.leido === "sin leer" ? " nuevo" : "");
-  f.appendChild(est);
+  const izq = document.createElement("span");
+  izq.className = "punto-leido" + (m.leido === "sin leer" ? " nuevo" : "");
+  f.appendChild(izq);
 
   const cuerpo = document.createElement("div"); cuerpo.className = "cf";
-  const de = document.createElement("b"); de.textContent = m.de;
-  const as = document.createElement("span"); as.textContent = m.asunto;
-  cuerpo.append(de, as);
-
-  // ¿qué hiciste tú con esto aquí dentro?
-  const suyo = items.find(i => i.asunto === m.asunto ||
-                               (i.texto && m.asunto && i.texto.indexOf(m.asunto) !== -1));
-  const chips = document.createElement("div"); chips.className = "cf-chips";
-  const chip = (t, clase) => {
-    const x = document.createElement("span"); x.className = "chip-e " + (clase||"");
-    x.textContent = t; chips.appendChild(x);
-  };
-  chip(m.leido === "sin leer" ? "sin leer en Gmail" : "leído en Gmail",
-       m.leido === "sin leer" ? "nuevo" : "");
-  if(suyo && suyo.hecho) chip("hecho aquí", "ok");
-  else if(suyo) chip("en tu día", "activo");
-  else if(estaDescartado({ asunto: m.asunto })) chip("descartado", "");
-  else chip("sin tocar", "");
-  cuerpo.appendChild(chips);
-
+  const linea = document.createElement("div"); linea.className = "cf-l1";
+  const de = document.createElement("b"); de.textContent = recortar(m.de, 26);
   const fecha = document.createElement("span"); fecha.className = "cf-fecha";
   fecha.textContent = m.fecha;
+  linea.append(de, fecha);
+  cuerpo.appendChild(linea);
 
-  f.append(cuerpo, fecha);
+  const as = document.createElement("span"); as.className = "cf-as";
+  as.textContent = m.asunto;
+  cuerpo.appendChild(as);
+
+  const chips = document.createElement("div"); chips.className = "cf-chips";
+  if(m.leido === "sin leer"){
+    const x = document.createElement("span"); x.className = "chip-e nuevo";
+    x.textContent = "sin leer"; chips.appendChild(x);
+  }
+  if(e.texto){
+    const x = document.createElement("span"); x.className = "chip-e " + e.clase;
+    x.textContent = e.texto; chips.appendChild(x);
+  }
+
+  // Si no lo has tocado, puedes meterlo en tu día desde aquí mismo.
+  if(!e.tocado){
+    const b = document.createElement("button"); b.className = "chip-b";
+    b.textContent = "A mi día";
+    b.onclick = async ev => {
+      ev.stopPropagation();
+      const n = await agregar({ texto: m.asunto, ctx:null, origen:"del resumen",
+                                de: m.de, asunto: m.asunto, cuenta });
+      son("guardado"); aviso("Pasado a tu día");
+      refrescarTodo(); verUltimos(); abrirDetalle(n);
+    };
+    chips.appendChild(b);
+  } else if(e.it){
+    const b = document.createElement("button"); b.className = "chip-b";
+    b.textContent = "Abrir";
+    b.onclick = ev => { ev.stopPropagation(); abrirDetalle(e.it); };
+    chips.appendChild(b);
+  }
+  cuerpo.appendChild(chips);
+
+  f.appendChild(cuerpo);
   return f;
 }
 
@@ -3545,6 +3647,52 @@ function abrirDetalle(it){
 
   c.appendChild(acc);
 
+  // ---- la conversación sobre esta tarea ----
+  if(it.verChat){
+    const ch = document.createElement("div"); ch.className = "tarea-chat";
+    const h = document.createElement("small");
+    h.textContent = "Hablemos de esto";
+    ch.appendChild(h);
+
+    it.chat = it.chat || [];
+    if(!it.chat.length){
+      const s0 = document.createElement("div"); s0.className = "tc-sug";
+      ["¿Cómo lo resuelvo?", "¿Qué le digo?", "¿Esto es urgente?",
+       "Resúmeme el correo"].forEach(q => {
+        const b = document.createElement("button"); b.textContent = q;
+        b.onclick = () => preguntarTarea(it, q);
+        s0.appendChild(b);
+      });
+      ch.appendChild(s0);
+    }
+
+    it.chat.forEach(m => {
+      const b = document.createElement("div");
+      b.className = "tc-b " + (m.quien === "yo" ? "yo" : "el");
+      b.textContent = m.texto;
+      ch.appendChild(b);
+    });
+
+    if(it.pensando){
+      const b = document.createElement("div"); b.className = "tc-b el pensando";
+      b.textContent = "Pensando…"; ch.appendChild(b);
+    }
+
+    const fila = document.createElement("div"); fila.className = "tc-caja";
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.placeholder = "Pregúntame sobre esta tarea";
+    inp.onkeydown = ev => {
+      if(ev.key === "Enter" && inp.value.trim()) preguntarTarea(it, inp.value.trim());
+    };
+    const env = document.createElement("button");
+    env.appendChild(icono("flecha", 16));
+    env.onclick = () => { if(inp.value.trim()) preguntarTarea(it, inp.value.trim()); };
+    fila.append(inp, env);
+    ch.appendChild(fila);
+
+    c.appendChild(ch);
+  }
+
   // ---- cambiar de mundo ----
   const m = document.createElement("div"); m.className = "det-mundos";
   const h = document.createElement("small"); h.textContent = "Mundo";
@@ -3646,6 +3794,39 @@ function tocarAsunto(id, estado){
     headers:{"Content-Type":"text/plain;charset=utf-8"},
     body: JSON.stringify({ token: ajustes.token, tipo:"tocarAsunto", id, estado }) })
     .catch(() => {});
+}
+
+/* Preguntarle sobre una tarea concreta. La conversación se guarda
+   con la tarea, así que al volver a abrirla sigue ahí. */
+async function preguntarTarea(it, pregunta){
+  it.chat = it.chat || [];
+  it.chat.push({ quien:"yo", texto: pregunta });
+  it.pensando = true; guardar("items", items);
+  abrirDetalle(it);
+  trabajando(true);
+
+  const historia = it.chat.slice(-5, -1)
+    .map(m => (m.quien === "yo" ? "Mordejai: " : "Tú: ") + m.texto).join("\n");
+  const extra = [it.porQue, it.accion, it.transcripcion,
+                 it.asuntoTitulo ? "Forma parte del asunto: " + it.asuntoTitulo : "",
+                 it.vence ? "Vence el " + it.vence : "",
+                 historia ? "CONVERSACIÓN PREVIA:\n" + historia : ""
+                ].filter(Boolean).join("\n");
+
+  const d = await pedirAlMotor("consejo",
+    "&q=" + encodeURIComponent(((it.texto||"") + "\n\nPREGUNTA: " + pregunta).slice(0,600)) +
+    "&extra=" + encodeURIComponent(extra.slice(0,1500)) +
+    "&de=" + encodeURIComponent(it.de || "") +
+    "&asunto=" + encodeURIComponent(it.asunto || ""));
+
+  trabajando(false);
+  it.pensando = false;
+  it.chat.push({ quien:"el", texto: d && d.ok ? (d.texto || "No supe qué decirte")
+                                              : "No pude consultarlo ahora." });
+  it.chat = it.chat.slice(-20);
+  guardar("items", items);
+  son("llega");
+  abrirDetalle(it);
 }
 
 function cerrarDetalle(){
@@ -5210,7 +5391,9 @@ function ir(v){
 }
 
 document.querySelector("nav").onclick=e=>{ const b=e.target.closest("button"); if(b) ir(b.dataset.v); };
-document.getElementById("recargarBtn").onclick = () => { traerResumen(false); pintarVisitas(); };
+document.getElementById("recargarBtn").onclick = () => {
+  ultimosCache = null; traerResumen(false); pintarVisitas(); verUltimos();
+};
 
 document.getElementById("modoLista").appendChild(icono("lista", 17));
 document.getElementById("modoCal").appendChild(icono("calendario", 17));
