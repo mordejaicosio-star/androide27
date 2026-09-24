@@ -415,12 +415,9 @@ h1{font-size:31px; letter-spacing:-.01em}
   font-variant-numeric:tabular-nums; text-transform:none}
 html[data-theme="robot"] .fecha-hora .reloj-vivo{text-shadow:0 0 10px var(--accent); font-size:13px}
 html[data-theme="robot"] .fecha-hora .reloj-vivo::before{content:"▸ "; opacity:.6}
-.reloj-vivo{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  font-size:22px; letter-spacing:.08em; margin:3px 0 0; color:var(--text)}
 .reloj-vivo .seg{color:var(--accent)}
-.reloj-vivo .pp{opacity:.35; animation:latePunto 1s steps(1) infinite}
+.reloj-vivo .pp{font-style:normal; opacity:.35; animation:latePunto 1s steps(1) infinite}
 @keyframes latePunto{50%{opacity:1}}
-html[data-theme="robot"] .reloj-vivo{text-shadow:0 0 12px rgba(53,214,232,.5)}
 @media (prefers-reduced-motion:reduce){.reloj-vivo .pp{animation:none; opacity:.6}}
 
 /* ---------- CAPTURAS ----------------------------------------------- */
@@ -1262,9 +1259,8 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
     </div>
     <div class="fecha-hora">
       <p class="date" id="dateLine"></p>
-      <p class="reloj-vivo"><span id="relojHM">--:--</span><span id="relojS">:--</span></p>
+      <p class="reloj-vivo"><span id="relojHM">--<i class="pp">:</i>--</span><i class="pp">:</i><span class="seg" id="relojS">--</span></p>
     </div>
-    <p class="reloj-vivo" id="relojVivo"></p>
   </header>
 
   <!-- HOY: el plan del día. Lo que tienes que hacer. -->
@@ -6197,12 +6193,15 @@ function pintarRelojVivo(){
 
   // Cada parte se toca solo cuando cambia: antes se reescribía la línea
   // entera cada segundo y eso hacía parpadear la pantalla.
-  const seg = ":" + dd(d.getSeconds());
+  const seg = dd(d.getSeconds());
   const s2 = document.getElementById("relojS");
   if(s2 && s2.textContent !== seg) s2.textContent = seg;
 
   const actual = dd(d.getHours()) + ":" + dd(d.getMinutes());
-  if(actual !== ultimoHM){ ultimoHM = actual; hm.textContent = actual; }
+  if(actual !== ultimoHM){
+    ultimoHM = actual;
+    hm.innerHTML = dd(d.getHours()) + '<i class="pp">:</i>' + dd(d.getMinutes());
+  }
 
   const hoy = d.toDateString();
   if(hoy !== ultimoDia){
@@ -6221,29 +6220,6 @@ document.addEventListener("visibilitychange", () => {
   if(document.hidden) clearInterval(relojTick); else arrancarReloj();
 });
 
-/* El reloj, al segundo. Los dos puntos parpadean, como los de verdad.
-   También mantiene la fecha al día si dejas la app abierta toda la noche. */
-(function reloj(){
-  const el = document.getElementById("relojVivo");
-  if(!el) return;
-  let diaPintado = new Date().getDate();
-
-  const dos = (n) => String(n).padStart(2, "0");
-  const pintar = () => {
-    const d = new Date();
-    el.innerHTML = dos(d.getHours()) + '<span class="pp">:</span>' +
-                   dos(d.getMinutes()) + '<span class="pp">:</span>' +
-                   '<span class="seg">' + dos(d.getSeconds()) + '</span>';
-    if(d.getDate() !== diaPintado){
-      diaPintado = d.getDate();
-      document.getElementById("dateLine").textContent =
-        d.toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
-      dibujarPanel();
-    }
-  };
-  pintar();
-  setInterval(pintar, 1000);
-})();
 pintarNombres(); aplicarTema(); dibujar();
 document.querySelector(".avatar").classList.add("fuera");
 document.querySelectorAll("nav button[data-i]").forEach(b => {
