@@ -2217,9 +2217,10 @@ function aplazar(it){
 /* El número que aparece sobre la pestaña Entrada. */
 function cuantasEnEntrada(){
   if(!resumenActual || !Array.isArray(resumenActual.items)) return 0;
+  const deBandeja = items.filter(i => !i.hecho && i.cuenta && i.asunto).length;
   return resumenActual.items.concat(rescatados)
     .filter(i => i.tipo !== "informativo" && !estaDescartado(i) &&
-                 !items.some(x => x.texto === i.titulo)).length;
+                 !items.some(x => x.texto === i.titulo)).length + deBandeja;
 }
 
 function dibujarChapa(){
@@ -2978,8 +2979,16 @@ function pintarResumen(texto, mensaje){
     fecha.style.color = resumenDeHoy() ? "" : "var(--grand)";
   }
 
-  // A lo que trajo el motor le sumamos lo que rescataste de la papelera.
-  const todos = (datos.items || []).concat(rescatados);
+  // A lo que trajo el motor le sumamos lo que rescataste de la papelera
+  // y lo que tú mismo sacaste de las bandejas: todo lo del correo vive
+  // en esta pantalla, venga de donde venga.
+  const deBandeja = items.filter(i => !i.hecho && i.cuenta && i.asunto)
+    .map(i => ({ titulo: i.texto, mundo: (ctxDe(i.ctx)||{}).nombre || "",
+                 tipo: "accion", porQue: "Lo sacaste tú de la bandeja de " + i.cuenta,
+                 accion: "", de: i.de, asunto: i.asunto, cuenta: i.cuenta,
+                 vence: i.vence || "", prioridad: 2, deTuDia: true, refId: i.id }));
+
+  const todos = (datos.items || []).concat(rescatados, deBandeja);
   const vivos = todos.filter(i => !estaDescartado(i));
   const acciones = vivos.filter(i => i.tipo !== "informativo")
                         .sort((a,b) => (a.prioridad||3) - (b.prioridad||3));
@@ -3046,9 +3055,10 @@ function tarjeta(it){
   d.className = "tarjeta" + ((it.prioridad||3) === 1 ? " p1" : "");
   d.style.setProperty("--m", ctx ? ctx.color : "var(--sin)");
 
-  // Si ya lo pasaste a tu bandeja, esta tarjeta no tiene nada más que
-  // aportar: vive en la Bandeja. Aquí desaparece para no repetirse.
-  if(items.some(i => i.texto === it.titulo)) return null;
+  // Si ya lo pasaste a tu día, esta tarjeta no tiene nada más que
+  // aportar. La excepción es lo que tú mismo sacaste de la bandeja:
+  // eso sí se muestra, para que veas que está recogido.
+  if(!it.deTuDia && items.some(i => i.texto === it.titulo)) return null;
 
   // cabecera al estilo de una bandeja: quién, asunto y cuándo
   const arriba = document.createElement("div"); arriba.className = "arriba";
@@ -3092,6 +3102,16 @@ function tarjeta(it){
   }
 
   const bs = document.createElement("div"); bs.className = "botones";
+
+  if(it.deTuDia){
+    const yaEsta = items.find(i => i.id === it.refId);
+    const b = document.createElement("button"); b.className = "add";
+    b.textContent = "Ya está en tu día · abrir";
+    b.onclick = () => { if(yaEsta) abrirDetalle(yaEsta); };
+    bs.append(b); d.appendChild(bs);
+    return d;
+  }
+
   const add = document.createElement("button");
   add.className = "add"; add.textContent = "Pasar a mi día";
   add.onclick = async () => {
@@ -3189,6 +3209,8 @@ const SUGERENCIAS = [
 function chatDe(id){ return chats.find(c => c.id === id); }
 
 function nuevoChatVacio(){
+  // limpiamos las vacías que quedaron de entradas anteriores
+  chats = chats.filter(x => x.mensajes.length || x.fijada);
   const c = { id:"c" + Date.now(), titulo:"Nueva conversación",
               fijada:false, actualizada:Date.now(), mensajes:[] };
   chats.unshift(c); chatActivo = c.id;
@@ -3475,10 +3497,19 @@ function filaCorreo(m, cuenta){
     b.textContent = "A mi día";
     b.onclick = async ev => {
       ev.stopPropagation();
-      const n = await agregar({ texto: m.asunto, ctx:null, origen:"del resumen",
+      const n = await agregar({ texto: m.asunto, origen:"del resumen",
+                                ctx: MUNDO_DE_CUENTA[cuenta] || null,
+                                sugerido: MUNDO_DE_CUENTA[cuenta] || "",
                                 de: m.de, asunto: m.asunto, cuenta });
-      son("guardado"); aviso("Pasado a tu día");
+      son("guardado");
+      const c0 = ctxDe(n.ctx);
+      aviso("En tu día" + (c0 ? ", en " + c0.nombre : ""));
       refrescarTodo(); verUltimos(); abrirDetalle(n);
+      // y en segundo plano, que lo afine
+      trabajando(true);
+      await clasificarCorreo(n);
+      trabajando(false);
+      if(document.getElementById("hojaDet").classList.contains("abierta")) abrirDetalle(n);
     };
     chips.appendChild(b);
   } else if(e.it){
@@ -3629,13 +3660,8 @@ function abrirDetalle(it){
   bt(it.asuntoId ? "Cambiar de asunto" : "Ponerlo en un asunto", "obra",
      () => elegirAsunto(it));
 
-  bt("Hablar de esto", "chat", () => {
-    cerrarDetalle();
-    const c2 = chatDe(chatActivo) || nuevoChatVacio();
-    document.getElementById("chatInput").value =
-      "Sobre \"" + (it.texto || "").split(" — ")[0] + "\": ";
-    ir("chat");
-    setTimeout(() => document.getElementById("chatInput").focus(), 300);
+  bt(it.verChat ? "Cerrar la charla" : "Hablar de esto", "chat", () => {
+    it.verChat = !it.verChat; guardar("items", items); abrirDetalle(it);
   });
   bt("Borrar", "oculto", () => {
     if(!confirm("¿Borrar esto del todo?")) return;
@@ -5157,6 +5183,57 @@ async function analizarTexto(it){
 
 function hoyISO(){ return new Date().toISOString().slice(0,10); }
 
+/* La cuenta por la que entró ya dice bastante. Es un punto de
+   partida, no una certeza: si Gemini puede afinarlo, lo afina. */
+const MUNDO_DE_CUENTA = {
+  "Proserco": "proserco",
+  "Isracap": "isracap",
+  "Isracap Grand": "grand",
+  "Personal": "personal"
+};
+
+/* Clasificar un correo suelto sin reescribir su texto: solo mundo,
+   fecha y a qué asunto pertenece. */
+async function clasificarCorreo(it){
+  if(!ajustes.gemini) return;
+  try{
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+                (ajustes.modelo || MODELO_POR_DEFECTO) +
+                ":generateContent?key=" + encodeURIComponent(ajustes.gemini);
+    const mundos = CONTEXTOS.map(c => c.id).join("|");
+    const r = await fetch(url, { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ contents:[{ parts:[{ text:
+        "Eres el asistente de Mordejai, que trabaja en Proserco, Isracap e Isracap Grand " +
+        "y tiene esposa y cuatro hijos. Le llegó este correo:\n\n" +
+        "De: " + (it.de || "") + "\nAsunto: " + (it.asunto || it.texto || "") +
+        "\nLlegó a la cuenta: " + (it.cuenta || "") + "\n\n" +
+        "Devuelve SOLO este JSON, sin ``` ni nada más:\n" +
+        '{"texto":"","mundo":"","vence":"","asuntoId":""}\n' +
+        "texto: qué tiene que hacer él con esto, una frase corta empezando por verbo.\n" +
+        "mundo: uno de " + mundos + ". familia = casa, hijos, esposa. " +
+        "proserco, isracap, grand = las tres empresas. personal = suyo. " +
+        "La cuenta de entrada orienta pero no manda: clasifica por contenido.\n" +
+        "vence: AAAA-MM-DD si el asunto menciona un plazo. HOY ES " + hoyISO() + ". " +
+        "Vacío si no hay plazo.\n" +
+        "asuntoId: si encaja con uno de los asuntos de abajo, su id. Vacío si no." +
+        asuntosParaElModelo() }]}]})});
+    if(!r.ok) return;
+    const d = await r.json();
+    const crudo = (((d.candidates||[])[0]||{}).content||{}).parts
+                    ?.map(p=>p.text||"").join(" ").trim() || "";
+    const x = leerJSON(crudo);
+    if(!x) return;
+
+    if(x.texto) it.texto = x.texto;
+    if(mundoValido(x.mundo)){ it.ctx = x.mundo; it.sugerido = x.mundo; }
+    if(x.vence && /^\d{4}-\d{2}-\d{2}$/.test(x.vence)) it.vence = x.vence;
+    if(x.asuntoId){ it.asuntoId = x.asuntoId; it.asuntoTitulo = tituloAsunto(x.asuntoId); }
+    guardar("items", items);
+    enviarAlMotor(it);
+    refrescarTodo();
+  }catch(e){}
+}
+
 function tituloAsunto(id){
   if(!id) return "";
   const a = asuntosCache.find(x => x.id === id);
@@ -5380,7 +5457,14 @@ function ir(v){
   document.getElementById("menuFab").style.display = oculta ? "none" : "flex";
   document.getElementById("chatCaja").classList.toggle("hidden", v!=="chat");
   if(v==="ajustes"){ cerrarMenu(); cerrarCaptura(); medirEspacio(); pintarVoces(); }
-  if(v==="chat"){ dibujarChat(); setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),60); }
+  if(v==="chat"){
+    // Al entrar se empieza en blanco. Los anteriores están a un toque,
+    // en la lista de conversaciones.
+    const actual = chatDe(chatActivo);
+    if(!actual || actual.mensajes.length) nuevoChatVacio();
+    dibujarChat();
+    setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),60);
+  }
   if(v==="hoy") dibujarPanel();
   if(v==="entrada"){
     if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
