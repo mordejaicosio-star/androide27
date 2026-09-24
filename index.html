@@ -409,7 +409,7 @@ h1{font-size:31px; letter-spacing:-.01em}
 .fecha-hora{display:flex; align-items:baseline; gap:12px; flex-wrap:nowrap; min-width:0}
 .date{color:var(--muted); font-size:13px; margin:0; text-transform:capitalize}
 .fecha-hora .date{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
-.fecha-hora .reloj-vivo{margin:0; flex:none; white-space:nowrap;
+.fecha-hora .reloj-vivo{margin:0; flex:none; white-space:nowrap; will-change:contents;
   font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   font-size:13px; line-height:1.3; color:var(--accent); letter-spacing:.06em;
   font-variant-numeric:tabular-nums; text-transform:none}
@@ -1262,7 +1262,7 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
     </div>
     <div class="fecha-hora">
       <p class="date" id="dateLine"></p>
-      <p class="reloj-vivo" id="relojVivo">--:--:--</p>
+      <p class="reloj-vivo"><span id="relojHM">--:--</span><span id="relojS">:--</span></p>
     </div>
     <p class="reloj-vivo" id="relojVivo"></p>
   </header>
@@ -3001,7 +3001,8 @@ function pintarResumen(texto, mensaje){
     caja.appendChild(v); dibujarCabecera(); dibujarChapa(); return;
   }
 
-  const pendientesDeVer = acciones.filter(i => !items.some(x => x.texto === i.titulo));
+  const pendientesDeVer = acciones.filter(i =>
+    i.deTuDia || !items.some(x => x.texto === i.titulo));
 
   if(acciones.length && !pendientesDeVer.length){
     const v = document.createElement("button"); v.className = "llamada";
@@ -3045,8 +3046,15 @@ function seccion(titulo){
   s.appendChild(h); return s;
 }
 
+function texto(x){
+  if(x === null || x === undefined) return "";
+  if(typeof x === "string") return x;
+  if(typeof x === "object") return x.titulo || x.texto || x.nombre || "";
+  return String(x);
+}
+
 function fuenteDe(it){
-  return [it.de, it.asunto, it.cuenta].filter(Boolean).join("  ·  ");
+  return [texto(it.de), texto(it.asunto), texto(it.cuenta)].filter(Boolean).join("  ·  ");
 }
 
 function tarjeta(it){
@@ -3064,12 +3072,12 @@ function tarjeta(it){
   const arriba = document.createElement("div"); arriba.className = "arriba";
 
   const circulo = document.createElement("span"); circulo.className = "remitente";
-  circulo.textContent = (it.de || "?").trim().charAt(0).toUpperCase();
+  circulo.textContent = (texto(it.de) || "?").trim().charAt(0).toUpperCase();
   arriba.appendChild(circulo);
 
   const quien = document.createElement("span"); quien.className = "quien";
-  const n1 = document.createElement("b"); n1.textContent = it.de || "Sin remitente";
-  const n2 = document.createElement("small"); n2.textContent = it.asunto || "";
+  const n1 = document.createElement("b"); n1.textContent = texto(it.de) || "Sin remitente";
+  const n2 = document.createElement("small"); n2.textContent = texto(it.asunto);
   quien.append(n1, n2);
   arriba.appendChild(quien);
 
@@ -3123,8 +3131,8 @@ function tarjeta(it){
                                   porQue: it.porQue || "", accion: it.accion || "",
                                   de: it.de || "", asunto: it.asunto || "",
                                   cuenta: it.cuenta || "",
-                                  asuntoId: (it.asunto && it.asunto.id) || "",
-                                  asuntoTitulo: (it.asunto && (it.asunto.titulo || "")) || "",
+                                  asuntoId: (it.asuntoRel && it.asuntoRel.id) || "",
+                                  asuntoTitulo: (it.asuntoRel && (it.asuntoRel.titulo || "")) || "",
                                   minutos: it.minutos || 0, energia: it.energia || "" });
     refrescarTodo();
     avisoConDeshacer("Pasado a " + (ctx ? ctx.nombre : "pendientes"), () => {
@@ -3389,9 +3397,14 @@ async function pintarVisitas(){
 ==================================================================== */
 let ultimosCache = null;
 let abiertasBandejas = new Set();
+let turnoUltimos = 0;   // para que solo pinte la última llamada
 
 async function verUltimos(){
   const c = document.getElementById("ultimos"); if(!c) return;
+  // Si entran varias llamadas a la vez (entrar a la pestaña, actualizar,
+  // plegar), solo la última tiene derecho a pintar. Antes se sumaban
+  // todas y la lista salía triplicada.
+  const turno = ++turnoUltimos;
   c.innerHTML = "";
 
   const tog = document.createElement("button"); tog.className = "agenda-tog";
@@ -3411,8 +3424,11 @@ async function verUltimos(){
       const e = document.createElement("p"); e.className = "hint";
       e.textContent = "No pude preguntarle al motor."; c.appendChild(e); return;
     }
+    if(turno !== turnoUltimos) return;
     ultimosCache = d.cuentas || {};
   }
+  if(turno !== turnoUltimos) return;
+  c.innerHTML = "";
 
   const orden = ["Proserco","Isracap","Isracap Grand","Personal"];
   Object.keys(ultimosCache).forEach(k => { if(orden.indexOf(k) === -1) orden.push(k); });
@@ -6173,16 +6189,27 @@ document.getElementById("dateLine").textContent =
 /* El reloj corre de verdad, segundo a segundo. Cuando la app está
    en segundo plano se para, porque nadie lo está mirando. */
 let relojTick = null;
+let ultimoHM = "", ultimoDia = "";
 function pintarRelojVivo(){
-  const r = document.getElementById("relojVivo"); if(!r) return;
+  const hm = document.getElementById("relojHM"); if(!hm) return;
   const d = new Date();
   const dd = n => String(n).padStart(2, "0");
-  r.textContent = dd(d.getHours()) + ":" + dd(d.getMinutes()) + ":" + dd(d.getSeconds());
 
-  // a medianoche, la fecha también cambia
-  const hoy = d.toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
-  const f = document.getElementById("dateLine");
-  if(f && f.textContent !== hoy) f.textContent = hoy;
+  // Cada parte se toca solo cuando cambia: antes se reescribía la línea
+  // entera cada segundo y eso hacía parpadear la pantalla.
+  const seg = ":" + dd(d.getSeconds());
+  const s2 = document.getElementById("relojS");
+  if(s2 && s2.textContent !== seg) s2.textContent = seg;
+
+  const actual = dd(d.getHours()) + ":" + dd(d.getMinutes());
+  if(actual !== ultimoHM){ ultimoHM = actual; hm.textContent = actual; }
+
+  const hoy = d.toDateString();
+  if(hoy !== ultimoDia){
+    ultimoDia = hoy;
+    const f = document.getElementById("dateLine");
+    if(f) f.textContent = d.toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+  }
 }
 function arrancarReloj(){
   pintarRelojVivo();
