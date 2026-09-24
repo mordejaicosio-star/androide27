@@ -406,19 +406,23 @@ header{padding-block:22px 6px}
 .icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px;
   line-height:0; display:grid; place-items:center}
 h1{font-size:31px; letter-spacing:-.01em}
-.fecha-hora{display:flex; align-items:baseline; gap:12px; flex-wrap:nowrap; min-width:0}
+.fecha-hora{display:block}
 .date{color:var(--muted); font-size:13px; margin:0; text-transform:capitalize}
 .fecha-hora .date{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
-.fecha-hora .reloj-vivo{margin:0; flex:none; white-space:nowrap; will-change:contents;
+/* El reloj va en su propia línea, bajo la fecha: junto a ella no cabe
+   y los segundos acababan cayendo solos al renglón siguiente. */
+header .fecha-hora .reloj-vivo{
+  display:block; margin:4px 0 0; white-space:nowrap; will-change:contents;
   font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  font-size:13px; line-height:1.3; color:var(--accent); letter-spacing:.06em;
+  font-size:15px; line-height:1.2; color:var(--accent); letter-spacing:.14em;
   font-variant-numeric:tabular-nums; text-transform:none}
-html[data-theme="robot"] .fecha-hora .reloj-vivo{text-shadow:0 0 10px var(--accent); font-size:13px}
-html[data-theme="robot"] .fecha-hora .reloj-vivo::before{content:"▸ "; opacity:.6}
-.reloj-vivo .seg{color:var(--accent)}
-.reloj-vivo .pp{font-style:normal; opacity:.35; animation:latePunto 1s steps(1) infinite}
+html[data-theme="robot"] header .fecha-hora .reloj-vivo{text-shadow:0 0 10px var(--accent)}
+html[data-theme="robot"] header .fecha-hora .reloj-vivo::before{content:"▸ "; opacity:.5}
+header .fecha-hora .reloj-vivo .seg{color:var(--accent)}
+header .fecha-hora .reloj-vivo .pp{font-style:normal; opacity:.35;
+  animation:latePunto 1s steps(1) infinite}
 @keyframes latePunto{50%{opacity:1}}
-@media (prefers-reduced-motion:reduce){.reloj-vivo .pp{animation:none; opacity:.6}}
+@media (prefers-reduced-motion:reduce){header .fecha-hora .reloj-vivo .pp{animation:none; opacity:.6}}
 
 /* ---------- CAPTURAS ----------------------------------------------- */
 .group-label{font-size:13px; color:var(--muted); margin-block:24px 8px;
