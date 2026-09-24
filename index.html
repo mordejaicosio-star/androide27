@@ -406,7 +406,19 @@ header{padding-block:22px 6px}
 .icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px;
   line-height:0; display:grid; place-items:center}
 h1{font-size:31px; letter-spacing:-.01em}
+.fecha-hora{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
 .date{color:var(--muted); font-size:13px; margin:0; text-transform:capitalize}
+.reloj-vivo{margin:0; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:13px; color:var(--accent); letter-spacing:.08em; font-variant-numeric:tabular-nums}
+html[data-theme="robot"] .reloj-vivo{text-shadow:0 0 10px var(--accent)}
+html[data-theme="robot"] .reloj-vivo::before{content:"▸ "; opacity:.6}
+.reloj-vivo{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:22px; letter-spacing:.08em; margin:3px 0 0; color:var(--text)}
+.reloj-vivo .seg{color:var(--accent)}
+.reloj-vivo .pp{opacity:.35; animation:latePunto 1s steps(1) infinite}
+@keyframes latePunto{50%{opacity:1}}
+html[data-theme="robot"] .reloj-vivo{text-shadow:0 0 12px rgba(53,214,232,.5)}
+@media (prefers-reduced-motion:reduce){.reloj-vivo .pp{animation:none; opacity:.6}}
 
 /* ---------- CAPTURAS ----------------------------------------------- */
 .group-label{font-size:13px; color:var(--muted); margin-block:24px 8px;
@@ -846,8 +858,16 @@ main.entrando-der{animation:entraDer .24s cubic-bezier(.2,.8,.2,1) both}
 .tarjeta.hecha .add{background:var(--m); border-color:var(--m); color:#fff}
 
 /* informativos: más discretos, plegados */
-.leyenda{border:1px dashed var(--line); border-radius:12px; padding:12px 14px;
-  margin-block-end:16px}
+.leyenda{position:relative; border:1px dashed var(--line); border-radius:12px;
+  padding:12px 38px 12px 14px; margin-block-end:16px}
+.leyenda .titulo-plegado{display:none; font-size:12.5px; color:var(--muted); margin:0}
+.leyenda.plegada{padding-block:9px}
+.leyenda.plegada p{display:none}
+.leyenda.plegada .titulo-plegado{display:block}
+.plegar{position:absolute; inset-block-start:5px; inset-inline-end:5px;
+  inline-size:28px; block-size:28px; border-radius:8px; color:var(--muted);
+  font-size:18px; line-height:1; display:grid; place-items:center;
+  border:1px solid var(--line)}
 .leyenda p{margin:0 0 6px; font-size:12.5px; color:var(--muted); line-height:1.45}
 .leyenda p:last-child{margin-block-end:0}
 .leyenda b{color:var(--text); font-weight:600}
@@ -1176,7 +1196,11 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <span class="brand-name" id="brandName">Androide 27</span>
       <button class="icon-btn" id="buscarBtn" aria-label="Buscar"></button>
     </div>
-    <p class="date" id="dateLine"></p>
+    <div class="fecha-hora">
+      <p class="date" id="dateLine"></p>
+      <p class="reloj-vivo" id="relojVivo">--:--:--</p>
+    </div>
+    <p class="reloj-vivo" id="relojVivo"></p>
   </header>
 
   <!-- HOY: el plan del día. Lo que tienes que hacer. -->
@@ -1199,7 +1223,9 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
       <h3>Sin decidir</h3>
       <button class="recargar" id="recargarBtn">Actualizar</button>
     </div>
-    <div class="leyenda">
+    <div class="leyenda" id="leyendaEntrada">
+      <button class="plegar" id="cerrarLeyenda" aria-label="Plegar">−</button>
+      <p class="titulo-plegado">Qué hace cada botón</p>
       <p><b>Pasar a mi día</b> — se convierte en tarea tuya y aparece en Hoy.</p>
       <p><b>Hoy no</b> — lo quito de tu vista. El correo sigue intacto y puede volver a salir si cambia algo.</p>
       <p><b>Nunca más</b> — dejo de traerte cosas parecidas, también las futuras. Reversible en Ajustes.</p>
@@ -1867,15 +1893,26 @@ function dibujarPanel(){
   // vive detrás de "Ver los próximos días", para no llenar la pantalla
   // con cosas que todavía no te tocan.
   // La primera vez conviene decir qué hace cada gesto.
-  if(!ajustes.vistoGestos){
-    const g = document.createElement("div"); g.className = "leyenda";
-    g.innerHTML = "<p><b>Toca</b> una línea o <b>deslízala a la derecha</b> para marcarla hecha.</p>" +
-                  "<p><b>Deslízala a la izquierda</b> para aplazarla un día.</p>" +
-                  "<p>Todo se puede deshacer durante diez segundos.</p>";
-    const ok = document.createElement("button"); ok.className = "ghost";
-    ok.style.marginBlockStart = "8px"; ok.textContent = "Entendido";
-    ok.onclick = () => { ajustes.vistoGestos = true; guardar("ajustes", ajustes); dibujarPanel(); };
-    g.appendChild(ok);
+  {
+    const g = document.createElement("div");
+    g.className = "leyenda" + (ajustes.vistoGestos ? " plegada" : "");
+    g.innerHTML =
+      '<p class="titulo-plegado">Cómo se manejan las tareas</p>' +
+      "<p><b>Toca</b> una línea para abrirla, o <b>deslízala a la derecha</b> para marcarla hecha.</p>" +
+      "<p><b>Deslízala a la izquierda</b> para aplazarla un día.</p>" +
+      "<p>El círculo de la izquierda también la tacha. Todo se deshace durante tres segundos.</p>";
+
+    const cx = document.createElement("button"); cx.className = "plegar";
+    cx.textContent = ajustes.vistoGestos ? "+" : "−";
+    cx.setAttribute("aria-label", ajustes.vistoGestos ? "Desplegar" : "Plegar");
+    cx.onclick = ev => {
+      ev.stopPropagation();
+      ajustes.vistoGestos = !ajustes.vistoGestos; guardar("ajustes", ajustes); dibujarPanel();
+    };
+    g.appendChild(cx);
+    g.onclick = () => {
+      if(ajustes.vistoGestos){ ajustes.vistoGestos = false; guardar("ajustes", ajustes); dibujarPanel(); }
+    };
     p.appendChild(g);
   }
 
@@ -2175,7 +2212,17 @@ function cFilTitular(){
   // te estaría contando cosas que ya pasaron o que ya resolviste.
   if(resumenActual && resumenActual.titular && resumenDeHoy())
     return resumenActual.titular;
-  return new Date().toLocaleDateString("es",{weekday:"long", day:"numeric", month:"long"});
+
+  // Sin repaso de hoy, la fecha ya está arriba: mejor decir algo útil.
+  const pend = items.filter(i => !i.hecho && !i.esFuente);
+  const vencidas = pend.filter(i => !i.esperandoA && cajonDe(i) === 0).length;
+  if(vencidas) return vencidas === 1
+    ? "Tienes una cosa vencida esperándote."
+    : "Tienes " + vencidas + " cosas vencidas esperándote.";
+  if(pend.length) return pend.length === 1
+    ? "Una cosa pendiente, y el correo sin revisar todavía."
+    : pend.length + " cosas pendientes, y el correo sin revisar todavía.";
+  return "Todavía no he revisado tu correo hoy.";
 }
 
 /* ¿El repaso que tenemos guardado es de hoy? */
@@ -2820,10 +2867,36 @@ function pintarResumen(texto, mensaje){
 
   const datos = leerJSON(texto);
   if(!datos || !Array.isArray(datos.items)){
+    // Nunca volcamos el texto crudo en pantalla: si no lo entendemos,
+    // lo decimos y damos una salida.
     const p = document.createElement("p"); p.className = "vacio-hoy";
-    p.style.whiteSpace = "pre-wrap";
-    p.textContent = texto;      // formato antiguo, se muestra tal cual
-    caja.appendChild(p); return;
+    p.textContent = "El último repaso llegó ilegible, así que no puedo mostrártelo. " +
+                    "Suele pasar cuando la respuesta se corta. Pide otro y debería salir bien.";
+    caja.appendChild(p);
+
+    const b = document.createElement("button"); b.className = "ghost";
+    b.style.marginBlockStart = "12px"; b.textContent = "Pedir otro repaso";
+    b.onclick = () => traerResumen(false);
+    caja.appendChild(b);
+
+    const v = document.createElement("button"); v.className = "agenda-tog";
+    v.textContent = "▸  Ver lo que llegó (para depurar)";
+    v.onclick = () => {
+      const pre = document.createElement("p");
+      pre.className = "hint"; pre.style.whiteSpace = "pre-wrap";
+      pre.style.maxBlockSize = "40vh"; pre.style.overflowY = "auto";
+      pre.textContent = String(texto).slice(0, 4000);
+      v.replaceWith(pre);
+    };
+    caja.appendChild(v);
+    dibujarCabecera(); return;
+  }
+
+  if(datos.recortado){
+    const a = document.createElement("p"); a.className = "hint";
+    a.style.color = "var(--grand)"; a.style.marginBlockEnd = "10px";
+    a.textContent = "⚠ El repaso llegó cortado y rescaté lo que pude. Puede faltar algo.";
+    caja.appendChild(a);
   }
 
   resumenActual = datos;
@@ -4905,12 +4978,46 @@ function mundoValido(m){
 /* A veces el modelo envuelve el JSON en ``` aunque le digas que no.
    Esta función lo limpia antes de leerlo. */
 function leerJSON(txt){
+  const limpio = String(txt || "").replace(/```json|```/g, "").trim();
+  const desde = limpio.indexOf("{");
+  if(desde < 0) return null;
+
+  // 1. Lo normal: viene entero.
   try{
-    const limpio = txt.replace(/```json|```/g, "").trim();
-    const desde = limpio.indexOf("{"), hasta = limpio.lastIndexOf("}");
-    if(desde < 0 || hasta < 0) return null;
-    return JSON.parse(limpio.slice(desde, hasta+1));
-  }catch(e){ return null; }
+    const hasta = limpio.lastIndexOf("}");
+    if(hasta > desde) return JSON.parse(limpio.slice(desde, hasta + 1));
+  }catch(e){}
+
+  // 2. Se cortó a mitad. Rescatamos los elementos completos de "items"
+  //    y cerramos lo que falta, para no perder todo el repaso por una
+  //    frase truncada.
+  try{ return repararJSON(limpio.slice(desde)); }
+  catch(e){ return null; }
+}
+
+function repararJSON(t){
+  // cortamos por el último elemento de la lista que esté bien cerrado
+  const marca = t.lastIndexOf("},");
+  if(marca < 0) return null;
+  let base = t.slice(0, marca + 1);
+
+  // cerramos corchetes y llaves que quedaron abiertos
+  let llaves = 0, corchetes = 0, dentro = false, escapa = false;
+  for(let i = 0; i < base.length; i++){
+    const c = base[i];
+    if(escapa){ escapa = false; continue; }
+    if(c === "\\"){ escapa = true; continue; }
+    if(c === '"') dentro = !dentro;
+    if(dentro) continue;
+    if(c === "{") llaves++;
+    if(c === "}") llaves--;
+    if(c === "[") corchetes++;
+    if(c === "]") corchetes--;
+  }
+  base += "]".repeat(Math.max(0, corchetes)) + "}".repeat(Math.max(0, llaves));
+  const d = JSON.parse(base);
+  if(d && Array.isArray(d.items)) d.recortado = true;
+  return d;
 }
 
 function aBase64(blob){
@@ -5528,6 +5635,25 @@ async function verSugerencias(){
 }
 document.getElementById("verSug").onclick = verSugerencias;
 document.getElementById("cerrarDesc").onclick = cerrarDescartes;
+
+/* Los cuadros de ayuda se pueden ocultar, y vuelven con un botón
+   pequeño. Explicar está bien la primera semana; después estorba. */
+/* Los cuadros de ayuda se pliegan a una sola línea. No se borran:
+   siguen ahí, ocupando lo mínimo, y se abren tocándolos. */
+function pintarLeyenda(){
+  const l = document.getElementById("leyendaEntrada");
+  const plegada = !!ajustes.sinLeyenda;
+  l.classList.toggle("plegada", plegada);
+  document.getElementById("cerrarLeyenda").textContent = plegada ? "+" : "−";
+}
+document.getElementById("cerrarLeyenda").onclick = e => {
+  e.stopPropagation();
+  ajustes.sinLeyenda = !ajustes.sinLeyenda; guardar("ajustes", ajustes); pintarLeyenda();
+};
+document.getElementById("leyendaEntrada").onclick = () => {
+  if(ajustes.sinLeyenda){ ajustes.sinLeyenda = false; guardar("ajustes", ajustes); pintarLeyenda(); }
+};
+pintarLeyenda();
 document.getElementById("cerrarDet").onclick = cerrarDetalle;
 document.getElementById("cerrarChats").onclick = cerrarHojaChats;
 
@@ -5673,6 +5799,54 @@ function aviso(msg){
 
 document.getElementById("dateLine").textContent =
   new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+
+/* El reloj corre de verdad, segundo a segundo. Cuando la app está
+   en segundo plano se para, porque nadie lo está mirando. */
+let relojTick = null;
+function pintarRelojVivo(){
+  const r = document.getElementById("relojVivo"); if(!r) return;
+  const d = new Date();
+  const dd = n => String(n).padStart(2, "0");
+  r.textContent = dd(d.getHours()) + ":" + dd(d.getMinutes()) + ":" + dd(d.getSeconds());
+
+  // a medianoche, la fecha también cambia
+  const hoy = d.toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+  const f = document.getElementById("dateLine");
+  if(f && f.textContent !== hoy) f.textContent = hoy;
+}
+function arrancarReloj(){
+  pintarRelojVivo();
+  clearInterval(relojTick);
+  relojTick = setInterval(pintarRelojVivo, 1000);
+}
+arrancarReloj();
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden) clearInterval(relojTick); else arrancarReloj();
+});
+
+/* El reloj, al segundo. Los dos puntos parpadean, como los de verdad.
+   También mantiene la fecha al día si dejas la app abierta toda la noche. */
+(function reloj(){
+  const el = document.getElementById("relojVivo");
+  if(!el) return;
+  let diaPintado = new Date().getDate();
+
+  const dos = (n) => String(n).padStart(2, "0");
+  const pintar = () => {
+    const d = new Date();
+    el.innerHTML = dos(d.getHours()) + '<span class="pp">:</span>' +
+                   dos(d.getMinutes()) + '<span class="pp">:</span>' +
+                   '<span class="seg">' + dos(d.getSeconds()) + '</span>';
+    if(d.getDate() !== diaPintado){
+      diaPintado = d.getDate();
+      document.getElementById("dateLine").textContent =
+        d.toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+      dibujarPanel();
+    }
+  };
+  pintar();
+  setInterval(pintar, 1000);
+})();
 pintarNombres(); aplicarTema(); dibujar();
 document.querySelector(".avatar").classList.add("fuera");
 document.querySelectorAll("nav button[data-i]").forEach(b => {
