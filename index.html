@@ -406,12 +406,15 @@ header{padding-block:22px 6px}
 .icon-btn{color:var(--muted); padding:6px; border-radius:8px; font-size:19px;
   line-height:0; display:grid; place-items:center}
 h1{font-size:31px; letter-spacing:-.01em}
-.fecha-hora{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+.fecha-hora{display:flex; align-items:baseline; gap:12px; flex-wrap:nowrap; min-width:0}
 .date{color:var(--muted); font-size:13px; margin:0; text-transform:capitalize}
-.reloj-vivo{margin:0; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  font-size:13px; color:var(--accent); letter-spacing:.08em; font-variant-numeric:tabular-nums}
-html[data-theme="robot"] .reloj-vivo{text-shadow:0 0 10px var(--accent)}
-html[data-theme="robot"] .reloj-vivo::before{content:"▸ "; opacity:.6}
+.fecha-hora .date{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
+.fecha-hora .reloj-vivo{margin:0; flex:none; white-space:nowrap;
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  font-size:13px; line-height:1.3; color:var(--accent); letter-spacing:.06em;
+  font-variant-numeric:tabular-nums; text-transform:none}
+html[data-theme="robot"] .fecha-hora .reloj-vivo{text-shadow:0 0 10px var(--accent); font-size:13px}
+html[data-theme="robot"] .fecha-hora .reloj-vivo::before{content:"▸ "; opacity:.6}
 .reloj-vivo{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   font-size:22px; letter-spacing:.08em; margin:3px 0 0; color:var(--text)}
 .reloj-vivo .seg{color:var(--accent)}
@@ -932,6 +935,25 @@ html[data-theme="robot"] .asunto{border-radius:0;
 .visitas span.viejo{border-color:var(--grand); color:var(--grand)}
 .visitas span.viejo b{color:var(--grand)}
 
+.correo-f{display:flex; gap:10px; align-items:flex-start; padding:11px 2px;
+  border-block-end:1px solid var(--line)}
+.correo-f:last-child{border-block-end:none}
+.punto-leido{inline-size:8px; block-size:8px; border-radius:50%; flex:none;
+  margin-block-start:6px; background:var(--line)}
+.punto-leido.nuevo{background:var(--accent); box-shadow:0 0 8px var(--accent)}
+.cf{flex:1; min-width:0}
+.cf b{display:block; font-size:13.5px; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap}
+.cf > span{display:block; font-size:12.5px; color:var(--muted); overflow:hidden;
+  text-overflow:ellipsis; white-space:nowrap; margin-block-start:2px}
+.cf-chips{display:flex; gap:5px; flex-wrap:wrap; margin-block-start:6px}
+.chip-e{font-size:10.5px; border:1px solid var(--line); border-radius:999px;
+  padding:2px 8px; color:var(--muted)}
+.chip-e.nuevo{border-color:var(--accent); color:var(--accent)}
+.chip-e.ok{border-color:var(--familia); color:var(--familia)}
+.chip-e.activo{border-color:var(--grand); color:var(--grand)}
+.cf-fecha{font-size:11px; color:var(--muted); flex:none}
+
 /* aviso que te manda a Entrada cuando hay algo esperando */
 .llamada{inline-size:100%; text-align:start; background:var(--surface);
   border:1px solid var(--line); border-inline-start:3px solid var(--accent);
@@ -1234,6 +1256,7 @@ html[data-theme="robot"] .menu-chat .mi{border-radius:3px}
     <p class="cuando-resumen" id="resumenFecha"></p>
     <div class="visitas" id="visitas"></div>
     <div id="resumenTexto"></div>
+    <div id="ultimos"></div>
   </main>
 
   <!-- BANDEJA: todo lo tuyo, con filtros. -->
@@ -3290,6 +3313,85 @@ async function pintarVisitas(){
 }
 
 /* ====================================================================
+   Los últimos correos de cada cuenta
+   Para poder contrastar lo que te digo con tu bandeja de verdad: los
+   cinco últimos de cada una, si ya los leíste en Gmail y si los
+   pasaste a tu día o los diste por hechos aquí.
+==================================================================== */
+async function verUltimos(){
+  const c = document.getElementById("ultimos"); if(!c) return;
+  c.innerHTML = "";
+
+  const tog = document.createElement("button"); tog.className = "agenda-tog";
+  tog.textContent = ajustes.verUltimos ? "▾  Ocultar los últimos correos"
+                                       : "▸  Ver los últimos correos de cada cuenta";
+  tog.onclick = () => {
+    ajustes.verUltimos = !ajustes.verUltimos; guardar("ajustes", ajustes); verUltimos();
+  };
+  c.appendChild(tog);
+  if(!ajustes.verUltimos) return;
+
+  const cargando = document.createElement("p"); cargando.className = "hint";
+  cargando.textContent = "Mirando tus bandejas…"; c.appendChild(cargando);
+
+  const d = await pedirAlMotor("ultimos");
+  cargando.remove();
+  if(!d || !d.ok){
+    const p = document.createElement("p"); p.className = "hint";
+    p.textContent = "No pude preguntarle al motor."; c.appendChild(p); return;
+  }
+
+  const orden = ["Proserco","Isracap","Isracap Grand","Personal"];
+  const cuentas = d.cuentas || {};
+  Object.keys(cuentas).forEach(k => { if(orden.indexOf(k) === -1) orden.push(k); });
+
+  orden.forEach(nombre => {
+    const lista = cuentas[nombre];
+    c.appendChild(seccion(nombre));
+    if(!lista || !lista.length){
+      const v = document.createElement("p"); v.className = "hint";
+      v.textContent = "Sin correos recogidos."; c.appendChild(v); return;
+    }
+    lista.forEach(m => c.appendChild(filaCorreo(m)));
+  });
+}
+
+function filaCorreo(m){
+  const f = document.createElement("div"); f.className = "correo-f";
+
+  const est = document.createElement("span");
+  est.className = "punto-leido" + (m.leido === "sin leer" ? " nuevo" : "");
+  f.appendChild(est);
+
+  const cuerpo = document.createElement("div"); cuerpo.className = "cf";
+  const de = document.createElement("b"); de.textContent = m.de;
+  const as = document.createElement("span"); as.textContent = m.asunto;
+  cuerpo.append(de, as);
+
+  // ¿qué hiciste tú con esto aquí dentro?
+  const suyo = items.find(i => i.asunto === m.asunto ||
+                               (i.texto && m.asunto && i.texto.indexOf(m.asunto) !== -1));
+  const chips = document.createElement("div"); chips.className = "cf-chips";
+  const chip = (t, clase) => {
+    const x = document.createElement("span"); x.className = "chip-e " + (clase||"");
+    x.textContent = t; chips.appendChild(x);
+  };
+  chip(m.leido === "sin leer" ? "sin leer en Gmail" : "leído en Gmail",
+       m.leido === "sin leer" ? "nuevo" : "");
+  if(suyo && suyo.hecho) chip("hecho aquí", "ok");
+  else if(suyo) chip("en tu día", "activo");
+  else if(estaDescartado({ asunto: m.asunto })) chip("descartado", "");
+  else chip("sin tocar", "");
+  cuerpo.appendChild(chips);
+
+  const fecha = document.createElement("span"); fecha.className = "cf-fecha";
+  fecha.textContent = m.fecha;
+
+  f.append(cuerpo, fecha);
+  return f;
+}
+
+/* ====================================================================
    Qué se quedó fuera
    Descartar sin poder revisar es pedirte fe ciega. Aquí está todo lo
    que tiré, con su motivo, y puedes rescatar lo que haga falta.
@@ -5102,6 +5204,7 @@ function ir(v){
   if(v==="entrada"){
     if(ajustes.ultimoResumen) pintarResumen(ajustes.ultimoResumen, null);
     pintarVisitas();
+    verUltimos();
   }
   window.scrollTo(0,0);
 }
